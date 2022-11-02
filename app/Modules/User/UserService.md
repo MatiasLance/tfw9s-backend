@@ -1,0 +1,5 @@
+# User Service
+User service is responsible for the user accounts, which as the time of this writing only involves admins. Customers cannot create accounts, however this service is structured with user's able to create own accounts in mind. Therefore, the `User` model will have a `role` column which will differentiate admins from users. This will be hardcoded to `admin` role for the moment and will be changeable in the future when the client wants to have users be able to create accounts.
+
+## Role Enums
+Since the `User` model will have a role column with strict values that dictate what the user can or cannot do, the User Service will have a class role enums. This class will store the available types of roles and its values. This will be a master file wherein all entities that will deal with user roles and permission will adhere for the list of possbile roles.

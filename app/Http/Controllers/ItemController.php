@@ -1,0 +1,192 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Item;
+use App\Modules\Http\Message;
+use App\Modules\Item\ItemServiceInterface;
+use Illuminate\Http\Request;
+
+class ItemController extends Controller
+{
+    protected ItemServiceInterface $itemService;
+
+    public function __construct(ItemServiceInterface $itemService)
+    {
+        $this->itemService = $itemService;
+    }
+
+    public function list(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $category = $request->query('category', null);
+        $tag = $request->query('tags', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+
+        $filter = [
+            'q' => $query,
+            'category' => $category,
+            'tag' => $tag,
+            'sort' => $sort,
+            'page' => $page,
+        ];
+
+        $paginatedItems = $this->itemService->listItems($filter);
+
+        $message->setContent(200, 'Items retrieved', '', $paginatedItems->toArray());
+
+        return $message->render();
+    }
+
+    public function retrieve(Request $request, Message $message, int $itemId)
+    {
+        $item = $this->itemService->retrieveItem($itemId);
+
+        $message->setContent(200, 'Item retrieved', '', [
+            'item' => $item
+        ]);
+
+        return $message->render();
+    }
+
+    public function store(Request $request, Message $message)
+    {
+        $user = $request->user();
+
+        $name = $request->input('name');
+        $description = $request->input('description');
+        $price = $request->input('price');
+        if (is_numeric($price)) {
+            $price = floatval($price);
+        }
+        $stock = $request->input('stock');
+        if (is_numeric($stock)) {
+            $stock = intval($stock);
+        }
+        $tags = $request->input('tags');
+        $photo = $request->file('photo') ?? [];
+        $categoryId = $request->input('categoryId') ?? [];
+        $categories = array_map(function($id) {
+            return $this->itemService->retrieveCategory(intval($id));
+        }, $categoryId);
+
+        $item = $this->itemService->createItem($name, $description, $price, $stock, $photo, $categories, $tags);
+
+        if ($item instanceof Item) {
+            $message->setContent(201, 'Item created', '', [
+                'item' => $item
+            ]);
+        } else {
+            $message->setContent(400, 'Item not created');
+        }
+
+        return $message->render();
+    }
+
+    public function duplicate(Request $request, Message $message, int $itemId)
+    {
+        $user = $request->user();
+
+        $name = $request->input('name') ?? null;
+        $description = $request->input('description') ?? null;
+        $price = $request->input('price') ?? null;
+        if (is_numeric($price)) {
+            $price = floatval($price);
+        }
+        $stock = $request->input('stock') ?? null;
+        if (is_numeric($stock)) {
+            $stock = intval($stock);
+        }
+        $tags = $request->input('tags') ?? null;
+        $photo = $request->file('photo') ?? null;
+        $categoryId = $request->input('categoryId') ?? null;
+
+        if (!is_null($categoryId)) {
+            $categories = array_map(function($id) {
+                return $this->itemService->retrieveCategory(intval($id));
+            }, $categoryId);
+        } else {
+            $categories = null;
+        }
+
+        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $stock, $photo, $categories, $tags);
+
+        if ($newItem instanceof Item) {
+            $message->setContent(201, 'Item duplicated', '', [
+                'item' => $newItem
+            ]);
+        } else {
+            $message->setContent(400, 'Item duplication failed');
+        }
+
+        return $message->render();
+    }
+
+    public function update(Request $request, Message $message, int $id)
+    {
+        $user = $request->user();
+
+        $name = $request->input('name');
+        $description = $request->input('description');
+        $price = $request->input('price');
+        if (is_numeric($price)) {
+            $price = floatval($price);
+        }
+        $stock = $request->input('stock');
+        if (is_numeric($stock)) {
+            $stock = intval($stock);
+        }
+        $tags = $request->input('tags');
+        $newPhoto = $request->file('photo') ?? [];
+        $existingPhoto = $request->input('photo') ?? [];
+        $newPhotoCount = count($newPhoto);
+        $existingPhotoCount = count($existingPhoto);
+        
+        if (
+            $request->has('photo') &&
+            (
+                $newPhotoCount > 0 ||
+                $existingPhotoCount > 0
+            )
+        ) {
+            foreach ($existingPhoto as $existingPhotoHash) {
+                array_push($newPhoto, $existingPhotoHash);
+            }
+            $photo = $newPhoto;
+        } else {
+            $photo = null;
+        }
+
+        $categoryId = $request->input('categoryId') ?? [];
+        $categories = array_map(function($id) {
+            return $this->itemService->retrieveCategory(intval($id));
+        }, $categoryId);
+
+        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $photo, $categories, $tags);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Item updated');
+        } else {
+            $message->setContent(400, 'Item not updated');
+        }
+
+        return $message->render();
+    }
+
+    public function delete(Request $request, Message $message, int $id)
+    {
+        $user = $request->user();
+        $item = $this->itemService->retrieveItem($id);
+
+        $isSuccess = $this->itemService->deleteItem($user, $item);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Item updated');
+        } else {
+            $message->setContent(400, 'Item not updated');
+        }
+
+        return $message->render();
+    }
+}

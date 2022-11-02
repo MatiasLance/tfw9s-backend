@@ -1,0 +1,30 @@
+FROM php:8.1-apache
+
+LABEL maintainer="tech1@sumomedia.co"
+LABEL app_environment="production"
+
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+COPY ./docker/php-custom.ini-production $PHP_INI_DIR/conf.d/php-custom.ini
+
+RUN apt-get update && \
+    apt-get install -y \
+        zip \
+        unzip \
+        git \
+        libzip-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libfreetype6-dev
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN docker-php-ext-configure gd --with-jpeg && \
+    docker-php-ext-install mysqli pdo pdo_mysql zip gd
+
+COPY . /var/www/html/
+RUN composer update \
+    && composer install
+
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port", "8000"]
+
+EXPOSE 8000
+
