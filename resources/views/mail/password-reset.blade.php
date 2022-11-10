@@ -33,11 +33,11 @@
                                         <tbody>
                                             <tr>
                                                 <td align="center">
-                                                    <a href="http://straddieworld.com/">
+                                                    <a href="http://revampedofficial.com/">
                                                         <img
                                                             style="width: 35%; padding: 0.5rem;"
                                                             src="https://i.imgur.com/wuhL9yy.png"
-                                                            alt="Straddie Logo"
+                                                            alt="Revamped Logo"
                                                         />
                                                     </a>
                                                 </td>
@@ -120,7 +120,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center;">
-                                                    <p>&copy; 2022 Straddie World</p>
+                                                    <p>&copy; 2022 Revamped</p>
                                                 </td>
                                             </tr>
                                         </tbody>

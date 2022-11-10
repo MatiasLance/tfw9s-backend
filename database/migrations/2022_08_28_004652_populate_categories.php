@@ -16,29 +16,189 @@ return new class extends Migration
     {
         $categories = [
             [
-                'name' => 'Scenes',
+                'name' => 'Sneakers',
+                'children' => [
+                    [
+                        'name' => 'Nike',
+                        'children' => [
+                            [
+                                'name' => 'Air Force 1',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Air Max 90',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Air Huarache',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Air Max TN',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Air Max 95',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Air Max 97',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Air Vapormax',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Dunk',
+                                'children' => [],
+                            ],
+                        ],
+                    ],
+                    [
+                        'name' => 'Jordan',
+                        'children' => [
+                            [
+                                'name' => 'Jordan 1',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Jordan 3',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Jordan 4',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Jordan 5',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Jordan 6',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Jordan 11',
+                                'children' => [],
+                            ],
+                            [
+                                'name' => 'Jordan 12',
+                                'children' => [],
+                            ]
+                        ],
+                    ],
+                    [
+                        'name' => 'Adidas',
+                        'children' => [
+                            [
+                                'name' => 'Continental 80',
+                                'children' => []
+                            ],
+                            [
+                                'name' => 'Gazelle',
+                                'children' => []
+                            ],
+                            [
+                                'name' => 'NMD',
+                                'children' => []
+                            ],
+                            [
+                                'name' => 'Pharrell Human',
+                                'children' => []
+                            ],
+                            [
+                                'name' => 'Stan Smith',
+                                'children' => []
+                            ],
+                            [
+                                'name' => 'Superstar',
+                                'children' => []
+                            ],
+                            [
+                                'name' => 'Ultra-boost',
+                                'children' => []
+                            ],
+                            [
+                                'name' => 'Yeezy',
+                                'children' => []
+                            ],
+
+                        ],
+                    ],
+                    [
+                        'name' => 'New Balance',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'Reebok',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'Puma',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'Asics',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'Converse',
+                        'children' => [
+                            [
+                                'name' => 'CDG Play',
+                                'children' => [],
+                            ],
+                        ],
+                    ],
+                    [
+                        'name' => 'Basketball Shoes',
+                        'children' => [],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Clothing',
+                'children' => [
+                    [
+                        'name' => 'Hoodies & Jumpers',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'T Shirts',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'Bottoms',
+                        'children' => [],
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Designer',
                 'children' => [],
             ],
             [
-                'name' => 'Birds and Animals',
-                'children' => [],
+                'name' => 'Accessories',
+                'children' => [
+                    [
+                        'name' => 'Headwear',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'Belts',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'Jewellery',
+                        'children' => [],
+                    ],
+                    [
+                        'name' => 'Slides',
+                        'children' => [],
+                    ],
+                ],
             ],
-            [
-                'name' => 'Party',
-                'children' => [],
-            ],
-            [
-                'name' => 'Other Places',
-                'children' => [],
-            ],
-            [
-                'name' => 'Art',
-                'children' => []
-            ],
-            [
-                'name' => 'Tshirts',
-                'children' => []
-            ]
         ];
 
         foreach ($categories as $category) {
