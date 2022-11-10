@@ -16,11 +16,11 @@ return new class extends Migration
     {
         $users = [
             [               
-                'email' => env('ADMIN_EMAIL_ADDRESS', 'admin@straddieworld.com'),
+                'email' => env('ADMIN_EMAIL_ADDRESS', 'admin@revampedofficial.com'),
                 'password' => bcrypt('superuser1'),
-                'first_name' => 'Bill',
-                'last_name' => 'Lowe',
-                'phone' => '+610438098059'
+                'first_name' => 'Finn',
+                'last_name' => 'Johnson',
+                'phone' => ''
             ],
         ];
 
