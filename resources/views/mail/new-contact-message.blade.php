@@ -40,7 +40,7 @@
                                                     <a href="http://revampedofficial.com/">
                                                         <img
                                                             style="width: 35%; padding: 0.5rem;"
-                                                            src="https://i.imgur.com/wuhL9yy.png"
+                                                            src="https://i.imgur.com/6wAZO0L.png"
                                                             alt="Revamped Logo"
                                                         />
                                                     </a>
