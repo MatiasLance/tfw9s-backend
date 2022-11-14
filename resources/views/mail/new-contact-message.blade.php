@@ -14,7 +14,7 @@
         .main-temp table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family: Helvetica, arial, sans-serif;}
         .main-temp table td {border-collapse: collapse;}
         .text--wpi-red {
-            color: #3981da;
+            color: #1a1d18;
         }
         .guestMessage {
             text-indent: 4ch;
@@ -40,7 +40,7 @@
                                                     <a href="http://revampedofficial.com/">
                                                         <img
                                                             style="width: 35%; padding: 0.5rem;"
-                                                            src="https://i.imgur.com/wuhL9yy.png"
+                                                            src="https://i.imgur.com/6wAZO0L.png"
                                                             alt="Revamped Logo"
                                                         />
                                                     </a>
