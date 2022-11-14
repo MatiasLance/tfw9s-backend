@@ -14,7 +14,7 @@
         .main-temp table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family: Helvetica, arial, sans-serif;}
         .main-temp table td {border-collapse: collapse;}
         .text--wpi-red {
-            color: #3981da;
+            color: #1a1d18;
         }
         .guestMessage {
             text-indent: 4ch;
