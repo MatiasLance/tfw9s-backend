@@ -16,7 +16,27 @@ return new class extends Migration
     {
         $categories = [
             [
+                'name' => 'Slides & Sandals',
+                'children' => [],
+            ],
+            [
+                'name' => 'Accessories',
+                'children' => [],
+            ],
+            [
+                'name' => 'Hoodies & Jumpers',
+                'children' => []
+            ],
+            [
+                'name' => 'Shirts',
+                'children' => []
+            ],
+            [
                 'name' => 'Sneakers',
+                'children' => []
+            ],
+            [
+                'name' => 'Brands',
                 'children' => [
                     [
                         'name' => 'Nike',
@@ -155,48 +175,34 @@ return new class extends Migration
                         'name' => 'Basketball Shoes',
                         'children' => [],
                     ],
-                ],
-            ],
-            [
-                'name' => 'Clothing',
-                'children' => [
                     [
-                        'name' => 'Hoodies & Jumpers',
+                        'name' => 'Giuseppe Zanotti',
                         'children' => [],
                     ],
                     [
-                        'name' => 'T Shirts',
-                        'children' => [],
+                        'name' => 'Billionaire Boys',
+                        'children' => []
                     ],
                     [
-                        'name' => 'Bottoms',
-                        'children' => [],
-                    ],
-                ],
-            ],
-            [
-                'name' => 'Designer',
-                'children' => [],
-            ],
-            [
-                'name' => 'Accessories',
-                'children' => [
-                    [
-                        'name' => 'Headwear',
-                        'children' => [],
+                        'name' => 'Ice Cream',
+                        'children' => []
                     ],
                     [
-                        'name' => 'Belts',
-                        'children' => [],
+                        'name' => 'Moschino',
+                        'children' => []
                     ],
                     [
-                        'name' => 'Jewellery',
-                        'children' => [],
+                        'name' => 'Salvatore',
+                        'children' => []
                     ],
                     [
-                        'name' => 'Slides',
-                        'children' => [],
+                        'name' => 'Alexander',
+                        'children' => []
                     ],
+                    [
+                        'name' => 'Bally Mirror',
+                        'children' => []
+                    ]
                 ],
             ],
         ];
