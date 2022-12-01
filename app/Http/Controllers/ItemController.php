@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Modules\Categories\CategoryServiceInterface;
 use App\Modules\Http\Message;
 use App\Modules\Item\ItemServiceInterface;
 use Illuminate\Http\Request;
@@ -10,10 +11,13 @@ use Illuminate\Http\Request;
 class ItemController extends Controller
 {
     protected ItemServiceInterface $itemService;
+    
+    protected CategoryServiceInterface $categoryService;
 
-    public function __construct(ItemServiceInterface $itemService)
+    public function __construct(ItemServiceInterface $itemService, CategoryServiceInterface $categoryService)
     {
         $this->itemService = $itemService;
+        $this->categoryService = $categoryService;
     }
 
     public function list(Request $request, Message $message)
@@ -68,7 +72,7 @@ class ItemController extends Controller
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
         $categories = array_map(function($id) {
-            return $this->itemService->retrieveCategory(intval($id));
+            return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
         $item = $this->itemService->createItem($name, $description, $price, $stock, $photo, $categories, $tags);
@@ -104,7 +108,7 @@ class ItemController extends Controller
 
         if (!is_null($categoryId)) {
             $categories = array_map(function($id) {
-                return $this->itemService->retrieveCategory(intval($id));
+                return $this->categoryService->retrieveCategory(intval($id));
             }, $categoryId);
         } else {
             $categories = null;
@@ -160,7 +164,7 @@ class ItemController extends Controller
 
         $categoryId = $request->input('categoryId') ?? [];
         $categories = array_map(function($id) {
-            return $this->itemService->retrieveCategory(intval($id));
+            return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
         $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $photo, $categories, $tags);
