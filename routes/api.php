@@ -42,6 +42,16 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
                 Route::patch('update', 'App\Http\Controllers\OrderController@updateShippingOptions');
             });
         });
+
+        Route::prefix('variants')->group(function() {
+            Route::get('/', 'App\Http\Controllers\VariantController@list');
+            Route::post('/', 'App\Http\Controllers\VariantController@storeVariant');
+            Route::post('/{variantId}', 'App\Http\Controllers\VariantController@storeElements');
+            Route::patch('/{variantId}', 'App\Http\Controllers\VariantController@updateVariant');
+            Route::patch('/elements/{elementId}', 'App\Http\Controllers\VariantController@updateElements');
+            Route::delete('/{variantId}', 'App\Http\Controllers\VariantController@deleteVariant');
+            Route::delete('/elements/{elementId}', 'App\Http\Controllers\VariantController@deleteElements');
+        });
     });
 });
 
