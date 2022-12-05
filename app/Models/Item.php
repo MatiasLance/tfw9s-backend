@@ -43,6 +43,11 @@ class Item extends Model
         return $this->getAttributes()['price'];
     }
 
+    public function elements()
+    {
+        return $this->hasMany(ItemVariantElement::class);
+    }
+
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'item_categories');

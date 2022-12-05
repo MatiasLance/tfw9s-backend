@@ -4,9 +4,11 @@ namespace App\Repository\Eloquent;
 
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\ItemVariantElement;
 use App\Models\Tag;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\Filter;
+use App\Modules\Item\Variant;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\Eloquent\Base\BaseRepository;
@@ -127,21 +129,24 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
     public function retrieveItem(int $id): Item
     {
-        return $this->find($id)->append('categoryLineages');
+        return $this->model
+                        ->query()
+                        ->with(['elements'])
+                        ->find($id)
+                        ->append('categoryLineages');
     }
 
     /**
      * @todo Remove coupling to Tag model. Use tag repository or item service instead to find the tag
      */
-    public function createItem(string $title, string $description, float $price, int $stock, array $media, array $categories, array $tags): Item
+    public function createItem(string $title, string $description, float $price, array $elements, array $media, array $categories, array $tags): Item
     {
         $item = new Item();
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
-        $item->stock = $stock;
 
-        return DB::transaction(function() use($item, $categories, $tags, $media) {
+        return DB::transaction(function() use($item, $categories, $tags, $media, $elements) {
             $item->save();
             
             foreach ($categories as $category) {
@@ -158,7 +163,25 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $item->media()->save($itemPhoto);
             }
 
-            return $item;
+            foreach ($elements as $element) {
+                $itemElement = new ItemVariantElement();
+                $itemElement->element_id = $element['element_id'];
+                $itemElement->stock = $element['stock'] ?? 0;
+                $itemElement->price = $element['price'] ?? null;
+                $itemElement->thumbnail_type = $element['thumbnail_type'];
+                
+                if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
+                    $itemElement->thumbnail_color_value = $element['thumbnail'];
+                } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
+                    // @todo images
+                }
+
+                $itemElement->order = $element['order'] ?? null;
+
+                $item->elements()->save($itemElement);
+            }
+
+            return $this->retrieveItem($item->id);
         });
     }
 
@@ -311,6 +334,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             foreach ($item->tags as $tag) {
                 $item->tags()->detach($tag);
             }
+
+            $item->elements()->delete();
 
             return $item->delete();
         });

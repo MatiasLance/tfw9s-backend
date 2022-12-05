@@ -12,7 +12,6 @@ class ItemVariantElement extends Model
     use HasFactory;
 
     protected $hidden = [
-        'id',
         'item_id',
         'element_id',
         'thumbnail_color_value',
@@ -21,8 +20,13 @@ class ItemVariantElement extends Model
         'updated_at',
     ];
 
+    protected $with = [
+        'element',
+    ];
+
     protected $appends = [
         'name',
+        'thumbnail',
     ];
 
     public function item()
@@ -61,28 +65,32 @@ class ItemVariantElement extends Model
     /**
      * @todo Change image thumbnail test return value
      */
-    public function thumbnail()
+    protected function thumbnail(): Attribute
     {
-        if (!is_null($this->thumbnail_type)) {
-            if (is_null($this->thumbnail_type)) {
-                return null;
-            } else {
-                
-                if ($this->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE) {
-                    return [
-                        'hash' => 'test',
-                        'path' => 'test',
-                    ];
-                } else if ($this->thumbnail_type === Variant::THUMBNAIL_TYPE_COLOR) {
-                    return [
-                        'value' => $this->thumbnail_color_value,
-                    ];
+        return Attribute::make(
+            get: function() {
+                if (!is_null($this->thumbnail_type)) {
+                    if (is_null($this->thumbnail_type)) {
+                        return null;
+                    } else {
+                        
+                        if ($this->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE) {
+                            return [
+                                'hash' => 'test',
+                                'path' => 'test',
+                            ];
+                        } else if ($this->thumbnail_type === Variant::THUMBNAIL_TYPE_COLOR) {
+                            return [
+                                'value' => $this->thumbnail_color_value,
+                            ];
+                        }
+            
+                    }
+                } else {
+                    return $this->element->thumbnail();
                 }
-    
             }
-        } else {
-            return $this->element->thumbnail();
-        }
+        );
     }
 
     protected function order(): Attribute

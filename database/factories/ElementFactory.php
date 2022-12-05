@@ -21,9 +21,9 @@ class ElementFactory extends Factory
         $thumbnailType = $this->faker->boolean() ? Variant::THUMBNAIL_TYPE_IMAGE : Variant::THUMBNAIL_TYPE_COLOR;
 
         return [
-            'name' => $this->faker->word,
+            'name' => $this->faker->word(),
             'thumbnail_type' => $hasThumbnail ? $thumbnailType : null,
-            'thumbnail_color_value' => $hasThumbnail && $thumbnailType === Variant::THUMBNAIL_TYPE_COLOR ? $this->faker->hexColor : null,
+            'thumbnail_color_value' => $hasThumbnail && $thumbnailType === Variant::THUMBNAIL_TYPE_COLOR ? $this->faker->hexColor() : null,
         ];
     }
 }

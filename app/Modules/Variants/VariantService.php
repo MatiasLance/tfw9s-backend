@@ -93,6 +93,23 @@ class VariantService implements VariantServiceInterface
         return $this->variantRepository->deleteElements($elementId);
     }
 
+    public function formatItemElements(array $itemElements): array
+    {
+        $variants = [];
+        $elements = collect([]);
+        foreach ($itemElements as $itemElement) {
+            $element = $this->retrieveElement($itemElement['element']['id']);
+            $elements->push($element);
+        }
+        $elements = $elements->unique('variant_id');
+
+        foreach ($elements as $element) {
+            array_push($variants, $element->variant);
+        }
+
+        return $variants;
+    }
+
     protected function isValidColorHex(string $hex): bool
     {
         $colorHexPattern = '/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/';
