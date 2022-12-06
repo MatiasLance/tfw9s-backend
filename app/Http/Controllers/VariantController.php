@@ -39,6 +39,41 @@ class VariantController extends Controller
         return $message->render();
     }
 
+    public function retrieveVariant(Request $request, Message $message, int $variantId)
+    {
+        $user = $request->user();
+
+        $variant = $this->variantService->retrieveVariant($variantId);
+
+        $message->setContent(
+            status: 200,
+            title: 'Variant retrieved',
+            data: [
+                'variant' => $variant
+            ],
+        );
+
+        return $message->render();
+    }
+
+    public function retrieveElement(Request $request, Message $message, int $elementId)
+    {
+        $user = $request->user();
+
+        $element = $this->variantService->retrieveElement($elementId);
+
+        $message->setContent(
+            status: 200,
+            title: 'Element retrieved',
+            data: [
+                'element' => $element
+            ],
+        );
+
+        return $message->render();
+    }
+
+
     public function storeVariant(Request $request, Message $message)
     {
         $user = $request->user();

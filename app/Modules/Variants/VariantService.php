@@ -2,6 +2,7 @@
 
 namespace App\Modules\Variants;
 
+use App\Models\Element;
 use App\Models\Variant as VariantModel;
 use App\Modules\Item\Variant;
 use App\Modules\Variants\Exceptions\InvalidColorHexException;
@@ -26,6 +27,16 @@ class VariantService implements VariantServiceInterface
     public function list(array $userFilters = []): Collection
     {
         return $this->variantRepository->list($userFilters);
+    }
+
+    public function retrieveVariant(int $id): VariantModel
+    {
+        return $this->variantRepository->retrieveVariant($id);
+    }
+
+    public function retrieveElement(int $id): Element
+    {
+        return $this->variantRepository->retrieveElement($id);
     }
 
     public function createVariant(string $name): VariantModel

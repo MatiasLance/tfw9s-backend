@@ -33,9 +33,14 @@ class VariantRepository extends BaseRepository implements VariantRepositoryInter
         return $variants;
     }
 
-    public function retrieve(int $id): VariantModel
+    public function retrieveVariant(int $id): VariantModel
     {
         return $this->find($id);
+    }
+
+    public function retrieveElement(int $id): Element
+    {
+        return Element::findOrFail($id);
     }
 
     public function createVariant(string $name): VariantModel

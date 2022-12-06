@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Models\Element;
 use App\Models\Variant;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -36,7 +37,16 @@ interface VariantRepositoryInterface
      * 
      * @return Variant
      */
-    public function retrieve(int $id): Variant;
+    public function retrieveVariant(int $id): Variant;
+    
+    /**
+     * Retrieve a single Element
+     * 
+     * @param int $id
+     * 
+     * @return Element
+     */
+    public function retrieveElement(int $id): Element;
     
     /**
      * Create a new variant
