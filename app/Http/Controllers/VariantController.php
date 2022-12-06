@@ -133,9 +133,9 @@ class VariantController extends Controller
     {
         $user = $request->user();
         $name = $request->input('name');
-        $thumbnailType = $request->input('thumbnail_type');
-        $thumbnail = $request->input('thumbnail');
-        $order = $request->input('order');
+        $thumbnailType = $request->input('thumbnail_type') ?? null;
+        $thumbnail = $request->input('thumbnail') ?? null;
+        $order = $request->input('order') ?? null;
 
         $isSuccess = $this->variantService->updateElements($elementId, $name, $thumbnailType, $thumbnail, $order);
 
