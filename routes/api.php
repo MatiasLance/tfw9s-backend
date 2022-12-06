@@ -45,6 +45,8 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
 
         Route::prefix('variants')->group(function() {
             Route::get('/', 'App\Http\Controllers\VariantController@list');
+            Route::get('/{variantId}', 'App\Http\Controllers\VariantController@retrieveVariant');
+            Route::get('/elements/{elementId}', 'App\Http\Controllers\VariantController@retrieveElement');
             Route::post('/', 'App\Http\Controllers\VariantController@storeVariant');
             Route::post('/{variantId}', 'App\Http\Controllers\VariantController@storeElements');
             Route::patch('/{variantId}', 'App\Http\Controllers\VariantController@updateVariant');

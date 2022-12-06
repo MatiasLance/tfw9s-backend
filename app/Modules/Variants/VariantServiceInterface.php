@@ -2,6 +2,7 @@
 
 namespace App\Modules\Variants;
 
+use App\Models\Element;
 use App\Models\Variant;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -15,6 +16,24 @@ interface VariantServiceInterface
      * @return Collection
      */
     public function list(array $userFilters = []): Collection;
+    
+    /**
+     * Retrieve a single Variant and its Elements
+     * 
+     * @param int $id
+     * 
+     * @return Variant
+     */
+    public function retrieveVariant(int $id): Variant;
+    
+    /**
+     * Retrieve a single Element
+     * 
+     * @param int $id
+     * 
+     * @return Element
+     */
+    public function retrieveElement(int $id): Element;
 
     /**
      * Create a new variant

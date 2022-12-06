@@ -49,6 +49,78 @@ class VariantApiEndpointTest extends TestCase
             ]);
     }
 
+    public function test_retrieve_variant()
+    {
+        Sanctum::actingAs(
+            User::factory()->create()
+        );
+
+        $this->seed(VariantSeeder::class);
+        
+        $variantName = 'Test update';
+        $variant = VariantModel::factory()->create([
+            'name' => $variantName
+        ]);
+
+        $response = $this->get('/api/v1/variants/' . $variant->id);
+
+        $response
+            ->assertStatus(200)
+            ->assertJsonPath('data.variant.name', $variantName)
+            ->assertJsonStructure([
+                'status',
+                'title',
+                'data' => [
+                    'variant' => [
+                        'id',
+                        'name',
+                        'elements' => [
+                            '*' => [
+                                'id',
+                                'name',
+                                'thumbnail_type',
+                                'thumbnail',
+                            ],
+                        ]
+                    ]
+                ],
+            ]);
+    }
+
+    public function test_retrieve_element()
+    {
+        Sanctum::actingAs(
+            User::factory()->create()
+        );
+
+        $this->seed(VariantSeeder::class);
+
+        $variant = VariantModel::factory()->create();
+        $elementName = 'Test Element';
+        $element = Element::factory()->create([
+            'variant_id' => $variant,
+            'name' => $elementName
+        ]);
+
+        $response = $this->get('/api/v1/variants/elements/' . $element->id);
+
+        $response
+            ->assertStatus(200)
+            ->assertJsonPath('data.element.name', $elementName)
+            ->assertJsonStructure([
+                'status',
+                'title',
+                'data' => [
+                    'element' => [
+                        'id',
+                        'name',
+                        'thumbnail_type',
+                        'thumbnail',
+                    ],
+                ],
+            ]);
+    }
+
     public function test_create_variant()
     {
         Sanctum::actingAs(
