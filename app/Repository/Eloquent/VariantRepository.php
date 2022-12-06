@@ -105,18 +105,26 @@ class VariantRepository extends BaseRepository implements VariantRepositoryInter
     {
         $element = Element::findOrFail($elementId);
         $element->name = $name;
-        $element->thumbnail_type = $thumbnailType;
+
+        if (!is_null($thumbnailType)) {
+            $element->thumbnail_type = $thumbnailType;
+        }
         
-        if ($thumbnailType === Variant::THUMBNAIL_TYPE_COLOR) {
-            $element->thumbnail_color_value = $thumbnail;
-        } else if ($thumbnailType === Variant::THUMBNAIL_TYPE_IMAGE) {
+        if ($element->thumbnail_type === Variant::THUMBNAIL_TYPE_COLOR) {
+            if (!is_null($thumbnail)) {
+                $element->thumbnail_color_value = $thumbnail;
+            }
+        } else if ($element->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE) {
             $element->thumbnail_color_value = null;
             // @todo
+            // if (!is_null())  {}
         } else {
             // @todo throw error
         }
 
-        $element->order = $order;
+        if (!is_null($order)) {
+            $element->order = $order;
+        }
 
         return DB::transaction(function() use($element) {
             return $element->save();

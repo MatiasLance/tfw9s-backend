@@ -73,7 +73,7 @@ interface VariantServiceInterface
      * @param int $elementId
      * @param string $name
      * @param string|null $thumbnailType
-     * @param string|Media $thumbnail
+     * @param string|Media|null $thumbnail
      * @param int|null $order
      * 
      * @return bool

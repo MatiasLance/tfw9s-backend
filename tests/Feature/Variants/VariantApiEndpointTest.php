@@ -233,11 +233,15 @@ class VariantApiEndpointTest extends TestCase
         
         $defaultElementName = 'Default test element name';
         $updatedElementName = 'Updated test element name';
+        $defaultElementThumbnailType = Variant::THUMBNAIL_TYPE_COLOR;
+        $defaultElementThumbnailColor = '#ffffff';
         
         $newVariant = VariantModel::factory()->create();
         $newElement = Element::factory()->create([
             'variant_id' => $newVariant->id,
-            'name' => $defaultElementName
+            'name' => $defaultElementName,
+            'thumbnail_type' => $defaultElementThumbnailType,
+            'thumbnail_color_value' => $defaultElementThumbnailColor,
         ]);
 
         $response = $this->patch('/api/v1/variants/elements/' . $newElement->id, [
@@ -256,7 +260,9 @@ class VariantApiEndpointTest extends TestCase
         ]);
 
         $this->assertDatabaseHas(Element::class, [
-            'name' => $updatedElementName
+            'name' => $updatedElementName,
+            'thumbnail_type' => $defaultElementThumbnailType,
+            'thumbnail_color_value' => $defaultElementThumbnailColor,
         ]);
     }
 
