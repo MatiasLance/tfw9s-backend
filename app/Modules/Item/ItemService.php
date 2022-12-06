@@ -5,9 +5,7 @@ namespace App\Modules\Item;
 use App\Models\Item;
 use App\Models\User;
 use App\Modules\Utility\Pagination\Paginate;
-use App\Repository\CategoryRepositoryInterface;
 use App\Repository\ItemRepositoryInterface;
-use App\Repository\TagRepositoryInterface;
 
 class ItemService implements ItemServiceInterface
 {
@@ -18,11 +16,9 @@ class ItemService implements ItemServiceInterface
      */
     protected ItemRepositoryInterface $itemRepository;
 
-    public function __construct(ItemRepositoryInterface $itemRepository, CategoryRepositoryInterface $categoryRepository, TagRepositoryInterface $tagRepository)
+    public function __construct(ItemRepositoryInterface $itemRepository)
     {
         $this->itemRepository = $itemRepository;
-        $this->categoryRepository = $categoryRepository;
-        $this->tagRepository = $tagRepository;
     }
 
     public function listItems(array $filters = []): Paginate
