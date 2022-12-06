@@ -3,13 +3,17 @@
 namespace Tests\Feature\Item;
 
 use App\Models\Category;
+use App\Models\Element;
 use App\Models\Item;
 use App\Models\ItemCategory;
 use App\Models\ItemTags;
+use App\Models\ItemVariantElement;
 use App\Models\Media;
 use App\Models\Tag;
 use App\Models\User;
 use App\Modules\Item\Filter;
+use App\Modules\Item\Variant;
+use Database\Seeders\VariantSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -17,11 +21,11 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
-class ItemApiEndpointTest extends TestCase
+class ItemVariantApiEndpointTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function tearDown():void
+    public function tearDown(): void
     {
         Storage::disk('public')->deleteDirectory('/media/items');
         parent::tearDown();
@@ -34,7 +38,8 @@ class ItemApiEndpointTest extends TestCase
      */
     public function test_list_items()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->seedDatabase();
+
         $response = $this->get('/api/v1/items/');
 
         $response
@@ -57,7 +62,6 @@ class ItemApiEndpointTest extends TestCase
                                 'name',
                                 'description',
                                 'price',
-                                'stock',
                                 'categories' => [
                                     '*' => [
                                         'name'
@@ -77,7 +81,19 @@ class ItemApiEndpointTest extends TestCase
 
     public function test_filter_items()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->seedDatabase();
+
+        $item = Item::factory()
+                ->hasCategories()
+                ->hasTags()
+                ->hasElements()
+                ->create([
+                    'name' => 'V8 Engine'
+                ]);
+
+        $item->categories()->save(Category::find(2));
+        $item->tags()->save(Tag::find(1));
+
         $filter = [
             'q' => 'engine',
             'category' => 2,
@@ -109,7 +125,6 @@ class ItemApiEndpointTest extends TestCase
                                 'name',
                                 'description',
                                 'price',
-                                'stock',
                                 'categories' => [
                                     '*' => [
                                         'name'
@@ -139,7 +154,8 @@ class ItemApiEndpointTest extends TestCase
      */
     public function test_retrieve_item()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->seedDatabase();
+
         $itemName = 'V8 Engine';
         $item = Item::factory()
                         ->has(
@@ -152,6 +168,7 @@ class ItemApiEndpointTest extends TestCase
                         ->has(
                             Media::factory()
                         )
+                        ->hasElements(3)
                         ->create(
                             [
                                 'name' => $itemName,
@@ -174,7 +191,6 @@ class ItemApiEndpointTest extends TestCase
                             'name',
                             'description',
                             'price',
-                            'stock',
                             'categoryLineages' => [
                                 '*' => []
                             ],
@@ -194,7 +210,31 @@ class ItemApiEndpointTest extends TestCase
                                     'path'
                                 ]
                             ],
-                        ]
+                            'elements' => [
+                                '*' => [
+                                    'id',
+                                    'name',
+                                    'price',
+                                    'stock',
+                                    'thumbnail_type',
+                                    'thumbnail',
+                                ],
+                            ],
+                        ],
+                        'variants' => [
+                            '*' => [
+                                'id',
+                                'name',
+                                'elements' => [
+                                    '*' => [
+                                        'id',
+                                        'name',
+                                        'thumbnail_type',
+                                        'thumbnail',
+                                    ],
+                                ],
+                            ]
+                        ],
                     ],
                 ]
             )
@@ -207,7 +247,8 @@ class ItemApiEndpointTest extends TestCase
 
     public function test_create_item()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->seedDatabase();
+        $elements = Element::pluck('id');
         $user = User::factory()->create();
         $category_1 = Category::factory()->create();
         $category_2 = Category::factory()->create();
@@ -221,8 +262,30 @@ class ItemApiEndpointTest extends TestCase
             'name' => 'Test Item',
             'description' => 'This is a test item',
             'price' => 12.50,
-            'stock' => 44,
             'tags' => $tags,
+            'elements' => [
+                [
+                    'element_id' => $elements[1],
+                    'stock' => 2,
+                ],
+                [
+                    'element_id' => $elements[2],
+                    'stock' => 0,
+                    'price' => null,
+                ],
+                [
+                    'element_id' => $elements[3],
+                    'stock' => 1,
+                    'price' => 1400,
+                ],
+                [
+                    'element_id' => $elements[4],
+                    'stock' => 5,
+                    'price' => null,
+                    'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+                    'thumbnail' => '#ffffff',
+                ],
+            ],
             'categoryId' => [
                 strval($category_1->id), // Mimic HTTP Request Form Data
                 strval($category_2->id), // Mimic HTTP Request Form Data
@@ -244,7 +307,14 @@ class ItemApiEndpointTest extends TestCase
                             'name',
                             'description',
                             'price',
-                            'stock',
+                            'elements' => [
+                                '*' => [
+                                    'id',
+                                    'name',
+                                    'stock',
+                                    'price',
+                                ],
+                            ],
                         ]
                     ],
                 ]);
@@ -279,7 +349,7 @@ class ItemApiEndpointTest extends TestCase
 
     public function test_duplicate_item_as_is()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->markTestIncomplete('ItemVariants module work in progress');
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -340,7 +410,7 @@ class ItemApiEndpointTest extends TestCase
 
     public function test_duplicate_item_with_overrides()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->markTestIncomplete('ItemVariants module work in progress');
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -415,9 +485,9 @@ class ItemApiEndpointTest extends TestCase
 
     }
 
-    public function test_update_item_x()
+    public function test_update_item()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->markTestIncomplete('ItemVariants module work in progress');
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -512,7 +582,7 @@ class ItemApiEndpointTest extends TestCase
 
     public function test_update_item_without_thumbnail_changes()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->markTestIncomplete('ItemVariants module work in progress');
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -575,7 +645,7 @@ class ItemApiEndpointTest extends TestCase
 
     public function test_delete_item()
     {
-        $this->markTestSkipped('Test deprecated, use new ItemVariantApiEndpointTest class');
+        $this->seedDatabase();
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -587,6 +657,7 @@ class ItemApiEndpointTest extends TestCase
                             ->has(
                                 Media::factory()
                             )
+                            ->hasElements()
                             ->create();
 
         Sanctum::actingAs($user);
@@ -615,5 +686,27 @@ class ItemApiEndpointTest extends TestCase
                 'tag_id' => $tag->id,
             ]);
         }
+
+        foreach ($item->elements as $element) {
+            $this->assertDatabaseMissing(ItemVariantElement::class, [
+                'id' => $element->id,
+                'item_id' => $item->id,
+            ]);
+        }
+    }
+
+    /**
+     * Seed the database with test data for Item Variant API endpoints
+     */
+    protected function seedDatabase()
+    {
+        $this->seed(VariantSeeder::class);
+
+        Item::factory()
+                ->count(10)
+                ->hasCategories()
+                ->hasTags()
+                ->hasElements(3)
+                ->create();
     }
 }

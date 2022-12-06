@@ -102,4 +102,13 @@ interface VariantServiceInterface
      */
     public function deleteElements(int $elementId): bool;
 
+    /**
+     * Format a lsit of item elements and group them by variants
+     * 
+     * @param array<ItemVariantElement> $itemElements
+     * 
+     * @return array
+     */
+    public function formatItemElements(array $itemElements): array;
+
 }

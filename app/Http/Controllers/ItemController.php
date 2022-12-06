@@ -45,11 +45,9 @@ class ItemController extends Controller
 
     public function retrieve(Request $request, Message $message, int $itemId)
     {
-        $item = $this->itemService->retrieveItem($itemId);
+        $itemData = $this->itemService->retrieveItem($itemId);
 
-        $message->setContent(200, 'Item retrieved', '', [
-            'item' => $item
-        ]);
+        $message->setContent(200, 'Item retrieved', '', $itemData);
 
         return $message->render();
     }
@@ -61,13 +59,12 @@ class ItemController extends Controller
         $name = $request->input('name');
         $description = $request->input('description');
         $price = $request->input('price');
+
         if (is_numeric($price)) {
             $price = floatval($price);
         }
-        $stock = $request->input('stock');
-        if (is_numeric($stock)) {
-            $stock = intval($stock);
-        }
+
+        $elements = $request->input('elements') ?? [];
         $tags = $request->input('tags');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
@@ -75,7 +72,7 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $item = $this->itemService->createItem($name, $description, $price, $stock, $photo, $categories, $tags);
+        $item = $this->itemService->createItem($name, $description, $price, $elements, $photo, $categories, $tags);
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
@@ -181,9 +178,9 @@ class ItemController extends Controller
     public function delete(Request $request, Message $message, int $id)
     {
         $user = $request->user();
-        $item = $this->itemService->retrieveItem($id);
+        $itemData = $this->itemService->retrieveItem($id);
 
-        $isSuccess = $this->itemService->deleteItem($user, $item);
+        $isSuccess = $this->itemService->deleteItem($user, $itemData['item']);
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');

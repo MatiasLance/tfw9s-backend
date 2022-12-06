@@ -44,17 +44,30 @@ interface ItemRepositoryInterface
     /**
      * Create a new item instance
      * 
+     * <code>
+     * The $elements argument must be structured as below:
+     *  $elements = [
+     *      'element_id'    => (int) Required. ID of the element to use,
+     *      'stock'         => (int) Required. Number of stock available for this element
+     *      'price'         => (int) Optional. Null by default. When a value is passed, overrides the default item price
+     *      'thumbnail_type'=> (string) Optional. When a value is provided, overrides the Element thumbnail type
+     *      'thumbnail'     => (string) (Conditionally required). When thumbnail_type value is given, this value must be provided as well.
+     *                          Dictates the value of the value of the thumbnail according to the given thumbnail_type given.
+     *      'order'         => (int) Optional. The higher the number the further down the list of elements
+     *  ]
+     * </code>
+     * 
      * @param string $title
      * @param string $description
-     * @param float $price Cent value of the item price
-     * @param int $stock Number of items on stock. Cannot be below 0.
+     * @param float $price Cent value of the item price. This will be the default item price. Item price can be overriden by item element.
+     * @param array $elements Associative array of elements available for this item. See above for the detailed structure
      * @param array<UploadedFile> $media List of media for the Item
      * @param array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param array<Tags> $tags Array of tags that this item will have
      * 
      * @return Item
      */
-    public function createItem(string $title, string $description, float $price, int $stock, array $media, array $categories, array $tags): Item;
+    public function createItem(string $title, string $description, float $price, array $elements, array $media, array $categories, array $tags): Item;
 
     /**
      * Duplicate an existing Item. Pass null to retain the value from the original item.
