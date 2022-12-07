@@ -52,20 +52,32 @@ class ItemService implements ItemServiceInterface
 
         $paddedElements = [];
         foreach ($elements as $element) {
-            $paddedElement = array_merge($element, self::DEFAULT_ELEMENT_VALUES);
+            $paddedElement = array_merge(self::DEFAULT_ELEMENT_VALUES, $element);
             array_push($paddedElements, $paddedElement);
         }
         return $this->itemRepository->createItem($title, $description, $price, $paddedElements, $media, $categories, $tags);
     }
 
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?array $elements, ?array $media, ?array $categories, ?array $tags): Item
     {
-        return $this->itemRepository->duplicateItem($id, $title, $description, $price, $stock, $media, $categories, $tags);
+        $paddedElements = [];
+        foreach ($elements as $element) {
+            $paddedElement = array_merge(self::DEFAULT_ELEMENT_VALUES, $element);
+            array_push($paddedElements, $paddedElement);
+        }
+
+        return $this->itemRepository->duplicateItem($id, $title, $description, $price, $paddedElements, $media, $categories, $tags);
     }
 
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, ?array $media, array $categories, array $tags): bool
+    public function updateItem(int $id, string $title, string $description, float $price, array $elements, ?array $media, array $categories, array $tags): bool
     {
-        return $this->itemRepository->updateItem($id, $title, $description, $price, $stock, $media, $categories, $tags);
+        $paddedElements = [];
+        foreach ($elements as $element) {
+            $paddedElement = array_merge(self::DEFAULT_ELEMENT_VALUES, $element);
+            array_push($paddedElements, $paddedElement);
+        }
+
+        return $this->itemRepository->updateItem($id, $title, $description, $price, $paddedElements, $media, $categories, $tags);
     }
 
     public function decreaseStocks(int $id, int $amount, bool $override = false): bool

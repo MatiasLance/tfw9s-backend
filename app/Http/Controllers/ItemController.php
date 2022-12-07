@@ -92,13 +92,12 @@ class ItemController extends Controller
         $name = $request->input('name') ?? null;
         $description = $request->input('description') ?? null;
         $price = $request->input('price') ?? null;
+
         if (is_numeric($price)) {
             $price = floatval($price);
         }
-        $stock = $request->input('stock') ?? null;
-        if (is_numeric($stock)) {
-            $stock = intval($stock);
-        }
+
+        $elements = $request->input('elements') ?? [];
         $tags = $request->input('tags') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
@@ -111,7 +110,7 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $stock, $photo, $categories, $tags);
+        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $elements, $photo, $categories, $tags);
 
         if ($newItem instanceof Item) {
             $message->setContent(201, 'Item duplicated', '', [
@@ -131,13 +130,12 @@ class ItemController extends Controller
         $name = $request->input('name');
         $description = $request->input('description');
         $price = $request->input('price');
+
         if (is_numeric($price)) {
             $price = floatval($price);
         }
-        $stock = $request->input('stock');
-        if (is_numeric($stock)) {
-            $stock = intval($stock);
-        }
+
+        $elements = $request->input('elements') ?? [];
         $tags = $request->input('tags');
         $newPhoto = $request->file('photo') ?? [];
         $existingPhoto = $request->input('photo') ?? [];
@@ -164,7 +162,7 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $photo, $categories, $tags);
+        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $elements, $photo, $categories, $tags);
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');

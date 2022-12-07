@@ -344,12 +344,41 @@ class ItemVariantApiEndpointTest extends TestCase
             'category_id' => $category_2->id,
         ]);
 
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[1],
+            'stock' => 2,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[2],
+            'stock' => 0,
+            'price' => null,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[3],
+            'stock' => 1,
+            'price' => 1400,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[4],
+            'stock' => 5,
+            'price' => null,
+            'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+            'thumbnail_color_value' => '#ffffff',
+        ]);
+
         Storage::disk('public')->assertExists($media->path);
     }
 
     public function test_duplicate_item_as_is()
     {
-        $this->markTestIncomplete('ItemVariants module work in progress');
+        $this->seedDatabase();
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -361,6 +390,7 @@ class ItemVariantApiEndpointTest extends TestCase
                             ->has(
                                 Media::factory()
                             )
+                            ->hasElements(3)
                             ->create();
 
         Sanctum::actingAs($user);
@@ -378,7 +408,6 @@ class ItemVariantApiEndpointTest extends TestCase
                             'name',
                             'description',
                             'price',
-                            'stock',
                         ]
                     ],
                 ]);
@@ -387,7 +416,6 @@ class ItemVariantApiEndpointTest extends TestCase
                             ->where('name', $item->name)
                             ->where('description', $item->description)
                             ->where('price', $item->centPrice())
-                            ->where('stock', $item->stock)
                             ->first();
 
         $this->assertInstanceOf(Item::class, $duplicate);
@@ -406,11 +434,17 @@ class ItemVariantApiEndpointTest extends TestCase
         $duplicateMedia = $duplicate->media->sortBy('path')->pluck('path');
         
         $this->assertEquals(json_encode($originalMedia), json_encode($duplicateMedia), 'Media did not match with original item');
+
+        $originalElements = $item->elements->sortBy('element_id')->pluck('element_id');
+        $duplicateElements = $duplicate->elements->sortBy('element_id')->pluck('element_id');
+
+        $this->assertEquals(json_encode($originalElements), json_encode($duplicateElements), 'Elements did not match with original item');
     }
 
     public function test_duplicate_item_with_overrides()
     {
-        $this->markTestIncomplete('ItemVariants module work in progress');
+        $this->seedDatabase();
+        $elements = Element::pluck('id');
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -422,6 +456,7 @@ class ItemVariantApiEndpointTest extends TestCase
                             ->has(
                                 Media::factory()
                             )
+                            ->hasElements(3)
                             ->create();
         $category_1 = Category::factory()->create();
         $category_2 = Category::factory()->create();
@@ -433,6 +468,29 @@ class ItemVariantApiEndpointTest extends TestCase
         $response = $this->post('/api/v1/items/duplicate/' . $item->id, [
             'name' => 'Cloned item',
             'tags' => $tags,
+            'elements' => [
+                [
+                    'element_id' => $elements[1],
+                    'stock' => 2,
+                ],
+                [
+                    'element_id' => $elements[2],
+                    'stock' => 0,
+                    'price' => null,
+                ],
+                [
+                    'element_id' => $elements[3],
+                    'stock' => 1,
+                    'price' => 1400,
+                ],
+                [
+                    'element_id' => $elements[4],
+                    'stock' => 5,
+                    'price' => null,
+                    'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+                    'thumbnail' => '#ffffff',
+                ],
+            ],
             'categoryId' => [
                 strval($category_1->id), // Mimic HTTP Request Form Data
                 strval($category_2->id), // Mimic HTTP Request Form Data
@@ -453,7 +511,6 @@ class ItemVariantApiEndpointTest extends TestCase
                             'name',
                             'description',
                             'price',
-                            'stock',
                         ]
                     ],
                 ]);
@@ -462,7 +519,6 @@ class ItemVariantApiEndpointTest extends TestCase
                             ->where('name', 'Cloned item')
                             ->where('description', $item->description)
                             ->where('price', $item->centPrice())
-                            ->where('stock', $item->stock)
                             ->first();
 
         $media = $duplicate
@@ -481,13 +537,42 @@ class ItemVariantApiEndpointTest extends TestCase
             'category_id' => $category_2->id,
         ]);
 
-        Storage::disk('public')->assertExists($media->path);
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $duplicate->id,
+            'element_id' => $elements[1],
+            'stock' => 2,
+        ]);
 
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $duplicate->id,
+            'element_id' => $elements[2],
+            'stock' => 0,
+            'price' => null,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $duplicate->id,
+            'element_id' => $elements[3],
+            'stock' => 1,
+            'price' => 1400,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $duplicate->id,
+            'element_id' => $elements[4],
+            'stock' => 5,
+            'price' => null,
+            'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+            'thumbnail_color_value' => '#ffffff',
+        ]);
+
+        Storage::disk('public')->assertExists($media->path);
     }
 
     public function test_update_item()
     {
-        $this->markTestIncomplete('ItemVariants module work in progress');
+        $this->seedDatabase();
+        $elements = Element::pluck('id');
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -499,6 +584,7 @@ class ItemVariantApiEndpointTest extends TestCase
                             ->has(
                                 Media::factory()
                             )
+                            ->hasElements(3)
                             ->create();
         $oldMedia = $item->media->first();
         $oldMediaFileName = explode('/', $oldMedia->path)[2];
@@ -521,8 +607,30 @@ class ItemVariantApiEndpointTest extends TestCase
             'name' => 'Test Updated Item',
             'description' => 'Updated Item description',
             'price' => 32.30,
-            'stock' => 53,
             'tags' => $tags,
+            'elements' => [
+                [
+                    'element_id' => $elements[1],
+                    'stock' => 2,
+                ],
+                [
+                    'element_id' => $elements[2],
+                    'stock' => 0,
+                    'price' => null,
+                ],
+                [
+                    'element_id' => $elements[3],
+                    'stock' => 1,
+                    'price' => 1400,
+                ],
+                [
+                    'element_id' => $elements[4],
+                    'stock' => 5,
+                    'price' => null,
+                    'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+                    'thumbnail' => '#ffffff',
+                ],
+            ],
             'categoryId' => [
                 $category_new_1->id,
                 $category_new_2->id,
@@ -545,7 +653,6 @@ class ItemVariantApiEndpointTest extends TestCase
             'name' => 'Test Updated Item',
             'description' => 'Updated Item description',
             'price' => 3230,
-            'stock' => 53,
         ]);
 
         foreach ($oldCategories as $oldCategory) {
@@ -578,11 +685,41 @@ class ItemVariantApiEndpointTest extends TestCase
         $thumbnail_2_hash = hash_file('sha256', $thumbnail_2);
         $thumbnail_2_exists = $item->media()->where('hash', $thumbnail_2_hash)->exists();
         $this->assertTrue($thumbnail_2_exists);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[1],
+            'stock' => 2,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[2],
+            'stock' => 0,
+            'price' => null,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[3],
+            'stock' => 1,
+            'price' => 1400,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[4],
+            'stock' => 5,
+            'price' => null,
+            'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+            'thumbnail_color_value' => '#ffffff',
+        ]);
     }
 
     public function test_update_item_without_thumbnail_changes()
     {
-        $this->markTestIncomplete('ItemVariants module work in progress');
+        $this->seedDatabase();
+        $elements = Element::pluck('id');
         $user = User::factory()->create();
         $item = Item::factory()
                             ->has(
@@ -594,6 +731,7 @@ class ItemVariantApiEndpointTest extends TestCase
                             ->has(
                                 Media::factory()
                             )
+                            ->hasElements(3)
                             ->create();
         $oldMedia = $item->media->first();
         $oldMediaFileName = explode('/', $oldMedia->path)[2];
@@ -612,7 +750,29 @@ class ItemVariantApiEndpointTest extends TestCase
             'name' => 'Test Updated Item',
             'description' => 'Updated Item description',
             'price' => 32.30,
-            'stock' => 53,
+            'elements' => [
+                [
+                    'element_id' => $elements[1],
+                    'stock' => 2,
+                ],
+                [
+                    'element_id' => $elements[2],
+                    'stock' => 0,
+                    'price' => null,
+                ],
+                [
+                    'element_id' => $elements[3],
+                    'stock' => 1,
+                    'price' => 1400,
+                ],
+                [
+                    'element_id' => $elements[4],
+                    'stock' => 5,
+                    'price' => null,
+                    'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+                    'thumbnail' => '#ffffff',
+                ],
+            ],
             'tags' => $tags,
             'categoryId' => [
                 $category->id
@@ -631,7 +791,6 @@ class ItemVariantApiEndpointTest extends TestCase
             'name' => 'Test Updated Item',
             'description' => 'Updated Item description',
             'price' => 3230,
-            'stock' => 53,
         ]);
 
         $item->refresh();
@@ -641,6 +800,35 @@ class ItemVariantApiEndpointTest extends TestCase
                     ->first();
 
         Storage::disk('public')->assertExists($oldMedia->path);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[1],
+            'stock' => 2,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[2],
+            'stock' => 0,
+            'price' => null,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[3],
+            'stock' => 1,
+            'price' => 1400,
+        ]);
+
+        $this->assertDatabaseHas(ItemVariantElement::class, [
+            'item_id' => $item->id,
+            'element_id' => $elements[4],
+            'stock' => 5,
+            'price' => null,
+            'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+            'thumbnail_color_value' => '#ffffff',
+        ]);
     }
 
     public function test_delete_item()
