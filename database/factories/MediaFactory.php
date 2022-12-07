@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Item;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +19,8 @@ class MediaFactory extends Factory
     public function definition()
     {
         return [
-            'item_id' => 1,
+            'mediable_id' => 1,
+            'mediable_type' => Item::class,
             'hash' => $this->faker->sha256,
             'path' => 'media/items/' . hash('sha256', Carbon::now()->timestamp) . '.png',
             'format' => 'png',

@@ -60,7 +60,7 @@ class Item extends Model
 
     public function media()
     {
-        return $this->hasMany(Media::class);
+        return $this->morphMany(Media::class, 'mediable');
     }
 
     /**
