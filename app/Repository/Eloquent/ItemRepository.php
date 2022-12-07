@@ -188,7 +188,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * @todo Check for the multiple photo update thing
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?array $elements, ?array $media, ?array $categories, ?array $tags): Item
     {
         $oldItem = $this->find($id);
         $item = $oldItem->replicate();
@@ -201,11 +201,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($price)) {
             $item->price = $price;
         }
-        if (!is_null($stock)) {
-            $item->stock = $stock;
-        }
 
-        return DB::transaction(function() use($oldItem, $item, $categories, $tags, $media) {
+        return DB::transaction(function() use($oldItem, $item, $categories, $tags, $media, $elements) {
             $item->save();
 
             if (!is_null($categories)) {
@@ -245,20 +242,44 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 }
             }
 
+            if (!is_null($elements) && count($elements) > 0) {
+                foreach ($elements as $element) {
+                    $itemElement = new ItemVariantElement();
+                    $itemElement->element_id = $element['element_id'];
+                    $itemElement->stock = $element['stock'] ?? 0;
+                    $itemElement->price = $element['price'] ?? null;
+                    $itemElement->thumbnail_type = $element['thumbnail_type'];
+                    
+                    if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
+                        $itemElement->thumbnail_color_value = $element['thumbnail'];
+                    } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
+                        // @todo images
+                    }
+    
+                    $itemElement->order = $element['order'] ?? null;
+    
+                    $item->elements()->save($itemElement);
+                }
+            } else {
+                foreach ($oldItem->elements as $element) {
+                    $itemElement = $element->replicate();
+                    $item->elements()->save($itemElement);
+                }
+            }
+
             return $item;
         });
         
     }
 
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, ?array $media, array $categories, array $tags): bool
+    public function updateItem(int $id, string $title, string $description, float $price, array $elements, ?array $media, array $categories, array $tags): bool
     {
         $item = $this->find($id);
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
-        $item->stock = $stock;
 
-        return DB::transaction(function() use($item, $categories, $tags, $media) {
+        return DB::transaction(function() use($item, $categories, $tags, $media, $elements) {
             $item->categories()->detach();
             foreach ($categories as $category) {
                 $category->items()->attach($item);
@@ -295,6 +316,25 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                     $itemPhoto = $this->storageService->store($newPhoto);
                     $item->media()->save($itemPhoto);
                 }
+            }
+
+            $item->elements()->delete();
+            foreach ($elements as $element) {
+                $itemElement = new ItemVariantElement();
+                $itemElement->element_id = $element['element_id'];
+                $itemElement->stock = $element['stock'] ?? 0;
+                $itemElement->price = $element['price'] ?? null;
+                $itemElement->thumbnail_type = $element['thumbnail_type'];
+                
+                if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
+                    $itemElement->thumbnail_color_value = $element['thumbnail'];
+                } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
+                    // @todo images
+                }
+
+                $itemElement->order = $element['order'] ?? null;
+
+                $item->elements()->save($itemElement);
             }
 
             return $item->save();
