@@ -173,7 +173,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
                     $itemElement->thumbnail_color_value = $element['thumbnail'];
                 } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
-                    // @todo images
+                    $elementThumbnail = $this->storageService->store($element['thumbnail']);
+                    $itemElement->thumbnailImage()->save($elementThumbnail);
                 }
 
                 $itemElement->order = $element['order'] ?? null;
@@ -253,7 +254,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                     if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
                         $itemElement->thumbnail_color_value = $element['thumbnail'];
                     } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
-                        // @todo images
+                        $elementThumbnail = $this->storageService->store($element['thumbnail']);
+                        $itemElement->thumbnailImage()->save($elementThumbnail);
                     }
     
                     $itemElement->order = $element['order'] ?? null;
@@ -318,23 +320,34 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 }
             }
 
-            $item->elements()->delete();
-            foreach ($elements as $element) {
-                $itemElement = new ItemVariantElement();
-                $itemElement->element_id = $element['element_id'];
-                $itemElement->stock = $element['stock'] ?? 0;
-                $itemElement->price = $element['price'] ?? null;
-                $itemElement->thumbnail_type = $element['thumbnail_type'];
+            if (!is_null($elements) || count($elements) > 0) {
                 
-                if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
-                    $itemElement->thumbnail_color_value = $element['thumbnail'];
-                } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
-                    // @todo images
+                foreach ($item->elements as $itemElement) {
+                    if ($itemElement->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE) {
+                        $itemElementMedia = $itemElement->thumbnailImage;
+                        $this->storageService->delete($itemElementMedia);
+                        $itemElement->thumbnailImage()->delete();
+                    }
                 }
 
-                $itemElement->order = $element['order'] ?? null;
+                foreach ($elements as $element) {
+                    $itemElement = new ItemVariantElement();
+                    $itemElement->element_id = $element['element_id'];
+                    $itemElement->stock = $element['stock'] ?? 0;
+                    $itemElement->price = $element['price'] ?? null;
+                    $itemElement->thumbnail_type = $element['thumbnail_type'];
+                    
+                    if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
+                        $itemElement->thumbnail_color_value = $element['thumbnail'];
+                    } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
+                        $elementThumbnail = $this->storageService->store($element['thumbnail']);
+                        $itemElement->thumbnailImage()->save($elementThumbnail);
+                    }
 
-                $item->elements()->save($itemElement);
+                    $itemElement->order = $element['order'] ?? null;
+
+                    $item->elements()->save($itemElement);
+                }
             }
 
             return $item->save();

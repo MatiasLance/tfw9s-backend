@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Modules\Item\Variant;
+use App\Modules\Variants\Exceptions\ElementInvalidThumbnailException;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -51,6 +52,11 @@ class ItemVariantElement extends Model
         );
     }
 
+    public function thumbnailImage()
+    {
+        return $this->morphOne(Media::class, 'mediable');
+    }
+
     protected function thumbnailColorValue(): Attribute
     {
         return Attribute::make(
@@ -62,32 +68,28 @@ class ItemVariantElement extends Model
         );
     }
 
-    /**
-     * @todo Change image thumbnail test return value
-     */
     protected function thumbnail(): Attribute
     {
         return Attribute::make(
             get: function() {
-                if (!is_null($this->thumbnail_type)) {
-                    if (is_null($this->thumbnail_type)) {
-                        return null;
-                    } else {
-                        
-                        if ($this->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE) {
+                if (!is_null($this->attributes['thumbnail_type'])) {
+                    if ($this->attributes['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
+                        if (!is_null($this->thumbnailImage) && !is_null($this->thumbnailImage->path)) {
                             return [
-                                'hash' => 'test',
-                                'path' => 'test',
-                            ];
-                        } else if ($this->thumbnail_type === Variant::THUMBNAIL_TYPE_COLOR) {
-                            return [
-                                'value' => $this->thumbnail_color_value,
+                                'type' => $this->attributes['thumbnail_type'],
+                                'value' => $this->thumbnailImage->path,
                             ];
                         }
-            
+        
+                        throw new ElementInvalidThumbnailException('Thumbnail type was set to image but had no image associated as thumbnail');
+                    } else if ($this->attributes['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
+                        return [
+                            'type' => $this->attributes['thumbnail_type'],
+                            'value' => $this->thumbnail_color_value,
+                        ];
                     }
                 } else {
-                    return $this->element->thumbnail();
+                    return $this->element->thumbnail;
                 }
             }
         );
@@ -98,5 +100,14 @@ class ItemVariantElement extends Model
         return Attribute::make(
             get: fn ($value) => !is_null($value) ? $value : $this->element->order,
         );
+    }
+
+    public function toArray()
+    {
+        $array = parent::toArray();
+
+        // Remove the duplicate thumbnail_image property
+        unset($array['thumbnail_image']);
+        return $array;
     }
 }

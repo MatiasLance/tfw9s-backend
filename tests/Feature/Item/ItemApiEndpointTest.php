@@ -216,7 +216,6 @@ class ItemApiEndpointTest extends TestCase
                                     'name',
                                     'price',
                                     'stock',
-                                    'thumbnail_type',
                                     'thumbnail',
                                 ],
                             ],
@@ -229,7 +228,6 @@ class ItemApiEndpointTest extends TestCase
                                     '*' => [
                                         'id',
                                         'name',
-                                        'thumbnail_type',
                                         'thumbnail',
                                     ],
                                 ],

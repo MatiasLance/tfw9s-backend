@@ -39,7 +39,6 @@ class VariantApiEndpointTest extends TestCase
                                 '*' => [
                                     'id',
                                     'name',
-                                    'thumbnail_type',
                                     'thumbnail',
                                 ],
                             ]
@@ -78,7 +77,6 @@ class VariantApiEndpointTest extends TestCase
                             '*' => [
                                 'id',
                                 'name',
-                                'thumbnail_type',
                                 'thumbnail',
                             ],
                         ]
@@ -114,7 +112,6 @@ class VariantApiEndpointTest extends TestCase
                     'element' => [
                         'id',
                         'name',
-                        'thumbnail_type',
                         'thumbnail',
                     ],
                 ],

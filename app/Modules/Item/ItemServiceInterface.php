@@ -4,10 +4,8 @@ namespace App\Modules\Item;
 
 use App\Models\Category;
 use App\Models\Item;
-use App\Models\Tag;
 use App\Models\User;
 use App\Modules\Utility\Pagination\Paginate;
-use Illuminate\Database\Eloquent\Collection;
 
 interface ItemServiceInterface
 {
@@ -89,14 +87,14 @@ interface ItemServiceInterface
      * @param string $title
      * @param string $description
      * @param float $price Cent value of the item price
-     * @param array $elements Associative array of elements available for this item. See above for the detailed structure
+     * @param null|array $elements Associative array of elements available for this item. See above for the detailed structure
      * @param null|array<UploadedFile|string> $media List of media for the Item
      * @param array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param array<Tags> $tags Array of tags that this item will have
      * 
      * @return bool
      */
-    public function updateItem(int $id, string $title, string $description, float $price, array $elements, ?array $media, array $categories, array $tags): bool;
+    public function updateItem(int $id, string $title, string $description, float $price, ?array $elements, ?array $media, array $categories, array $tags): bool;
 
     /**
      * Decrease the stocks of an item. Useful when Item is bought by a customer
@@ -113,9 +111,9 @@ interface ItemServiceInterface
      * Delete an existing Item
      * 
      * @param User $initiator The user who initiated the delete command
-     * @param Item $item The item to be deleted
+     * @param int  $itemId The id of the item to be deleted
      * 
      * @return bool
      */
-    public function deleteItem(User $initiator, Item $item): bool;
+    public function deleteItem(User $initiator, int $itemId): bool;
 }

@@ -4,6 +4,8 @@ namespace Database\Factories;
 
 use App\Models\Element;
 use App\Models\Item;
+use App\Models\ItemVariantElement;
+use App\Models\Media;
 use App\Modules\Item\Variant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -33,5 +35,20 @@ class ItemVariantElementFactory extends Factory
             'thumbnail_type' => $hasThumbnail ? $thumbnailType : null,
             'thumbnail_color_value' => $hasThumbnail && $thumbnailType === Variant::THUMBNAIL_TYPE_COLOR ? $this->faker->hexColor : null,
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (ItemVariantElement $element) {
+            if ($element->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE) {
+                $media = Media::factory()
+                                ->placeholder()
+                                ->create([
+                                    'mediable_id' => $element->id,
+                                    'mediable_type' => $element::class,
+                                ]);
+                $element->thumbnailImage()->save($media);
+            }
+        });
     }
 }
