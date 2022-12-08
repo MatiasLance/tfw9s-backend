@@ -5,6 +5,7 @@ namespace App\Repository\Eloquent;
 use App\Models\Element;
 use App\Models\Variant as VariantModel;
 use App\Modules\Item\Variant;
+use App\Modules\Storage\StorageInterface;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\VariantRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
@@ -12,9 +13,16 @@ use Illuminate\Support\Facades\DB;
 
 class VariantRepository extends BaseRepository implements VariantRepositoryInterface
 {
+    /**
+     * Storage Module
+     * 
+     * @var StorageInterface $storageService
+     */
+    protected StorageInterface $storageService;
 
-    public function __construct(VariantModel $model)
+    public function __construct(VariantModel $model, StorageInterface $storageService)
     {
+        $this->storageService = $storageService;
         parent::__construct($model);
     }
 
@@ -66,21 +74,28 @@ class VariantRepository extends BaseRepository implements VariantRepositoryInter
         $element = new Element();
         $element->name = $name;
         $element->thumbnail_type = $thumbnailType;
-        
-        if ($thumbnailType === Variant::THUMBNAIL_TYPE_COLOR) {
-            $element->thumbnail_color_value = $thumbnail;
-        } else if ($thumbnailType === Variant::THUMBNAIL_TYPE_IMAGE) {
-            // @todo
-        } else {
-            // @todo throw error
-        }
 
         $element->order = $order;
 
-        $element = DB::transaction(function() use($variant, $element) {
-            return $variant
-                        ->elements()
-                        ->save($element);
+        $element = DB::transaction(function() use($variant, $element, $thumbnailType, $thumbnail) {
+            if ($thumbnailType === Variant::THUMBNAIL_TYPE_COLOR) {
+                $element->thumbnail_color_value = $thumbnail;
+            } else if ($thumbnailType === Variant::THUMBNAIL_TYPE_IMAGE) {
+                $elementThumbnail = $this->storageService->store($thumbnail);
+                $variant
+                    ->elements()
+                    ->save($element); // Need to save element first
+
+                $element->thumbnailImage()->save($elementThumbnail);
+            }
+        
+            if ($thumbnailType !== Variant::THUMBNAIL_TYPE_IMAGE) {
+                $variant
+                    ->elements()
+                    ->save($element);
+            }
+
+            return $variant;
         });
 
         if (!is_null($element)) {
@@ -106,20 +121,22 @@ class VariantRepository extends BaseRepository implements VariantRepositoryInter
         $element = Element::findOrFail($elementId);
         $element->name = $name;
 
-        if (!is_null($thumbnailType)) {
-            $element->thumbnail_type = $thumbnailType;
-        }
+        $element->thumbnail_type = $thumbnailType;
         
         if ($element->thumbnail_type === Variant::THUMBNAIL_TYPE_COLOR) {
             if (!is_null($thumbnail)) {
                 $element->thumbnail_color_value = $thumbnail;
             }
+
+            if (!is_null($element->imageThumbnail)) {
+                $this->storageService->delete($element->imageThumbnail);
+                $element->imageThumbnail()->delete();
+            }
         } else if ($element->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE) {
             $element->thumbnail_color_value = null;
-            // @todo
-            // if (!is_null())  {}
-        } else {
-            // @todo throw error
+            $elementThumbnail = $this->storageService->store($thumbnail);
+
+            $element->thumbnailImage()->save($elementThumbnail);
         }
 
         if (!is_null($order)) {

@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Models\Element;
 use App\Models\Variant;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\UploadedFile;
 
 interface VariantRepositoryInterface
 {
@@ -63,7 +64,7 @@ interface VariantRepositoryInterface
      * @param int $variantId
      * @param string $name
      * @param string|null $thumbnailType
-     * @param string|Media|null $thumbnail
+     * @param string|UploadedFile|null $thumbnail
      * @param int|null $order
      * 
      * @return Variant
@@ -86,7 +87,7 @@ interface VariantRepositoryInterface
      * @param int $elementId
      * @param string $name
      * @param string|null $thumbnailType
-     * @param string|Media $thumbnail
+     * @param string|UploadedFile $thumbnail
      * @param int|null $order
      * 
      * @return bool

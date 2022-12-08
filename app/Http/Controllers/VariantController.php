@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Modules\Http\Message;
+use App\Modules\Item\Variant;
 use App\Modules\Variants\VariantServiceInterface;
 use Illuminate\Http\Request;
 
@@ -97,7 +98,13 @@ class VariantController extends Controller
         $user = $request->user();
         $name = $request->input('name');
         $thumbnailType = $request->input('thumbnail_type');
-        $thumbnail = $request->input('thumbnail');
+
+        if ($thumbnailType === Variant::THUMBNAIL_TYPE_IMAGE) {
+            $thumbnail = $request->file('thumbnail');
+        } else {
+            $thumbnail = $request->input('thumbnail');
+        }
+
         $order = $request->input('order');
 
         $variant = $this->variantService->createElements($variantId, $name, $thumbnailType, $thumbnail, $order);
@@ -134,8 +141,14 @@ class VariantController extends Controller
         $user = $request->user();
         $name = $request->input('name');
         $thumbnailType = $request->input('thumbnail_type') ?? null;
-        $thumbnail = $request->input('thumbnail') ?? null;
-        $order = $request->input('order') ?? null;
+
+        if ($thumbnailType === Variant::THUMBNAIL_TYPE_IMAGE) {
+            $thumbnail = $request->file('thumbnail');
+        } else {
+            $thumbnail = $request->input('thumbnail');
+        }
+
+        $order = $request->input('order');
 
         $isSuccess = $this->variantService->updateElements($elementId, $name, $thumbnailType, $thumbnail, $order);
 
