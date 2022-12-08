@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Item;
+use App\Repository\ItemRepositoryInterface;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -27,5 +28,19 @@ class MediaFactory extends Factory
             'mime_type' => 'image/png',
             'size' => $this->faker->numberBetween(300, 50000),
         ];
+    }
+
+    /**
+     * Use the placeholder image for the media
+     * 
+     * @return Factory
+     */
+    public function placeholder(): Factory
+    {
+        return $this->state(function() {
+            return [
+                'path' => 'media/default/' . ItemRepositoryInterface::PLACEHOLDER_IMAGE
+            ];
+        });
     }
 }

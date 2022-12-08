@@ -176,9 +176,7 @@ class ItemController extends Controller
     public function delete(Request $request, Message $message, int $id)
     {
         $user = $request->user();
-        $itemData = $this->itemService->retrieveItem($id);
-
-        $isSuccess = $this->itemService->deleteItem($user, $itemData['item']);
+        $isSuccess = $this->itemService->deleteItem($user, $id);
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');

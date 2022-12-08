@@ -43,7 +43,7 @@ class ItemService implements ItemServiceInterface
         ];
     }
 
-    public function createItem(string $title, string $description, $price, $elements, array $media, array $categories, array $tags): Item
+    public function createItem(string $title, string $description, $price, array $elements, array $media, array $categories, array $tags): Item
     {
         // @todo make repository take only int for price
         // if (is_float($price)) {
@@ -69,7 +69,7 @@ class ItemService implements ItemServiceInterface
         return $this->itemRepository->duplicateItem($id, $title, $description, $price, $paddedElements, $media, $categories, $tags);
     }
 
-    public function updateItem(int $id, string $title, string $description, float $price, array $elements, ?array $media, array $categories, array $tags): bool
+    public function updateItem(int $id, string $title, string $description, float $price, ?array $elements, ?array $media, array $categories, array $tags): bool
     {
         $paddedElements = [];
         foreach ($elements as $element) {
@@ -85,8 +85,8 @@ class ItemService implements ItemServiceInterface
         return $this->itemRepository->decreaseStocks($id, $amount, $override);
     }
 
-    public function deleteItem(User $initiator, Item $item): bool
+    public function deleteItem(User $initiator, int $itemId): bool
     {
-        return $this->itemRepository->deleteItem($item->id);
+        return $this->itemRepository->deleteItem($itemId);
     }
 }
