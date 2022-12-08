@@ -168,18 +168,21 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $itemElement->element_id = $element['element_id'];
                 $itemElement->stock = $element['stock'] ?? 0;
                 $itemElement->price = $element['price'] ?? null;
+                $itemElement->order = $element['order'] ?? null;
                 $itemElement->thumbnail_type = $element['thumbnail_type'];
                 
                 if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
                     $itemElement->thumbnail_color_value = $element['thumbnail'];
                 } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
                     $elementThumbnail = $this->storageService->store($element['thumbnail']);
+                    $item->elements()->save($itemElement); // Need the element to be saved first
+
                     $itemElement->thumbnailImage()->save($elementThumbnail);
                 }
 
-                $itemElement->order = $element['order'] ?? null;
-
-                $item->elements()->save($itemElement);
+                if ($element['thumbnail_type'] !== Variant::THUMBNAIL_TYPE_IMAGE) {
+                    $item->elements()->save($itemElement);
+                }
             }
 
             return $this->retrieveItem($item->id);
@@ -249,18 +252,21 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                     $itemElement->element_id = $element['element_id'];
                     $itemElement->stock = $element['stock'] ?? 0;
                     $itemElement->price = $element['price'] ?? null;
+                    $itemElement->order = $element['order'] ?? null;
                     $itemElement->thumbnail_type = $element['thumbnail_type'];
                     
                     if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
                         $itemElement->thumbnail_color_value = $element['thumbnail'];
                     } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
                         $elementThumbnail = $this->storageService->store($element['thumbnail']);
+                        $item->elements()->save($itemElement); // Need the element to be saved first
+    
                         $itemElement->thumbnailImage()->save($elementThumbnail);
                     }
     
-                    $itemElement->order = $element['order'] ?? null;
-    
-                    $item->elements()->save($itemElement);
+                    if ($element['thumbnail_type'] !== Variant::THUMBNAIL_TYPE_IMAGE) {
+                        $item->elements()->save($itemElement);
+                    }
                 }
             } else {
                 foreach ($oldItem->elements as $element) {
@@ -335,18 +341,21 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                     $itemElement->element_id = $element['element_id'];
                     $itemElement->stock = $element['stock'] ?? 0;
                     $itemElement->price = $element['price'] ?? null;
+                    $itemElement->order = $element['order'] ?? null;
                     $itemElement->thumbnail_type = $element['thumbnail_type'];
                     
                     if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
                         $itemElement->thumbnail_color_value = $element['thumbnail'];
                     } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
                         $elementThumbnail = $this->storageService->store($element['thumbnail']);
+                        $item->elements()->save($itemElement); // Need the element to be saved first
+    
                         $itemElement->thumbnailImage()->save($elementThumbnail);
                     }
-
-                    $itemElement->order = $element['order'] ?? null;
-
-                    $item->elements()->save($itemElement);
+    
+                    if ($element['thumbnail_type'] !== Variant::THUMBNAIL_TYPE_IMAGE) {
+                        $item->elements()->save($itemElement);
+                    }
                 }
             }
 

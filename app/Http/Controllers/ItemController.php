@@ -65,6 +65,10 @@ class ItemController extends Controller
         }
 
         $elements = $request->input('elements') ?? [];
+        $imageThumbnails = $request->file('elements') ?? [];
+
+        $elements = $this->mergeElementImageThumbnails($elements, $imageThumbnails);
+
         $tags = $request->input('tags');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
@@ -98,6 +102,10 @@ class ItemController extends Controller
         }
 
         $elements = $request->input('elements') ?? [];
+        $imageThumbnails = $request->file('elements') ?? [];
+
+        $elements = $this->mergeElementImageThumbnails($elements, $imageThumbnails);
+
         $tags = $request->input('tags') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
@@ -136,6 +144,10 @@ class ItemController extends Controller
         }
 
         $elements = $request->input('elements') ?? [];
+        $imageThumbnails = $request->file('elements') ?? [];
+
+        $elements = $this->mergeElementImageThumbnails($elements, $imageThumbnails);
+
         $tags = $request->input('tags');
         $newPhoto = $request->file('photo') ?? [];
         $existingPhoto = $request->input('photo') ?? [];
@@ -185,5 +197,21 @@ class ItemController extends Controller
         }
 
         return $message->render();
+    }
+
+    /**
+     * Merge the image thumbnails to the element array
+     * 
+     * @param array $elements The array containing the element data
+     * @param array $imageThumbnails The array containing the images
+     * 
+     * @return array
+     */
+    protected function mergeElementImageThumbnails(array $elements, array $imageThumbnails): array
+    {
+        foreach ($imageThumbnails as $elementKey => $imageThumbnail) {
+            $elements[$elementKey]['thumbnail'] = $imageThumbnail['thumbnail'];
+        }
+        return $elements;
     }
 }

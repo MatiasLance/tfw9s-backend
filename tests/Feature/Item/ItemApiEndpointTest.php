@@ -261,29 +261,7 @@ class ItemApiEndpointTest extends TestCase
             'description' => 'This is a test item',
             'price' => 12.50,
             'tags' => $tags,
-            'elements' => [
-                [
-                    'element_id' => $elements[1],
-                    'stock' => 2,
-                ],
-                [
-                    'element_id' => $elements[2],
-                    'stock' => 0,
-                    'price' => null,
-                ],
-                [
-                    'element_id' => $elements[3],
-                    'stock' => 1,
-                    'price' => 1400,
-                ],
-                [
-                    'element_id' => $elements[4],
-                    'stock' => 5,
-                    'price' => null,
-                    'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
-                    'thumbnail' => '#ffffff',
-                ],
-            ],
+            'elements' => $this->generateTestItemElementData($elements),
             'categoryId' => [
                 strval($category_1->id), // Mimic HTTP Request Form Data
                 strval($category_2->id), // Mimic HTTP Request Form Data
@@ -466,29 +444,7 @@ class ItemApiEndpointTest extends TestCase
         $response = $this->post('/api/v1/items/duplicate/' . $item->id, [
             'name' => 'Cloned item',
             'tags' => $tags,
-            'elements' => [
-                [
-                    'element_id' => $elements[1],
-                    'stock' => 2,
-                ],
-                [
-                    'element_id' => $elements[2],
-                    'stock' => 0,
-                    'price' => null,
-                ],
-                [
-                    'element_id' => $elements[3],
-                    'stock' => 1,
-                    'price' => 1400,
-                ],
-                [
-                    'element_id' => $elements[4],
-                    'stock' => 5,
-                    'price' => null,
-                    'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
-                    'thumbnail' => '#ffffff',
-                ],
-            ],
+            'elements' => $this->generateTestItemElementData($elements),
             'categoryId' => [
                 strval($category_1->id), // Mimic HTTP Request Form Data
                 strval($category_2->id), // Mimic HTTP Request Form Data
@@ -606,29 +562,7 @@ class ItemApiEndpointTest extends TestCase
             'description' => 'Updated Item description',
             'price' => 32.30,
             'tags' => $tags,
-            'elements' => [
-                [
-                    'element_id' => $elements[1],
-                    'stock' => 2,
-                ],
-                [
-                    'element_id' => $elements[2],
-                    'stock' => 0,
-                    'price' => null,
-                ],
-                [
-                    'element_id' => $elements[3],
-                    'stock' => 1,
-                    'price' => 1400,
-                ],
-                [
-                    'element_id' => $elements[4],
-                    'stock' => 5,
-                    'price' => null,
-                    'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
-                    'thumbnail' => '#ffffff',
-                ],
-            ],
+            'elements' => $this->generateTestItemElementData($elements),
             'categoryId' => [
                 $category_new_1->id,
                 $category_new_2->id,
@@ -748,29 +682,7 @@ class ItemApiEndpointTest extends TestCase
             'name' => 'Test Updated Item',
             'description' => 'Updated Item description',
             'price' => 32.30,
-            'elements' => [
-                [
-                    'element_id' => $elements[1],
-                    'stock' => 2,
-                ],
-                [
-                    'element_id' => $elements[2],
-                    'stock' => 0,
-                    'price' => null,
-                ],
-                [
-                    'element_id' => $elements[3],
-                    'stock' => 1,
-                    'price' => 1400,
-                ],
-                [
-                    'element_id' => $elements[4],
-                    'stock' => 5,
-                    'price' => null,
-                    'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
-                    'thumbnail' => '#ffffff',
-                ],
-            ],
+            'elements' => $this->generateTestItemElementData($elements),
             'tags' => $tags,
             'categoryId' => [
                 $category->id
@@ -894,5 +806,55 @@ class ItemApiEndpointTest extends TestCase
                 ->hasTags()
                 ->hasElements(3)
                 ->create();
+    }
+
+    /**
+     * Generate test data for item elements
+     * 
+     * @param Collection|array $elementIds Array containing IDs of existing elements
+     * 
+     * @return array
+     */
+    protected function generateTestItemElementData($elementIds): array
+    {
+        $elementThumbnail_1 = UploadedFile::fake()->image('test_element_thumbnail_1.jpg', 15, 20);
+        $elementThumbnail_2 = UploadedFile::fake()->image('test_element_thumbnail_2.jpg', 15, 20);
+
+        return [
+            [
+                'element_id' => $elementIds[1],
+                'stock' => 2,
+            ],
+            [
+                'element_id' => $elementIds[2],
+                'stock' => 0,
+                'price' => null,
+            ],
+            [
+                'element_id' => $elementIds[3],
+                'stock' => 1,
+                'price' => 1400,
+            ],
+            [
+                'element_id' => $elementIds[4],
+                'stock' => 5,
+                'price' => null,
+                'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
+                'thumbnail' => '#ffffff',
+            ],
+            [
+                'element_id' => $elementIds[5],
+                'stock' => 8,
+                'price' => null,
+                'thumbnail_type' => Variant::THUMBNAIL_TYPE_IMAGE,
+                'thumbnail' => $elementThumbnail_1,
+            ],
+            [
+                'element_id' => $elementIds[6],
+                'stock' => 9,
+                'thumbnail_type' => Variant::THUMBNAIL_TYPE_IMAGE,
+                'thumbnail' => $elementThumbnail_2,
+            ],
+        ];
     }
 }
