@@ -267,6 +267,8 @@ class ItemController extends Controller
                 title: 'Failed to delete Item unit'
             );
         }
+
+        return $message->render();
     }
 
 

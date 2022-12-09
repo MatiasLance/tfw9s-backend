@@ -54,6 +54,8 @@ class ItemUnitApiEndpointTest extends TestCase
         $this->assertDatabaseHas(ItemUnit::class, [
             'item_id' => $item->id,
             'stock' => 5,
+            'price' => null,
+            'sku' => null,
             
             /**
              * Doesn't work, idk
@@ -83,7 +85,7 @@ class ItemUnitApiEndpointTest extends TestCase
             'element_ids' => $itemUnitElements,
             'stock' => 5,
             'price' => 210,
-            'sku' => 'test_tessku1258',
+            'sku' => 'test_sku781',
         ]);
         
         $response
@@ -105,7 +107,7 @@ class ItemUnitApiEndpointTest extends TestCase
             'item_id' => $item->id,
             'stock' => 5,
             'price' => 210,
-            'sku' => 'test_tessku1258',
+            'sku' => 'test_sku781',
             
             /**
              * Doesn't work, idk
@@ -128,9 +130,16 @@ class ItemUnitApiEndpointTest extends TestCase
         $itemUnit = ItemUnit::factory()
                     ->create([
                         'item_id' => $item->id,
+                        'stock' => 5,
+                        'price' => 210,
+                        'sku' => 'test_sku781',
                     ]);
 
-        $response = $this->patch('/api/v1/items/' . $item->id . '/units/' . $itemUnit->id);
+        $response = $this->patch('/api/v1/items/' . $item->id . '/units/' . $itemUnit->id, [
+            'stock' => 66,
+            'price' => 500,
+            'sku' => 'test_sku4562',
+        ]);
 
         $response
             ->assertStatus(200)
@@ -138,6 +147,46 @@ class ItemUnitApiEndpointTest extends TestCase
                 'status',
                 'title',
             ]);
+
+        $this->assertDatabaseHas(ItemUnit::class, [
+            'item_id' => $item->id,
+            'stock' => 66,
+            'price' => 500,
+            'sku' => 'test_sku4562',
+            
+            /**
+             * Doesn't work, idk
+             */
+            // 'element_ids' => $this->convertArrayToDatabaseJsonFormat($itemUnitElements),
+        ]);
+    }
+
+    public function test_delete_item_unit()
+    {
+        Sanctum::actingAs(
+            User::factory()->create()
+        );
+
+        $this->seed(VariantSeeder::class);
+        $item = Item::factory()
+                        ->hasElements(5)
+                        ->create();
+
+        $itemUnit = ItemUnit::factory()
+                    ->create([
+                        'item_id' => $item->id,
+                    ]);
+
+        $response = $this->delete('/api/v1/items/' . $item->id . '/units/' . $itemUnit->id);
+
+        $response
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'status',
+                'title',
+            ]);
+
+        $this->assertModelMissing($itemUnit);
     }
 
     /**
