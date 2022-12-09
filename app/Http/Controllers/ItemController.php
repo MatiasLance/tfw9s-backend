@@ -65,6 +65,9 @@ class ItemController extends Controller
         }
 
         $elements = $request->input('elements') ?? [];
+        if (gettype($elements) == 'string') { // Accept json encoded strings
+            $elements = json_decode($elements);
+        }
         $imageThumbnails = $request->file('elements') ?? [];
 
         $elements = $this->mergeElementImageThumbnails($elements, $imageThumbnails);
@@ -102,6 +105,9 @@ class ItemController extends Controller
         }
 
         $elements = $request->input('elements') ?? [];
+        if (gettype($elements) == 'string') { // Accept json encoded strings
+            $elements = json_decode($elements);
+        }
         $imageThumbnails = $request->file('elements') ?? [];
 
         $elements = $this->mergeElementImageThumbnails($elements, $imageThumbnails);
@@ -144,6 +150,9 @@ class ItemController extends Controller
         }
 
         $elements = $request->input('elements') ?? [];
+        if (gettype($elements) == 'string') { // Accept json encoded strings
+            $elements = json_decode($elements);
+        }
         $imageThumbnails = $request->file('elements') ?? [];
 
         $elements = $this->mergeElementImageThumbnails($elements, $imageThumbnails);
