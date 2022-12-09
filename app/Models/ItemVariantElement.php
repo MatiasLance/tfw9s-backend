@@ -72,7 +72,10 @@ class ItemVariantElement extends Model
     {
         return Attribute::make(
             get: function() {
-                if (!is_null($this->attributes['thumbnail_type'])) {
+                if (
+                    !is_null($this->attributes['thumbnail_type']) &&
+                    !is_null($this->thumbnailImage)
+                ) {
                     if ($this->attributes['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
                         if (!is_null($this->thumbnailImage) && !is_null($this->thumbnailImage->path)) {
                             return [

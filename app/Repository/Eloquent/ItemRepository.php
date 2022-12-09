@@ -174,10 +174,11 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
                     $itemElement->thumbnail_color_value = $element['thumbnail'];
                 } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
-                    $elementThumbnail = $this->storageService->store($element['thumbnail']);
                     $item->elements()->save($itemElement); // Need the element to be saved first
-
-                    $itemElement->thumbnailImage()->save($elementThumbnail);
+                    if (!is_null($element['thumbnail'])) {
+                        $elementThumbnail = $this->storageService->store($element['thumbnail']);
+                        $itemElement->thumbnailImage()->save($elementThumbnail);
+                    }
                 }
 
                 if ($element['thumbnail_type'] !== Variant::THUMBNAIL_TYPE_IMAGE) {
