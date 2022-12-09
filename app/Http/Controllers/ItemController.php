@@ -246,6 +246,8 @@ class ItemController extends Controller
                 title: 'Item unit cannot be updated'
             );
         }
+
+        return $message->render();
     }
 
     public function deleteItemUnit(Request $request, Message $message, int $itemId, int $unitId)

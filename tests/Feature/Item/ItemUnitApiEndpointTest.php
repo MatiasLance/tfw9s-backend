@@ -116,7 +116,6 @@ class ItemUnitApiEndpointTest extends TestCase
 
     public function test_update_item_unit()
     {
-        $this->markTestIncomplete('Update WIP');
         Sanctum::actingAs(
             User::factory()->create()
         );
@@ -131,7 +130,7 @@ class ItemUnitApiEndpointTest extends TestCase
                         'item_id' => $item->id,
                     ]);
 
-        $response = $this->patch('/api/v1/items/' . $item->id . '/units/' . $itemUnit);
+        $response = $this->patch('/api/v1/items/' . $item->id . '/units/' . $itemUnit->id);
 
         $response
             ->assertStatus(200)
