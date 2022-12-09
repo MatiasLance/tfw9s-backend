@@ -33,7 +33,7 @@ class VariantController extends Controller
 
         $variants = $this->variantService->list($filters);
 
-        $message->setContent(200, 'List of variatns retrieved', '', [
+        $message->setContent(200, 'List of variants retrieved', '', [
             'variants' => $variants
         ]);
 

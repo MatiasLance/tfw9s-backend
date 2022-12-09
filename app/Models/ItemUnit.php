@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -17,6 +18,14 @@ class ItemUnit extends Model
         'updated_at',
     ];
 
+    protected $casts = [
+        'element_ids' => 'array'
+    ];
+
+    protected $appends = [
+        'elements'
+    ];
+
     public function item()
     {
         return $this->belongsTo(Item::class);
@@ -25,11 +34,14 @@ class ItemUnit extends Model
     /**
      * Retrieve the elements that this stock is tied to
      * 
-     * @return Collection
+     * @return Attribute
      */
-    public function elements()
+    public function elements(): Attribute
     {
-        $elementIds = $this->attributes['element_ids'];
-        return ItemVariantElement::whereIn('id', $elementIds);
+        return Attribute::make(
+            get: function() {
+                return ItemVariantElement::whereIn('id', $this->element_ids);
+            }
+        );
     }
 }

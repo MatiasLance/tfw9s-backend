@@ -48,6 +48,11 @@ class Item extends Model
         return $this->hasMany(ItemVariantElement::class);
     }
 
+    public function itemUnits()
+    {
+        return $this->hasMany(ItemUnit::class);
+    }
+
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'item_categories');

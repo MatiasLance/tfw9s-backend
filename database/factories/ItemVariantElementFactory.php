@@ -23,15 +23,12 @@ class ItemVariantElementFactory extends Factory
     {
         $items = Item::pluck('id')->toArray();
         $elements = Element::pluck('id')->toArray();
-        $overridePrice = $this->faker->boolean(10);
         $hasThumbnail = $this->faker->boolean(60);
         $thumbnailType = $this->faker->boolean() ? Variant::THUMBNAIL_TYPE_IMAGE : Variant::THUMBNAIL_TYPE_COLOR;
 
         return [
             'item_id' => $this->faker->randomElement($items),
             'element_id' => $this->faker->randomElement($elements),
-            'price' => $overridePrice ? $this->faker->numberBetween(10, 300) * 10 : null,
-            'stock' => $this->faker->numberBetween(0, 20),
             'thumbnail_type' => $hasThumbnail ? $thumbnailType : null,
             'thumbnail_color_value' => $hasThumbnail && $thumbnailType === Variant::THUMBNAIL_TYPE_COLOR ? $this->faker->hexColor : null,
         ];

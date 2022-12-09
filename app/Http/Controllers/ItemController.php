@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\ItemUnit;
 use App\Modules\Categories\CategoryServiceInterface;
 use App\Modules\Http\Message;
 use App\Modules\Item\ItemServiceInterface;
@@ -193,6 +194,79 @@ class ItemController extends Controller
 
         return $message->render();
     }
+
+    public function createItemUnit(Request $request, Message $message, int $itemId)
+    {
+        $user = $request->user();
+        
+        $elementIds = $request->input('element_ids') ?? [];
+        $price = $request->input('price') ?? null;
+        $stock = $request->input('stock');
+        $sku = $request->input('sku');
+
+        $itemUnit = $this->itemService->createItemUnit($itemId, $elementIds, $price, $stock, $sku);
+
+        if ($itemUnit instanceof ItemUnit) {
+            $message->setContent(
+                status: 201,
+                title: 'Item unit created',
+                data: [
+                    'item_unit' => $itemUnit
+                ]
+            );
+        } else {
+            $message->setContent(
+                status: 400,
+                title: 'Item unit cannot be created'
+            );
+        }
+
+        return $message->render();
+    }
+
+    public function updateItemUnit(Request $request, Message $message, int $itemId, int $unitId)
+    {
+        $user = $request->user();
+        
+        $elementIds = $request->input('element_ids') ?? [];
+        $price = $request->input('price') ?? null;
+        $stock = $request->input('stock');
+        $sku = $request->input('sku');
+
+        $isSuccess = $this->itemService->updateItemUnit($unitId, $itemId, $elementIds, $price, $stock, $sku);
+
+        if ($isSuccess) {
+            $message->setContent(
+                status: 200,
+                title: 'Item unit updated'
+            );
+        } else {
+            $message->setContent(
+                status: 400,
+                title: 'Item unit cannot be updated'
+            );
+        }
+    }
+
+    public function deleteItemUnit(Request $request, Message $message, int $itemId, int $unitId)
+    {
+        $user = $request->user();
+     
+        $isSuccess = $this->itemService->deleteItemUnit($unitId, $itemId);
+
+        if ($isSuccess) {
+            $message->setContent(
+                status: 200,
+                title: 'Item unit deleted'
+            );
+        } else {
+            $message->setContent(
+                status: 400,
+                title: 'Failed to delete Item unit'
+            );
+        }
+    }
+
 
     public function delete(Request $request, Message $message, int $id)
     {

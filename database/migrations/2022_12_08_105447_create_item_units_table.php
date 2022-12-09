@@ -19,6 +19,7 @@ return new class extends Migration
             $table->json('element_ids');
             $table->unsignedBigInteger('stock')->default(0);
             $table->unsignedBigInteger('price')->nullable();
+            $table->string('sku')->nullable();
             $table->timestamps();
         });
     }

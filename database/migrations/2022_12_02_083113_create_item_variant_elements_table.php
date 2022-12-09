@@ -17,8 +17,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('item_id');
             $table->foreignId('element_id');
-            $table->unsignedBigInteger('price')->nullable();
-            $table->unsignedBigInteger('stock')->default(0);
             $table->string('thumbnail_type')->nullable(); // Image, color or null
             $table->string('thumbnail_color_value')->nullable();
             $table->unsignedBigInteger('order')->nullable();
