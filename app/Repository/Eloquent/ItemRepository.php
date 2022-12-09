@@ -167,8 +167,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             foreach ($elements as $element) {
                 $itemElement = new ItemVariantElement();
                 $itemElement->element_id = $element['element_id'];
-                $itemElement->stock = $element['stock'] ?? 0;
-                $itemElement->price = $element['price'] ?? null;
                 $itemElement->order = $element['order'] ?? null;
                 $itemElement->thumbnail_type = $element['thumbnail_type'];
                 
@@ -252,8 +250,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 foreach ($elements as $element) {
                     $itemElement = new ItemVariantElement();
                     $itemElement->element_id = $element['element_id'];
-                    $itemElement->stock = $element['stock'] ?? 0;
-                    $itemElement->price = $element['price'] ?? null;
                     $itemElement->order = $element['order'] ?? null;
                     $itemElement->thumbnail_type = $element['thumbnail_type'];
                     
@@ -361,8 +357,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 foreach ($elements as $element) {
                     $itemElement = new ItemVariantElement();
                     $itemElement->element_id = $element['element_id'];
-                    $itemElement->stock = $element['stock'] ?? 0;
-                    $itemElement->price = $element['price'] ?? null;
                     $itemElement->order = $element['order'] ?? null;
                     $itemElement->thumbnail_type = $element['thumbnail_type'];
                     

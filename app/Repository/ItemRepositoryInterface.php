@@ -49,8 +49,6 @@ interface ItemRepositoryInterface
      * The $elements argument must be structured as below:
      *  $elements = [
      *      'element_id'    => (int) Required. ID of the element to use,
-     *      'stock'         => (int) Required. Number of stock available for this element
-     *      'price'         => (int) Optional. Null by default. When a value is passed, overrides the default item price
      *      'thumbnail_type'=> (string) Optional. When a value is provided, overrides the Element thumbnail type
      *      'thumbnail'     => (string) (Conditionally required). When thumbnail_type value is given, this value must be provided as well.
      *                          Dictates the value of the value of the thumbnail according to the given thumbnail_type given.
