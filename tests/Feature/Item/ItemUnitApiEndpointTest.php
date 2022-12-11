@@ -116,6 +116,9 @@ class ItemUnitApiEndpointTest extends TestCase
         ]);
     }
 
+    /**
+     * @todo When test is run with ItemApiEndpointTest.php, has a problem with missing Item/ ItemUnit
+     */
     public function test_update_item_unit()
     {
         Sanctum::actingAs(
@@ -161,6 +164,9 @@ class ItemUnitApiEndpointTest extends TestCase
         ]);
     }
 
+    /**
+     * @todo When test is run with ItemApiEndpointTest.php, has a problem with missing Item/ ItemUnit
+     */
     public function test_delete_item_unit()
     {
         Sanctum::actingAs(
