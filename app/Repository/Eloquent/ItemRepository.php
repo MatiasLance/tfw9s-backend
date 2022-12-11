@@ -446,7 +446,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $item->stock = 0;
             }
 
-            throw new ItemStockCannotBeLowerThanZeroException('Attempted to decease the stocks below zero');
+            throw new ItemStockCannotBeLowerThanZeroException('Attempted to decrease the stocks below zero');
         } else {
             $item->stock -= $amount;
         }
