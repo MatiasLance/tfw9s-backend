@@ -328,9 +328,29 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             }
 
             if (!is_null($elements) || count($elements) > 0) {
-                
+
+                $newElement = array_filter($elements, function($element) {
+                    return !is_null($element['thumbnail']);
+                });
+
+                $newElement = array_map(function($element) {
+                    return $element['element_id'];
+                }, $newElement);
+
+                $oldElement = array_filter($elements, function($element) {
+                    return is_null($element['thumbnail']);
+                });
+
+                $oldElement = array_map(function($element) {
+                    return $element['element_id'];
+                }, $oldElement);
+
+
                 foreach ($item->elements as $itemElement) {
-                    if ($itemElement->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE) {
+                    if (
+                        // $itemElement->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE ||
+                        in_array($itemElement->element_id, $newElement)
+                    ) {
                         $itemElementMedia = $itemElement->thumbnailImage;
                         $this->storageService->delete($itemElementMedia);
                         $itemElement->thumbnailImage()->delete();
@@ -348,10 +368,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                     if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
                         $itemElement->thumbnail_color_value = $element['thumbnail'];
                     } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
-                        $elementThumbnail = $this->storageService->store($element['thumbnail']);
                         $item->elements()->save($itemElement); // Need the element to be saved first
-    
-                        $itemElement->thumbnailImage()->save($elementThumbnail);
+                        
+                        if (in_array($element['element_id'], $newElement)) {
+                            $elementThumbnail = $this->storageService->store($element['thumbnail']);
+                            $itemElement->thumbnailImage()->save($elementThumbnail);
+                        }
                     }
     
                     if ($element['thumbnail_type'] !== Variant::THUMBNAIL_TYPE_IMAGE) {
