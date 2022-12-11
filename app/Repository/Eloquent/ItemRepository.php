@@ -4,6 +4,7 @@ namespace App\Repository\Eloquent;
 
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\ItemUnit;
 use App\Models\ItemVariantElement;
 use App\Models\Tag;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
@@ -166,8 +167,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             foreach ($elements as $element) {
                 $itemElement = new ItemVariantElement();
                 $itemElement->element_id = $element['element_id'];
-                $itemElement->stock = $element['stock'] ?? 0;
-                $itemElement->price = $element['price'] ?? null;
                 $itemElement->order = $element['order'] ?? null;
                 $itemElement->thumbnail_type = $element['thumbnail_type'];
                 
@@ -251,8 +250,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 foreach ($elements as $element) {
                     $itemElement = new ItemVariantElement();
                     $itemElement->element_id = $element['element_id'];
-                    $itemElement->stock = $element['stock'] ?? 0;
-                    $itemElement->price = $element['price'] ?? null;
                     $itemElement->order = $element['order'] ?? null;
                     $itemElement->thumbnail_type = $element['thumbnail_type'];
                     
@@ -360,8 +357,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 foreach ($elements as $element) {
                     $itemElement = new ItemVariantElement();
                     $itemElement->element_id = $element['element_id'];
-                    $itemElement->stock = $element['stock'] ?? 0;
-                    $itemElement->price = $element['price'] ?? null;
                     $itemElement->order = $element['order'] ?? null;
                     $itemElement->thumbnail_type = $element['thumbnail_type'];
                     
@@ -383,6 +378,61 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             }
 
             return $item->save();
+        });
+    }
+
+    public function createItemUnit(int $itemId, array $elementIds, ?float $price, int $stock = 0, ?string $sku = null): ItemUnit
+    {
+        $item = $this->find($itemId);
+
+        $itemUnit = new ItemUnit();
+        $itemUnit->element_ids = $elementIds;
+        $itemUnit->price = $price;
+        $itemUnit->stock = $stock;
+        $itemUnit->sku = $sku;
+        
+        return DB::transaction(function() use($item, $itemUnit) {
+            $item->itemUnits()->save($itemUnit);
+
+            return $itemUnit;
+        });
+    }
+
+    public function updateItemUnit(int $itemId, int $unitId, ?array $elementIds, ?float $price, ?int $stock = 0, ?string $sku = null): bool
+    {
+        $item = $this->find($itemId);
+
+        $itemUnit = $item->itemUnits()->find($unitId);
+
+        if (!is_null($elementIds)) {
+            $itemUnit->element_ids = $elementIds;
+        }
+
+        if (!is_null($price)) {
+            $itemUnit->price = $price;
+        }
+
+        if (!is_null($stock)) {
+            $itemUnit->stock = $stock;
+        }
+
+        if (!is_null($sku)) {
+            $itemUnit->sku = $sku;
+        }
+
+        return DB::transaction(function() use($itemUnit){
+            return $itemUnit->save();
+        });
+    }
+
+    public function deleteItemUnit(int $itemId, int $unitId): bool
+    {
+        $item = $this->find($itemId);
+
+        $itemUnit = $item->itemUnits()->find($unitId);
+
+        return DB::transaction(function() use($itemUnit) {
+            return $itemUnit->delete();
         });
     }
 

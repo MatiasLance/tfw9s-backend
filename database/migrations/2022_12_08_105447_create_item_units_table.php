@@ -13,13 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('item_variant_elements', function (Blueprint $table) {
+        Schema::create('item_units', function (Blueprint $table) {
             $table->id();
             $table->foreignId('item_id');
-            $table->foreignId('element_id');
-            $table->string('thumbnail_type')->nullable(); // Image, color or null
-            $table->string('thumbnail_color_value')->nullable();
-            $table->unsignedBigInteger('order')->nullable();
+            $table->json('element_ids');
+            $table->unsignedBigInteger('stock')->default(0);
+            $table->unsignedBigInteger('price')->nullable();
+            $table->string('sku')->nullable();
             $table->timestamps();
         });
     }
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('item_variant_elements');
+        Schema::dropIfExists('item_units');
     }
 };

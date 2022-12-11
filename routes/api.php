@@ -26,8 +26,18 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
         Route::prefix('items')->group(function () { // Item API Endpoints
             Route::post('/', 'App\Http\Controllers\ItemController@store');
             Route::post('/duplicate/{itemId}', 'App\Http\Controllers\ItemController@duplicate');
-            Route::patch('/{itemId}', 'App\Http\Controllers\ItemController@update');
-            Route::delete('/{itemId}', 'App\Http\Controllers\ItemController@delete');
+            
+            Route::prefix('/{itemId}')->group(function() {
+                Route::patch('/', 'App\Http\Controllers\ItemController@update');
+                Route::delete('/', 'App\Http\Controllers\ItemController@delete');
+
+                Route::prefix('/units')->group(function() {
+                    Route::post('/', 'App\Http\Controllers\ItemController@createItemUnit');
+                    Route::patch('/{unitId}', 'App\Http\Controllers\ItemController@updateItemUnit');
+                    Route::delete('/{unitId}', 'App\Http\Controllers\ItemController@deleteItemUnit');
+                });
+            });
+
         });
 
         Route::prefix('categories')->group(function () { // Category API Endpoints

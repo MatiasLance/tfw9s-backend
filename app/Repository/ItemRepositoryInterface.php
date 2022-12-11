@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\ItemUnit;
 use App\Modules\Utility\Pagination\Paginate;
 use Illuminate\Http\UploadedFile;
 
@@ -48,8 +49,6 @@ interface ItemRepositoryInterface
      * The $elements argument must be structured as below:
      *  $elements = [
      *      'element_id'    => (int) Required. ID of the element to use,
-     *      'stock'         => (int) Required. Number of stock available for this element
-     *      'price'         => (int) Optional. Null by default. When a value is passed, overrides the default item price
      *      'thumbnail_type'=> (string) Optional. When a value is provided, overrides the Element thumbnail type
      *      'thumbnail'     => (string) (Conditionally required). When thumbnail_type value is given, this value must be provided as well.
      *                          Dictates the value of the value of the thumbnail according to the given thumbnail_type given.
@@ -99,6 +98,43 @@ interface ItemRepositoryInterface
      */
     public function updateItem(int $id, string $title, string $description, float $price, array $elements, ?array $media, array $categories, array $tags): bool;
 
+    /**
+     * Create a new Item Unit
+     * 
+     * @param int $itemId ID of the item to put the item unit under
+     * @param array $elementIds List of element ids that form the combination for the Item unit
+     * @param null|float $price (Optional) When a value is given, overrides the item price
+     * @param int $stock Number of stocks available for this Item unit
+     * @param null|string $sku (Optional) SKU of the item unit
+     * 
+     * @return ItemUnit
+     */
+    public function createItemUnit(int $itemId, array $elementIds, ?float $price, int $stock = 0, ?string $sku = null): ItemUnit;
+
+    /**
+     * Update an existing item unit
+     * 
+     * @param int $itemId Id of the item the item unit is under
+     * @param int $unitId Id of the item unit to update
+     * @param null|array $elementIds List of element ids that form the combination for the Item unit
+     * @param null|float $price (Optional) When a value is given, overrides the item price
+     * @param null|int $stock Number of stocks available for this Item unit
+     * @param null|string $sku (Optional) SKU of the item unit
+     * 
+     * @return bool
+     */
+    public function updateItemUnit(int $itemId, int $unitId, ?array $elementIds, ?float $price, ?int $stock = 0, ?string $sku = null): bool;
+
+    /**
+     * Delete an existing Item Unit
+     * 
+     * @param int $itemId The Id of the item that the Item unit is under
+     * @param int $unitId Id of the Item unit to delete
+     * 
+     * @return bool
+     */
+    public function deleteItemUnit(int $itemId, int $unitId): bool;
+    
     /**
      * Decrease the stocks of an item. Useful when Item is bought by a customer
      * 

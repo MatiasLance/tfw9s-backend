@@ -172,7 +172,6 @@ class ItemApiEndpointTest extends TestCase
                         ->create(
                             [
                                 'name' => $itemName,
-                                'price' => 12.50,
                             ]
                         );
 
@@ -190,7 +189,6 @@ class ItemApiEndpointTest extends TestCase
                             'id',
                             'name',
                             'description',
-                            'price',
                             'categoryLineages' => [
                                 '*' => []
                             ],
@@ -214,8 +212,6 @@ class ItemApiEndpointTest extends TestCase
                                 '*' => [
                                     'id',
                                     'name',
-                                    'price',
-                                    'stock',
                                     'thumbnail',
                                 ],
                             ],
@@ -234,11 +230,6 @@ class ItemApiEndpointTest extends TestCase
                             ]
                         ],
                     ],
-                ]
-            )
-            ->assertJsonFragment(
-                [
-                    'price' => 12.5
                 ]
             );
     }
@@ -287,8 +278,6 @@ class ItemApiEndpointTest extends TestCase
                                 '*' => [
                                     'id',
                                     'name',
-                                    'stock',
-                                    'price',
                                 ],
                             ],
                         ]
@@ -323,28 +312,21 @@ class ItemApiEndpointTest extends TestCase
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[1],
-            'stock' => 2,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[2],
-            'stock' => 0,
-            'price' => null,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[3],
-            'stock' => 1,
-            'price' => 1400,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[4],
-            'stock' => 5,
-            'price' => null,
             'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
             'thumbnail_color_value' => '#ffffff',
         ]);
@@ -494,28 +476,21 @@ class ItemApiEndpointTest extends TestCase
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $duplicate->id,
             'element_id' => $elements[1],
-            'stock' => 2,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $duplicate->id,
             'element_id' => $elements[2],
-            'stock' => 0,
-            'price' => null,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $duplicate->id,
             'element_id' => $elements[3],
-            'stock' => 1,
-            'price' => 1400,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $duplicate->id,
             'element_id' => $elements[4],
-            'stock' => 5,
-            'price' => null,
             'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
             'thumbnail_color_value' => '#ffffff',
         ]);
@@ -621,28 +596,21 @@ class ItemApiEndpointTest extends TestCase
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[1],
-            'stock' => 2,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[2],
-            'stock' => 0,
-            'price' => null,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[3],
-            'stock' => 1,
-            'price' => 1400,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[4],
-            'stock' => 5,
-            'price' => null,
             'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
             'thumbnail_color_value' => '#ffffff',
         ]);
@@ -714,28 +682,21 @@ class ItemApiEndpointTest extends TestCase
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[1],
-            'stock' => 2,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[2],
-            'stock' => 0,
-            'price' => null,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[3],
-            'stock' => 1,
-            'price' => 1400,
         ]);
 
         $this->assertDatabaseHas(ItemVariantElement::class, [
             'item_id' => $item->id,
             'element_id' => $elements[4],
-            'stock' => 5,
-            'price' => null,
             'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
             'thumbnail_color_value' => '#ffffff',
         ]);
@@ -823,35 +784,25 @@ class ItemApiEndpointTest extends TestCase
         return [
             [
                 'element_id' => $elementIds[1],
-                'stock' => 2,
             ],
             [
                 'element_id' => $elementIds[2],
-                'stock' => 0,
-                'price' => null,
             ],
             [
                 'element_id' => $elementIds[3],
-                'stock' => 1,
-                'price' => 1400,
             ],
             [
                 'element_id' => $elementIds[4],
-                'stock' => 5,
-                'price' => null,
                 'thumbnail_type' => Variant::THUMBNAIL_TYPE_COLOR,
                 'thumbnail' => '#ffffff',
             ],
             [
                 'element_id' => $elementIds[5],
-                'stock' => 8,
-                'price' => null,
                 'thumbnail_type' => Variant::THUMBNAIL_TYPE_IMAGE,
                 'thumbnail' => $elementThumbnail_1,
             ],
             [
                 'element_id' => $elementIds[6],
-                'stock' => 9,
                 'thumbnail_type' => Variant::THUMBNAIL_TYPE_IMAGE,
                 'thumbnail' => $elementThumbnail_2,
             ],
