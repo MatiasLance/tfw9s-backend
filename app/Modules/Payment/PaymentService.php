@@ -65,7 +65,7 @@ class PaymentService implements PaymentServiceInterface
             $currency = self::CURRENCY;
         }
         
-        if ($metadata['shippingType'] === ShippingType::DELIVERY) {
+        if (!empty($metadata) && $metadata['shippingType'] === ShippingType::DELIVERY) {
             if (
                 !isset($metadata['address']) ||
                 empty($metadata['address']) ||

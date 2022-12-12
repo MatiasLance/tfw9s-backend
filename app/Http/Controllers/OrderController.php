@@ -41,7 +41,7 @@ class OrderController extends Controller
     public function checkout(Request $request)
     {
         $items = $request->input('items');
-        $metadata = $request->input('metadata');
+        $metadata = $request->input('metadata') ?? [];
 
         return $this->paymentService->createPaymentIntent($items, $metadata);
     }
@@ -57,7 +57,7 @@ class OrderController extends Controller
         ]);
 
         return $message->render();
-    }
+    }   
 
     public function retrieveShippingOptions(Request $request, Message $message)
     {
