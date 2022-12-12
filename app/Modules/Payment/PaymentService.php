@@ -135,7 +135,7 @@ class PaymentService implements PaymentServiceInterface
                 foreach ($lineItems as $item) {
                     try
                     {
-                        $this->itemService->decreaseStocks($item->item_id, $item->quantity, true);
+                        $this->itemService->decreaseStocks($item['item_id'], $item['quantity'], true);
                     }
                     catch(ItemStockCannotBeLowerThanZeroException $e) {
                         report($e);
