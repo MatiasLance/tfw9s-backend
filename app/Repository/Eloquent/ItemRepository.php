@@ -4,12 +4,9 @@ namespace App\Repository\Eloquent;
 
 use App\Models\Category;
 use App\Models\Item;
-use App\Models\ItemUnit;
-use App\Models\ItemVariantElement;
 use App\Models\Tag;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\Filter;
-use App\Modules\Item\Variant;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\Eloquent\Base\BaseRepository;
@@ -130,24 +127,21 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
     public function retrieveItem(int $id): Item
     {
-        return $this->model
-                        ->query()
-                        ->with(['elements'])
-                        ->find($id)
-                        ->append('categoryLineages');
+        return $this->find($id)->append('categoryLineages');
     }
 
     /**
      * @todo Remove coupling to Tag model. Use tag repository or item service instead to find the tag
      */
-    public function createItem(string $title, string $description, float $price, array $elements, array $media, array $categories, array $tags): Item
+    public function createItem(string $title, string $description, float $price, int $stock, array $media, array $categories, array $tags): Item
     {
         $item = new Item();
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
+        $item->stock = $stock;
 
-        return DB::transaction(function() use($item, $categories, $tags, $media, $elements) {
+        return DB::transaction(function() use($item, $categories, $tags, $media) {
             $item->save();
             
             foreach ($categories as $category) {
@@ -164,35 +158,14 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $item->media()->save($itemPhoto);
             }
 
-            foreach ($elements as $element) {
-                $itemElement = new ItemVariantElement();
-                $itemElement->element_id = $element['element_id'];
-                $itemElement->order = $element['order'] ?? null;
-                $itemElement->thumbnail_type = $element['thumbnail_type'];
-                
-                if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
-                    $itemElement->thumbnail_color_value = $element['thumbnail'];
-                } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
-                    $item->elements()->save($itemElement); // Need the element to be saved first
-                    if (!is_null($element['thumbnail'])) {
-                        $elementThumbnail = $this->storageService->store($element['thumbnail']);
-                        $itemElement->thumbnailImage()->save($elementThumbnail);
-                    }
-                }
-
-                if ($element['thumbnail_type'] !== Variant::THUMBNAIL_TYPE_IMAGE) {
-                    $item->elements()->save($itemElement);
-                }
-            }
-
-            return $this->retrieveItem($item->id);
+            return $item;
         });
     }
 
     /**
      * @todo Check for the multiple photo update thing
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?array $elements, ?array $media, ?array $categories, ?array $tags): Item
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item
     {
         $oldItem = $this->find($id);
         $item = $oldItem->replicate();
@@ -205,8 +178,11 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($price)) {
             $item->price = $price;
         }
+        if (!is_null($stock)) {
+            $item->stock = $stock;
+        }
 
-        return DB::transaction(function() use($oldItem, $item, $categories, $tags, $media, $elements) {
+        return DB::transaction(function() use($oldItem, $item, $categories, $tags, $media) {
             $item->save();
 
             if (!is_null($categories)) {
@@ -246,46 +222,20 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 }
             }
 
-            if (!is_null($elements) && count($elements) > 0) {
-                foreach ($elements as $element) {
-                    $itemElement = new ItemVariantElement();
-                    $itemElement->element_id = $element['element_id'];
-                    $itemElement->order = $element['order'] ?? null;
-                    $itemElement->thumbnail_type = $element['thumbnail_type'];
-                    
-                    if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
-                        $itemElement->thumbnail_color_value = $element['thumbnail'];
-                    } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
-                        $elementThumbnail = $this->storageService->store($element['thumbnail']);
-                        $item->elements()->save($itemElement); // Need the element to be saved first
-    
-                        $itemElement->thumbnailImage()->save($elementThumbnail);
-                    }
-    
-                    if ($element['thumbnail_type'] !== Variant::THUMBNAIL_TYPE_IMAGE) {
-                        $item->elements()->save($itemElement);
-                    }
-                }
-            } else {
-                foreach ($oldItem->elements as $element) {
-                    $itemElement = $element->replicate();
-                    $item->elements()->save($itemElement);
-                }
-            }
-
             return $item;
         });
         
     }
 
-    public function updateItem(int $id, string $title, string $description, float $price, array $elements, ?array $media, array $categories, array $tags): bool
+    public function updateItem(int $id, string $title, string $description, float $price, int $stock, ?array $media, array $categories, array $tags): bool
     {
         $item = $this->find($id);
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
+        $item->stock = $stock;
 
-        return DB::transaction(function() use($item, $categories, $tags, $media, $elements) {
+        return DB::transaction(function() use($item, $categories, $tags, $media) {
             $item->categories()->detach();
             foreach ($categories as $category) {
                 $category->items()->attach($item);
@@ -324,121 +274,10 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 }
             }
 
-            if (!is_null($elements) || count($elements) > 0) {
-
-                $newElement = array_filter($elements, function($element) {
-                    return !is_null($element['thumbnail']);
-                });
-
-                $newElement = array_map(function($element) {
-                    return $element['element_id'];
-                }, $newElement);
-
-                $oldElement = array_filter($elements, function($element) {
-                    return is_null($element['thumbnail']);
-                });
-
-                $oldElement = array_map(function($element) {
-                    return $element['element_id'];
-                }, $oldElement);
-
-
-                foreach ($item->elements as $itemElement) {
-                    if (
-                        // $itemElement->thumbnail_type === Variant::THUMBNAIL_TYPE_IMAGE ||
-                        in_array($itemElement->element_id, $newElement)
-                    ) {
-                        $itemElementMedia = $itemElement->thumbnailImage;
-                        $this->storageService->delete($itemElementMedia);
-                        $itemElement->thumbnailImage()->delete();
-                    }
-                }
-
-                foreach ($elements as $element) {
-                    $itemElement = new ItemVariantElement();
-                    $itemElement->element_id = $element['element_id'];
-                    $itemElement->order = $element['order'] ?? null;
-                    $itemElement->thumbnail_type = $element['thumbnail_type'];
-                    
-                    if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_COLOR) {
-                        $itemElement->thumbnail_color_value = $element['thumbnail'];
-                    } else if ($element['thumbnail_type'] === Variant::THUMBNAIL_TYPE_IMAGE) {
-                        $item->elements()->save($itemElement); // Need the element to be saved first
-                        
-                        if (in_array($element['element_id'], $newElement)) {
-                            $elementThumbnail = $this->storageService->store($element['thumbnail']);
-                            $itemElement->thumbnailImage()->save($elementThumbnail);
-                        }
-                    }
-    
-                    if ($element['thumbnail_type'] !== Variant::THUMBNAIL_TYPE_IMAGE) {
-                        $item->elements()->save($itemElement);
-                    }
-                }
-            }
-
             return $item->save();
         });
     }
 
-    public function createItemUnit(int $itemId, array $elementIds, ?float $price, int $stock = 0, ?string $sku = null): ItemUnit
-    {
-        $item = $this->find($itemId);
-
-        $itemUnit = new ItemUnit();
-        $itemUnit->element_ids = $elementIds;
-        $itemUnit->price = $price;
-        $itemUnit->stock = $stock;
-        $itemUnit->sku = $sku;
-        
-        return DB::transaction(function() use($item, $itemUnit) {
-            $item->itemUnits()->save($itemUnit);
-
-            return $itemUnit;
-        });
-    }
-
-    public function updateItemUnit(int $itemId, int $unitId, ?array $elementIds, ?float $price, ?int $stock = 0, ?string $sku = null): bool
-    {
-        $item = $this->find($itemId);
-
-        $itemUnit = $item->itemUnits()->find($unitId);
-
-        if (!is_null($elementIds)) {
-            $itemUnit->element_ids = $elementIds;
-        }
-
-        if (!is_null($price)) {
-            $itemUnit->price = $price;
-        }
-
-        if (!is_null($stock)) {
-            $itemUnit->stock = $stock;
-        }
-
-        if (!is_null($sku)) {
-            $itemUnit->sku = $sku;
-        }
-
-        return DB::transaction(function() use($itemUnit){
-            return $itemUnit->save();
-        });
-    }
-
-    public function deleteItemUnit(int $itemId, int $unitId): bool
-    {
-        $item = $this->find($itemId);
-
-        $itemUnit = $item->itemUnits()->find($unitId);
-
-        return DB::transaction(function() use($itemUnit) {
-            return $itemUnit->delete();
-        });
-    }
-
-    /**
-     * @todo Adapt to the reworked ItemUnit stocks
-     */
     public function decreaseStocks(int $id, int $amount, bool $override = false): bool
     {
         $item = $this->find($id);
@@ -449,7 +288,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $item->stock = 0;
             }
 
-            throw new ItemStockCannotBeLowerThanZeroException('Attempted to decrease the stocks below zero');
+            throw new ItemStockCannotBeLowerThanZeroException('Attempted to decease the stocks below zero');
         } else {
             $item->stock -= $amount;
         }
@@ -472,8 +311,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             foreach ($item->tags as $tag) {
                 $item->tags()->detach($tag);
             }
-
-            $item->elements()->delete();
 
             return $item->delete();
         });

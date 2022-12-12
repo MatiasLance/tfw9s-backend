@@ -20,6 +20,7 @@ class ItemFactory extends Factory
             'name' => $this->faker->word(),
             'description' => '<p>' . $this->faker->paragraph() . '</p>',
             'price' => $this->faker->numberBetween(10, 300) * 10,
+            'stock' => $this->faker->numberBetween(0, 20),
         ];
     }
 }

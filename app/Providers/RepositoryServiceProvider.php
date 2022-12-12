@@ -22,8 +22,6 @@ use App\Modules\Tags\TagService;
 use App\Modules\Tags\TagServiceInterface;
 use App\Modules\Upload\LocalDisk;
 use App\Modules\Upload\UploadInterface;
-use App\Modules\Variants\VariantService;
-use App\Modules\Variants\VariantServiceInterface;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\Eloquent\Base\EloquentRepositoryInterface;
 use App\Repository\Eloquent\ItemRepository;
@@ -33,11 +31,9 @@ use App\Repository\Eloquent\CategoryRepository;
 use App\Repository\Eloquent\OrderRepository;
 use App\Repository\Eloquent\TagRepository;
 use App\Repository\Eloquent\UserRepository;
-use App\Repository\Eloquent\VariantRepository;
 use App\Repository\OrderRepositoryInterface;
 use App\Repository\TagRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
-use App\Repository\VariantRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -55,7 +51,6 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(AuthServiceInterface::class, AuthService::class);
         $this->app->bind(UserServiceInterface::class, UserService::class);
         $this->app->bind(ItemServiceInterface::class, ItemService::class);
-        $this->app->bind(VariantServiceInterface::class, VariantService::class);
         $this->app->bind(CategoryServiceInterface::class, CategoryService::class);
         $this->app->bind(TagServiceInterface::class, TagService::class);
         $this->app->bind(OrderServiceInterface::class, OrderService::class);
@@ -70,7 +65,6 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(EloquentRepositoryInterface::class, BaseRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(ItemRepositoryInterface::class, ItemRepository::class);
-        $this->app->bind(VariantRepositoryInterface::class, VariantRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(TagRepositoryInterface::class, TagRepository::class);
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);

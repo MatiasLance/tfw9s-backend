@@ -15,8 +15,7 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('mediable_id');
-            $table->string('mediable_type');
+            $table->foreignId('item_id');
             $table->string('hash');
             $table->string('path');
             $table->string('format');            

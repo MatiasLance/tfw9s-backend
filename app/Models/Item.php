@@ -43,16 +43,6 @@ class Item extends Model
         return $this->getAttributes()['price'];
     }
 
-    public function elements()
-    {
-        return $this->hasMany(ItemVariantElement::class);
-    }
-
-    public function itemUnits()
-    {
-        return $this->hasMany(ItemUnit::class);
-    }
-
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'item_categories');
@@ -65,7 +55,7 @@ class Item extends Model
 
     public function media()
     {
-        return $this->morphMany(Media::class, 'mediable');
+        return $this->hasMany(Media::class);
     }
 
     /**

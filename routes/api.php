@@ -26,18 +26,8 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
         Route::prefix('items')->group(function () { // Item API Endpoints
             Route::post('/', 'App\Http\Controllers\ItemController@store');
             Route::post('/duplicate/{itemId}', 'App\Http\Controllers\ItemController@duplicate');
-            
-            Route::prefix('/{itemId}')->group(function() {
-                Route::patch('/', 'App\Http\Controllers\ItemController@update');
-                Route::delete('/', 'App\Http\Controllers\ItemController@delete');
-
-                Route::prefix('/units')->group(function() {
-                    Route::post('/', 'App\Http\Controllers\ItemController@createItemUnit');
-                    Route::patch('/{unitId}', 'App\Http\Controllers\ItemController@updateItemUnit');
-                    Route::delete('/{unitId}', 'App\Http\Controllers\ItemController@deleteItemUnit');
-                });
-            });
-
+            Route::patch('/{itemId}', 'App\Http\Controllers\ItemController@update');
+            Route::delete('/{itemId}', 'App\Http\Controllers\ItemController@delete');
         });
 
         Route::prefix('categories')->group(function () { // Category API Endpoints
@@ -51,18 +41,6 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::prefix('shipping-notes')->group(function () {
                 Route::patch('update', 'App\Http\Controllers\OrderController@updateShippingOptions');
             });
-        });
-
-        Route::prefix('variants')->group(function() {
-            Route::get('/', 'App\Http\Controllers\VariantController@list');
-            Route::get('/{variantId}', 'App\Http\Controllers\VariantController@retrieveVariant');
-            Route::get('/elements/{elementId}', 'App\Http\Controllers\VariantController@retrieveElement');
-            Route::post('/', 'App\Http\Controllers\VariantController@storeVariant');
-            Route::post('/{variantId}', 'App\Http\Controllers\VariantController@storeElements');
-            Route::patch('/{variantId}', 'App\Http\Controllers\VariantController@updateVariant');
-            Route::patch('/elements/{elementId}', 'App\Http\Controllers\VariantController@updateElements');
-            Route::delete('/{variantId}', 'App\Http\Controllers\VariantController@deleteVariant');
-            Route::delete('/elements/{elementId}', 'App\Http\Controllers\VariantController@deleteElements');
         });
     });
 });
