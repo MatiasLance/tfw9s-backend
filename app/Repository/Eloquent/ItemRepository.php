@@ -436,6 +436,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         });
     }
 
+    /**
+     * @todo Adapt to the reworked ItemUnit stocks
+     */
     public function decreaseStocks(int $id, int $amount, bool $override = false): bool
     {
         $item = $this->find($id);
