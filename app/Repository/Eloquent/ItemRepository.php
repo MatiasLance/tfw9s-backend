@@ -69,6 +69,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
     public function listItems(array $userFilters = []): Paginate
     {
+        $areVariantsShown = false;
         $items = $this->model->query();
 
         $filters = array_merge($this->defaultItemListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
@@ -83,6 +84,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
         // Category filter
         if (!is_null($filters['category'])) {
+            $areVariantsShown = true;
+
             $items = $items->whereHas('categories', function($q) use($filters) {
                 $category = Category::find($filters['category']);
                 if (!is_null($category)) {
@@ -120,6 +123,10 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             default:
                 $items = $items->orderBy('created_at');
                 break;
+        }
+
+        if (!$areVariantsShown) {
+            $items = $items->whereNull('parent_id');
         }
 
         return new Paginate($items, self::MAX_PAGE_ITEMS, $filters['page'], 'items');

@@ -180,7 +180,7 @@ class ItemController extends Controller
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
-        $tags = $request->input('tags');
+        $tags = $request->input('tags') ?? [];
         $newPhoto = $request->file('photo') ?? [];
         $existingPhoto = $request->input('photo') ?? [];
         $newPhotoCount = count($newPhoto);
