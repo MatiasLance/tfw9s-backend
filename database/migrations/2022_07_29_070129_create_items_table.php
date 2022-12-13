@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('description');
             $table->integer('price');
             $table->unsignedInteger('stock');
+            $table->boolean('is_featured');
             $table->softDeletes();
             $table->timestamps();
         });
