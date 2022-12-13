@@ -36,6 +36,13 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         'q' => null,
 
         /**
+         * Item and its variants
+         * 
+         * Pass an item ID to retrieve the Item and its variants. When null, the filter is skipped.
+         */
+        'itemVariant' => null,
+
+        /**
          * Category filter
          * Filter items that are under the given category ID. Skipped when null.
          */
@@ -99,6 +106,22 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($filters['tags'])) {
             $items = $items->whereHas('tags', function($q) use($filters) {
                 $q->whereIn('id', $filters['tags']);
+            });
+        }
+
+        // Item variant filter
+        if (!is_null($filters['itemVariant'])) {
+            $areVariantsShown = true;
+            $variantItem = $this->find($filters['itemVariant']);
+
+            if ($variantItem->isVariant) {
+                $variantItem = $variantItem->parent;
+            }
+
+            $items = $items->where(function($q) use($variantItem){
+                $q
+                    ->where('id', $variantItem->id)
+                    ->orWhere('parent_id', $variantItem->id);
             });
         }
 

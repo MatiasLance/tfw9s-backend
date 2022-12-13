@@ -70,10 +70,10 @@ class Item extends Model
 
     public function variants()
     {
-        return $this->hasMany(Item::class, 'id', 'parent_id');
+        return $this->hasMany(Item::class, 'parent_id', 'id');
     }
 
-    public function parentItem()
+    public function parent()
     {
         return $this->belongsTo(Item::class, 'parent_id', 'id');
     }

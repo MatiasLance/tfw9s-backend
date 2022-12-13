@@ -27,6 +27,7 @@ class ItemController extends Controller
         $tag = $request->query('tags', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
+        $itemVariant = $request->query('itemVariant', null);
 
         $filter = [
             'q' => $query,
@@ -34,6 +35,7 @@ class ItemController extends Controller
             'tag' => $tag,
             'sort' => $sort,
             'page' => $page,
+            'itemVariant' => is_null($itemVariant) ? $itemVariant : intval($itemVariant),
         ];
 
         $paginatedItems = $this->itemService->listItems($filter);
