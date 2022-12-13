@@ -58,7 +58,7 @@ interface ItemRepositoryInterface
 
     /**
      * Duplicate an existing Item. Pass null to retain the value from the original item.
-     * 
+     *
      * @param int $id
      * @param null|string $title
      * @param null|string $description
@@ -69,6 +69,20 @@ interface ItemRepositoryInterface
      * @param null|array<Tags> $tags Array of tags that this item will have
      */
     public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item;
+
+    /**
+     * Add another item as a variant of an existing Item. Arguments can be optionally passed to overwrite parent item values
+     *
+     * @param int $id Parent item ID
+     * @param null|string $title
+     * @param null|string $description
+     * @param null|float $price Cent value of the item price
+     * @param null|int $stock Number of items on stock. Cannot be below 0.
+     * @param null|array<UploadedFile|string> $media List of media for the Item
+     * @param null|array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
+     * @param null|array<Tags> $tags Array of tags that this item will have
+     */
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item;
 
     /**
      * Update an existing Item instance

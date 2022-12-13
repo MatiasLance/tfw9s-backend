@@ -26,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
         Route::prefix('items')->group(function () { // Item API Endpoints
             Route::post('/', 'App\Http\Controllers\ItemController@store');
             Route::post('/duplicate/{itemId}', 'App\Http\Controllers\ItemController@duplicate');
+            Route::patch('/addVariant/{itemId}', 'App\Http\Controllers\ItemController@storeItemVariant');
             Route::patch('/{itemId}', 'App\Http\Controllers\ItemController@update');
             Route::delete('/{itemId}', 'App\Http\Controllers\ItemController@delete');
         });

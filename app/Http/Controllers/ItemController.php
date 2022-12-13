@@ -127,6 +127,45 @@ class ItemController extends Controller
         return $message->render();
     }
 
+    public function storeItemVariant(Request $request, Message $message, int $itemId)
+    {
+        $user = $request->user();
+
+        $name = $request->input('name') ?? null;
+        $description = $request->input('description') ?? null;
+        $price = $request->input('price') ?? null;
+        if (is_numeric($price)) {
+            $price = floatval($price);
+        }
+        $stock = $request->input('stock') ?? null;
+        if (is_numeric($stock)) {
+            $stock = intval($stock);
+        }
+        $tags = $request->input('tags') ?? null;
+        $photo = $request->file('photo') ?? null;
+        $categoryId = $request->input('categoryId') ?? null;
+
+        if (!is_null($categoryId)) {
+            $categories = array_map(function($id) {
+                return $this->categoryService->retrieveCategory(intval($id));
+            }, $categoryId);
+        } else {
+            $categories = null;
+        }
+
+        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $stock, $photo, $categories, $tags);
+
+        if ($newItem instanceof Item) {
+            $message->setContent(201, 'Item added as variant', '', [
+                'item' => $newItem
+            ]);
+        } else {
+            $message->setContent(400, 'Failed to add item as variant');
+        }
+
+        return $message->render();
+    }
+
     public function update(Request $request, Message $message, int $id)
     {
         $user = $request->user();
