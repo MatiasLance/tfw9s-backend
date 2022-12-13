@@ -167,13 +167,14 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * @todo Remove coupling to Tag model. Use tag repository or item service instead to find the tag
      */
-    public function createItem(string $title, string $description, float $price, int $stock, array $media, array $categories, array $tags): Item
+    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, array $media, array $categories, array $tags): Item
     {
         $item = new Item();
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
         $item->stock = $stock;
+        $item->is_featured = $isFeatured;
 
         return DB::transaction(function() use($item, $categories, $tags, $media) {
             $item->save();
@@ -199,7 +200,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * @todo Check for the multiple photo update thing
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, ?array $media, ?array $categories, ?array $tags): Item
     {
         $oldItem = $this->find($id);
         $item = $oldItem->replicate();
@@ -214,6 +215,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         }
         if (!is_null($stock)) {
             $item->stock = $stock;
+        }
+        if (!is_null($isFeatured)) {
+            $item->is_featured = $isFeatured;
         }
 
         return DB::transaction(function() use($oldItem, $item, $categories, $tags, $media) {
@@ -261,9 +265,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         
     }
 
-    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, ?array $media, ?array $categories, ?array $tags): Item
     {
-        $item = $this->duplicateItem($id, $title, $description, $price, $stock, $media, $categories, $tags);
+        $item = $this->duplicateItem($id, $title, $description, $price, $stock, $isFeatured, $media, $categories, $tags);
 
         return DB::transaction(function() use($item, $id){
             $item->parent_id = $id;
@@ -277,13 +281,14 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         });
     }
 
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, ?array $media, array $categories, array $tags): bool
+    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, ?array $media, array $categories, array $tags): bool
     {
         $item = $this->find($id);
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
         $item->stock = $stock;
+        $item->is_featured = $isFeatured;
 
         return DB::transaction(function() use($item, $categories, $tags, $media) {
             $item->categories()->detach();

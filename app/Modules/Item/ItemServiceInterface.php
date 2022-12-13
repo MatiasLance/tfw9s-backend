@@ -36,13 +36,14 @@ interface ItemServiceInterface
      * @param string $description
      * @param float $price Cent value of the item price
      * @param int $stock Number of items on stock. Cannot be below 0.
+     * @param null|bool $isFeatured Mark item as featured.
      * @param array<UploadedFile> $media List of media for the Item
      * @param array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param array<Tags> $tags Array of tags that this item will have
      * 
      * @return Item
      */
-    public function createItem(string $title, string $description, float $price, int $stock, array $media, array $categories, array $tags): Item;
+    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, array $media, array $categories, array $tags): Item;
 
     /**
      * Duplicate an existing Item. Pass null to retain the value from the original item.
@@ -52,11 +53,12 @@ interface ItemServiceInterface
      * @param null|string $description
      * @param null|float $price Cent value of the item price
      * @param null|int $stock Number of items on stock. Cannot be below 0.
+     * @param null|bool $isFeatured Mark item as featured.
      * @param null|array<UploadedFile|string> $media List of media for the Item
      * @param null|array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param null|array<Tags> $tags Array of tags that this item will have
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item;
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, ?array $media, ?array $categories, ?array $tags): Item;
 
     /**
      * Add another item as a variant of an existing Item. Arguments can be optionally passed to overwrite parent item values
@@ -66,11 +68,12 @@ interface ItemServiceInterface
      * @param null|string $description
      * @param null|float $price Cent value of the item price
      * @param null|int $stock Number of items on stock. Cannot be below 0.
+     * @param null|bool $isFeatured Mark item as featured.
      * @param null|array<UploadedFile|string> $media List of media for the Item
      * @param null|array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param null|array<Tags> $tags Array of tags that this item will have
      */
-    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item;
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, ?array $media, ?array $categories, ?array $tags): Item;
 
     /**
      * Update an existing Item
@@ -80,13 +83,14 @@ interface ItemServiceInterface
      * @param string $description
      * @param float $price Cent value of the item price
      * @param int $stock Number of items on stock. Cannot be below 0.
+     * @param null|bool $isFeatured Mark item as featured.
      * @param null|array<UploadedFile|string> $media List of media for the Item
      * @param array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param array<Tags> $tags Array of tags that this item will have
      * 
      * @return bool
      */
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, ?array $media, array $categories, array $tags): bool;
+    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, ?array $media, array $categories, array $tags): bool;
 
     /**
      * Decrease the stocks of an item. Useful when Item is bought by a customer

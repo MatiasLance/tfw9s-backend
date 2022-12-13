@@ -71,13 +71,14 @@ class ItemController extends Controller
             $stock = intval($stock);
         }
         $tags = $request->input('tags');
+        $isFeatured = $request->boolean('isFeatured');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
         $categories = array_map(function($id) {
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $item = $this->itemService->createItem($name, $description, $price, $stock, $photo, $categories, $tags);
+        $item = $this->itemService->createItem($name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
@@ -105,6 +106,7 @@ class ItemController extends Controller
             $stock = intval($stock);
         }
         $tags = $request->input('tags') ?? null;
+        $isFeatured = $request->boolean('isFeatured') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
 
@@ -116,7 +118,7 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $stock, $photo, $categories, $tags);
+        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
 
         if ($newItem instanceof Item) {
             $message->setContent(201, 'Item duplicated', '', [
@@ -144,6 +146,7 @@ class ItemController extends Controller
             $stock = intval($stock);
         }
         $tags = $request->input('tags') ?? null;
+        $isFeatured = $request->boolean('isFeatured') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
 
@@ -155,7 +158,7 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $stock, $photo, $categories, $tags);
+        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
 
         if ($newItem instanceof Item) {
             $message->setContent(201, 'Item added as variant', '', [
@@ -183,6 +186,7 @@ class ItemController extends Controller
             $stock = intval($stock);
         }
         $tags = $request->input('tags') ?? [];
+        $isFeatured = $request->boolean('isFeatured');
         $newPhoto = $request->file('photo') ?? [];
         $existingPhoto = $request->input('photo') ?? [];
         $newPhotoCount = count($newPhoto);
@@ -208,7 +212,7 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $photo, $categories, $tags);
+        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');
