@@ -8,6 +8,20 @@ use App\Models\ShippingOptions;
 interface OrderServiceInterface
 {
     /**
+     * Payment method indicating stripe
+     *
+     * @var string PAYMENT_METHOD_STRIPE
+     */
+    public const PAYMENT_METHOD_STRIPE = 'stripe';
+
+    /**
+     * Payment method indicating paypal
+     *
+     * @var string PAYMENT_METHOD_PAYPAL
+     */
+    public const PAYMENT_METHOD_PAYPAL = 'paypal';
+
+    /**
      * Create a new order instance
      * 
      * @param string $paymentIntentId

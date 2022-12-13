@@ -42,6 +42,7 @@ class OrderController extends Controller
     {
         $items = $request->input('items');
         $metadata = $request->input('metadata') ?? [];
+        $paymentMethod = $request->input('payment_method');
 
         return $this->paymentService->createPaymentIntent($items, $metadata);
     }
