@@ -43,6 +43,13 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         'itemVariant' => null,
 
         /**
+         * Featured items filter
+         * 
+         * When a boolean value is given, will filter items' featured status based on that value
+         */
+        'featured' => null,
+
+        /**
          * Category filter
          * Filter items that are under the given category ID. Skipped when null.
          */
@@ -87,6 +94,11 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $q
                     ->where('name', 'LIKE', '%' . $filters['q'] . '%');
             });
+        }
+
+        // Featured Item Filter
+        if (!is_null($filters['featured'])) {
+            $items = $items->where('is_featured', $filters['featured']);
         }
 
         // Category filter
