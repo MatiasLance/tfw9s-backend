@@ -36,6 +36,13 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         'q' => null,
 
         /**
+         * Item and its variants
+         * 
+         * Pass an item ID to retrieve the Item and its variants. When null, the filter is skipped.
+         */
+        'itemVariant' => null,
+
+        /**
          * Category filter
          * Filter items that are under the given category ID. Skipped when null.
          */
@@ -69,6 +76,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
     public function listItems(array $userFilters = []): Paginate
     {
+        $areVariantsShown = false;
         $items = $this->model->query();
 
         $filters = array_merge($this->defaultItemListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
@@ -83,6 +91,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
         // Category filter
         if (!is_null($filters['category'])) {
+            $areVariantsShown = true;
+
             $items = $items->whereHas('categories', function($q) use($filters) {
                 $category = Category::find($filters['category']);
                 if (!is_null($category)) {
@@ -96,6 +106,22 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($filters['tags'])) {
             $items = $items->whereHas('tags', function($q) use($filters) {
                 $q->whereIn('id', $filters['tags']);
+            });
+        }
+
+        // Item variant filter
+        if (!is_null($filters['itemVariant'])) {
+            $areVariantsShown = true;
+            $variantItem = $this->find($filters['itemVariant']);
+
+            if ($variantItem->isVariant) {
+                $variantItem = $variantItem->parent;
+            }
+
+            $items = $items->where(function($q) use($variantItem){
+                $q
+                    ->where('id', $variantItem->id)
+                    ->orWhere('parent_id', $variantItem->id);
             });
         }
 
@@ -122,12 +148,20 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 break;
         }
 
+        if (!$areVariantsShown) {
+            $items = $items->whereNull('parent_id');
+        }
+
         return new Paginate($items, self::MAX_PAGE_ITEMS, $filters['page'], 'items');
     }
 
     public function retrieveItem(int $id): Item
     {
-        return $this->find($id)->append('categoryLineages');
+        return $this->find($id)
+                    ->append([
+                        'categoryLineages',
+                        'related',
+                    ]);
     }
 
     /**
@@ -225,6 +259,22 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             return $item;
         });
         
+    }
+
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item
+    {
+        $item = $this->duplicateItem($id, $title, $description, $price, $stock, $media, $categories, $tags);
+
+        return DB::transaction(function() use($item, $id){
+            $item->parent_id = $id;
+            $isSuccess = $item->save();
+
+            if ($isSuccess) {
+                return $item;
+            } else {
+                return null;
+            }
+        });
     }
 
     public function updateItem(int $id, string $title, string $description, float $price, int $stock, ?array $media, array $categories, array $tags): bool

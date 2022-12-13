@@ -15,6 +15,7 @@ class Item extends Model
     use HandlesCurrency;
 
     protected $hidden = [
+        'parent_id',
         'deleted_at',
         'created_at',
         'updated_at',
@@ -38,6 +39,37 @@ class Item extends Model
         );
     }
 
+    public function isVariant(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                return !is_null($this->parent_id);
+            },
+        );
+    }
+
+    public function related(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                $mainItem = $this;
+                if ($this->isVariant) {
+                    $mainItem = $this->parent;
+                }
+
+                $relatedItems = $mainItem->variants()->get();
+                $relatedItems->push($mainItem);
+        
+                $relatedItems = $relatedItems
+                                    ->filter(function ($value) {
+                                        return $value->id !== $this->id;
+                                    });
+
+                return $relatedItems;
+            }
+        );
+    }
+
     public function centPrice(): int
     {
         return $this->getAttributes()['price'];
@@ -56,6 +88,16 @@ class Item extends Model
     public function media()
     {
         return $this->hasMany(Media::class);
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(Item::class, 'parent_id', 'id');
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Item::class, 'parent_id', 'id');
     }
 
     /**
