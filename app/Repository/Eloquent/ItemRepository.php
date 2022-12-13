@@ -157,7 +157,11 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
     public function retrieveItem(int $id): Item
     {
-        return $this->find($id)->append('categoryLineages');
+        return $this->find($id)
+                    ->append([
+                        'categoryLineages',
+                        'related',
+                    ]);
     }
 
     /**

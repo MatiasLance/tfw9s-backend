@@ -48,6 +48,28 @@ class Item extends Model
         );
     }
 
+    public function related(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                $mainItem = $this;
+                if ($this->isVariant) {
+                    $mainItem = $this->parent;
+                }
+
+                $relatedItems = $mainItem->variants()->get();
+                $relatedItems->push($mainItem);
+        
+                $relatedItems = $relatedItems
+                                    ->filter(function ($value) {
+                                        return $value->id !== $this->id;
+                                    });
+
+                return $relatedItems;
+            }
+        );
+    }
+
     public function centPrice(): int
     {
         return $this->getAttributes()['price'];
