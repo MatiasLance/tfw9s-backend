@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Payment;
+namespace App\Modules\Payment\Gateways;
 
 use App\Modules\Item\ItemServiceInterface;
 use PayPal\Api\Amount;
@@ -12,7 +12,7 @@ use PayPal\Auth\OAuthTokenCredential;
 use PayPal\Exception\PayPalConnectionException;
 use PayPal\Rest\ApiContext;
 
-class Paypal implements PaymentGatewayInterface
+class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
 {
     /**
      * Api Context needed for Paypal Auth
@@ -21,42 +21,25 @@ class Paypal implements PaymentGatewayInterface
      */
     protected ApiContext $context;
 
-    /**
-     * Default configuration values
-     *
-     * @var array $defaultConfig
-     */
-    protected array $defaultConfig = [
-        /**
-         * ISO-3 currency code to use
-         * 
-         * @var string
-         */
-        'currency' => PaymentServiceInterface::CURRENCY
-    ];
-
-    /**
-     * ISO-3 currency code to use
-     * 
-     * @var string
-     */
-    protected string $currency;
-
     public ItemServiceInterface $itemService;
 
     public function __construct(ItemServiceInterface $itemService, array $config = [])
     {
         $this->itemService = $itemService;
+
+        if (env('PAYPAL_ENVIRONMENT' === 'production', env('APP_ENV') === 'production')) {
+            $clientId = env('PAYPAL_SANDBOX_CLIENT_ID');
+            $secretKey = env('PAYPAL_SANDBOX_SECRET_KEY');
+        } else {
+            $clientId = env('PAYPAL_LIVE_CLIENT_ID');
+            $secretKey = env('PAYPAL_LIVE_SECRET_KEY');
+        }
+
         $this->context = new ApiContext(
-            new OAuthTokenCredential(
-                env('PAYPAL_SANDBOX_CLIENT_ID'),
-                env('PAYPAL_SANDBOX_SECRET_KEY'),
-            )
+            new OAuthTokenCredential($clientId, $secretKey)
         );
 
-        $userConfig = array_merge($this->defaultConfig, $config);
-
-        $this->currency = strtoupper($userConfig['currency']);
+        parent::__construct($config);
     }
 
     public function createOrder(array $items, array $metadata = [])

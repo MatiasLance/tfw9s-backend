@@ -4,28 +4,28 @@ namespace App\Modules\Payment;
 
 interface PaymentServiceInterface
 {
+
     /**
-     * Default currency to use for transaction
+     * Default currency to use for transactions
      * 
      * @var string CURRENCY
      */
     public const CURRENCY = 'aud';
     
     /**
-     * Create a new payment intent for custom payment flow
+     * Initiate a new order for the selected payment gateway
      * 
+     * @param string $gateway Payment gateway to use
      * @param array $items List of items and item quantity
-     * @param array $metadata Metadata to associate with the Payment Intent
-     * @param string $currency (Optional) If null, will use default currency
-     * 
-     * @return string
+     * @param array $metadata Metadata about the order
      */
-    public function createPaymentIntent(array $items, array $metadata = [], $currency = null): string;
+    public function createOrder(string $gateway, array $items, array $metadata = [], $currency = null);
 
     /**
      * Verify a payment intent and check its status.
      * 
-     * @param string $paymentIntentId
+     * @param string $gateway Payment gateway to use
+     * @param string $transactionId
      */
-    public function verify(string $paymentIntentId);
+    public function verify(string $gateway, string $transactionId);
 }
