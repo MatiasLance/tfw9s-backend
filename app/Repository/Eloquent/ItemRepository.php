@@ -73,6 +73,13 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
          * The current page of items to get
          */
         'page' => 1,
+
+        /**
+         * Max item per page
+         * 
+         * Maximum number of items shown per page. When 0 or null is passed, will get every item
+         */
+        'max_item_per_page' => self::MAX_PAGE_ITEMS,
     ];
 
     public function __construct(Item $item, StorageInterface $storageService)
@@ -164,7 +171,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             $items = $items->whereNull('parent_id');
         }
 
-        return new Paginate($items, self::MAX_PAGE_ITEMS, $filters['page'], 'items');
+        return new Paginate($items, $filters['max_item_per_page'], $filters['page'], 'items');
     }
 
     public function retrieveItem(int $id): Item

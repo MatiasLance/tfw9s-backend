@@ -28,6 +28,7 @@ class ItemController extends Controller
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
         $itemVariant = $request->query('itemVariant', null);
+        $maxItemsPerPage = $request->query('maxItemsPerPage', null);
 
         $filter = [
             'q' => $query,
@@ -36,6 +37,7 @@ class ItemController extends Controller
             'sort' => $sort,
             'page' => $page,
             'itemVariant' => is_null($itemVariant) ? $itemVariant : intval($itemVariant),
+            'max_item_per_page' => is_null($maxItemsPerPage) ? $maxItemsPerPage : intval($maxItemsPerPage),
         ];
 
         $paginatedItems = $this->itemService->listItems($filter);
