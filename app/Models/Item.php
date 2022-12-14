@@ -65,7 +65,7 @@ class Item extends Model
                                         return $value->id !== $this->id;
                                     });
 
-                return $relatedItems;
+                return $relatedItems->values();
             }
         );
     }
