@@ -321,7 +321,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
             if (!is_null($media)) {
 
-
                 $newMedia = array_filter($media, function($mediaItem) {
                     return $mediaItem instanceof UploadedFile;
                 });
