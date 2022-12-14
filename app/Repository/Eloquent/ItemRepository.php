@@ -110,8 +110,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
         // Category filter
         if (!is_null($filters['category'])) {
-            $areVariantsShown = true;
-
             $items = $items->whereHas('categories', function($q) use($filters) {
                 $category = Category::find($filters['category']);
                 if (!is_null($category)) {
