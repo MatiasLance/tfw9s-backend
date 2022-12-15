@@ -165,6 +165,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             $items = $items->whereNull('parent_id');
         }
 
+        $items = $items->with([
+            'variants' => function($query) {
+                $query->select('name', 'parent_id');
+            },
+        ]);
+
         return new Paginate($items, $filters['max_item_per_page'], $filters['page'], 'items');
     }
 
