@@ -30,6 +30,7 @@ class Item extends Model
     protected $appends = [
         'snippet',
         'isVariant' => 'is_variant',
+        'hasVariants' => 'has_variants',
     ];
 
     protected $casts = [
@@ -98,6 +99,11 @@ class Item extends Model
     public function parent()
     {
         return $this->belongsTo(Item::class, 'parent_id', 'id');
+    }
+
+    public function getHasVariantsAttribute()
+    {
+        return $this->variants()->exists();
     }
 
     /**
