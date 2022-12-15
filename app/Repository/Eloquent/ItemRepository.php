@@ -131,10 +131,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             $areVariantsShown = true;
             $variantItem = $this->find($filters['itemVariant']);
 
-            if ($variantItem->isVariant) {
-                $variantItem = $variantItem->parent;
-            }
-
             $items = $items->where(function($q) use($variantItem){
                 $q
                     ->where('id', $variantItem->id)
@@ -175,6 +171,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     public function retrieveItem(int $id): Item
     {
         return $this->find($id)
+                    ->load([
+                        'parent:id,name',
+                    ])
                     ->append([
                         'categoryLineages',
                         'related',

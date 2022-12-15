@@ -28,7 +28,13 @@ class Item extends Model
     ];
 
     protected $appends = [
-        'snippet'
+        'snippet',
+        'isVariant' => 'is_variant',
+        'hasVariants' => 'has_variants',
+    ];
+
+    protected $casts = [
+        'is_featured' => 'boolean'
     ];
 
     public function price(): Attribute
@@ -39,33 +45,28 @@ class Item extends Model
         );
     }
 
-    public function isVariant(): Attribute
+    public function getIsVariantAttribute()
     {
-        return Attribute::make(
-            get: function() {
-                return !is_null($this->parent_id);
-            },
-        );
+        return $this->checkIfVariant();
     }
 
+    public function checkIfVariant()
+    {
+        return !is_null($this->parent_id);
+    }
+
+    /**
+     * Related items
+     * 
+     * For some reason Laravel cannot detect accessors that have an uppercase letter on it.
+     * 
+     * @return Attribute
+     */
     public function related(): Attribute
     {
         return Attribute::make(
             get: function() {
-                $mainItem = $this;
-                if ($this->isVariant) {
-                    $mainItem = $this->parent;
-                }
-
-                $relatedItems = $mainItem->variants()->get();
-                $relatedItems->push($mainItem);
-        
-                $relatedItems = $relatedItems
-                                    ->filter(function ($value) {
-                                        return $value->id !== $this->id;
-                                    });
-
-                return $relatedItems->values();
+                return $this->variants;
             }
         );
     }
@@ -100,6 +101,11 @@ class Item extends Model
         return $this->belongsTo(Item::class, 'parent_id', 'id');
     }
 
+    public function getHasVariantsAttribute()
+    {
+        return $this->variants()->exists();
+    }
+
     /**
      * Retrieve the lingeages of the categories associated with this item.
      * 
@@ -117,11 +123,13 @@ class Item extends Model
 
     public function getSnippetAttribute() {
         $snippetLength = 160;
-        $sanitized = $this->sanitize($this->description);
-        if (strlen($sanitized) > $snippetLength) {
-            return substr($sanitized, 0, $snippetLength) . '...';
-        } else {
-            return $sanitized;
+        if (isset($this->description) && !is_null($this->description)) {
+            $sanitized = $this->sanitize($this->description);
+            if (strlen($sanitized) > $snippetLength) {
+                return substr($sanitized, 0, $snippetLength) . '...';
+            } else {
+                return $sanitized;
+            }
         }
     }
 
