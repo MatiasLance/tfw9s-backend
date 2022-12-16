@@ -105,6 +105,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
         // Featured Item Filter
         if (!is_null($filters['featured'])) {
+            $areVariantsShown = true;
             $items = $items->where('is_featured', $filters['featured']);
         }
 

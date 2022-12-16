@@ -63,7 +63,7 @@ class ItemController extends Controller
         $user = $request->user();
 
         $name = $request->input('name');
-        $description = $request->input('description');
+        $description = $request->input('description') ?? '';
         $price = $request->input('price');
         if (is_numeric($price)) {
             $price = floatval($price);
@@ -178,7 +178,7 @@ class ItemController extends Controller
         $user = $request->user();
 
         $name = $request->input('name');
-        $description = $request->input('description');
+        $description = $request->input('description') ?? '';
         $price = $request->input('price');
         if (is_numeric($price)) {
             $price = floatval($price);
