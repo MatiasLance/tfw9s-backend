@@ -42,7 +42,7 @@ class OrderController extends Controller
     {
         $items = $request->input('items');
         $metadata = $request->input('metadata') ?? [];
-        $paymentMethod = $request->input('payment_method') ?? 'stripe'; // @todo remove default stripe value
+        $paymentMethod = $request->input('payment_method');
 
         return $this->paymentService->createOrder($paymentMethod, $items, $metadata);
     }
@@ -50,8 +50,8 @@ class OrderController extends Controller
     public function verify(Request $request, Message $message)
     {
         $paymentIntentId = $request->input('transaction_id');
-        $paymentMethod = $request->input('payment_method') ?? 'stripe'; // @todo remove default stripe value
-
+        $paymentMethod = $request->input('payment_method');
+        
         $status = $this->paymentService->verify($paymentMethod, $paymentIntentId);
 
         $message->setContent(200, 'Payment Intent status found', '', [

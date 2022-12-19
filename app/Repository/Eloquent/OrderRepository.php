@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\ShippingOptions;
 use App\Modules\Order\Exceptions\AddressCannotBeEmptyException;
 use App\Modules\Order\ShippingType;
+use App\Modules\Payment\PaymentGateway;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\OrderRepositoryInterface;
 use Illuminate\Support\Facades\DB;
@@ -18,12 +19,12 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         parent::__construct($model);
     }
 
-    public function findByTransactionId(string $transactionId): Order
+    public function findByTransactionId(string $transactionId): ?Order
     {
-        return $this->model->where('payment_intent_id', $transactionId)->first();
+        return $this->model->where('transaction_id', $transactionId)->first();
     }
 
-    public function create(string $paymentIntentId, string $firstname, string $lastname, string $phoneNumber, string $email, string $shippingType, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
+    public function create(string $paymentIntentId, PaymentGateway $gateway, string $firstname, string $lastname, string $phoneNumber, string $email, string $shippingType, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
     {
         $existingOrder = $this->findByTransactionId($paymentIntentId);
 
@@ -32,13 +33,16 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         }
 
         $order = new Order();
-        $order->payment_intent_id = $paymentIntentId;
+        $order->transaction_id = $paymentIntentId;
+        $order->payment_gateway = $gateway;
         $order->firstname = $firstname;
         $order->lastname = $lastname;
         $order->phone_number = $phoneNumber;
         $order->email = $email;
         $order->shipping_type = $shippingType;
-        if ($shippingType == ShippingType::DELIVERY) {
+        $order->is_verified = false;
+
+        if (ShippingType::DELIVERY === ShippingType::tryFrom($shippingType)) {
 
             if (
                 !isset($address) ||
@@ -77,6 +81,16 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
 
         return DB::transaction(function() use($options) {
             return $options->save();
+        });
+    }
+
+    public function markAsVerified(string $transactionId): bool
+    {
+        $order = $this->findByTransactionId($transactionId);
+        $order->is_verified = true;
+
+        return DB::transaction(function() use($order) {
+            return $order->save();
         });
     }
 

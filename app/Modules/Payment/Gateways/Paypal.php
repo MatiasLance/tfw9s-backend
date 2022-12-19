@@ -2,8 +2,13 @@
 
 namespace App\Modules\Payment\Gateways;
 
+use App\Models\Item;
+use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\ItemServiceInterface;
+use App\Modules\Mail\MailServiceInterface;
+use App\Modules\Order\OrderServiceInterface;
 use App\Modules\Payment\Exceptions\UnknownPaymentStatusException;
+use App\Modules\Payment\PaymentGateway;
 use App\Modules\Payment\PaymentStatus;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
 use PayPalCheckoutSdk\Core\ProductionEnvironment;
@@ -19,10 +24,38 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
      */
     protected PayPalHttpClient $client;
 
+    /**
+     * Mail Service
+     * 
+     * @var MailServiceInterface $mailService
+     */
+    protected MailServiceInterface $mailService;
+
+    /**
+     * Item Service
+     * 
+     * @var ItemServiceInterface $itemService
+     */
     protected ItemServiceInterface $itemService;
 
-    public function __construct(ItemServiceInterface $itemService, array $config = [])
+    /**
+     * Order Service
+     * 
+     * @var OrderServiceInterface $orderService
+     */
+    protected OrderServiceInterface $orderService;
+
+    /**
+     * Payment gateway code
+     * 
+     * @var PaymentGateway GATEWAY
+     */
+    public const GATEWAY = PaymentGateway::PAYPAL;
+
+    public function __construct(MailServiceInterface $mailService, OrderServiceInterface $orderService, ItemServiceInterface $itemService, array $config = [])
     {
+        $this->mailService = $mailService;
+        $this->orderService = $orderService;
         $this->itemService = $itemService;
 
         if (env('PAYPAL_ENVIRONMENT' === 'production', env('APP_ENV') === 'production')) {
@@ -43,23 +76,80 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
     }
 
     /**
-     * @todo
+     * @todo Actual creation of order via Paypal SDK
+     * @todo Decouple item model by using item service. Add find() function on ItemService
+     * 
      * @see https://github.com/paypal/Checkout-PHP-SDK/blob/develop/samples/AuthorizeIntentExamples/CreateOrder.php
      */
     public function createOrder(array $items, array $metadata = [])
     {
-        $purchaseUnits = $this->generatePurchaseUnits($items);
-        //
+        $total = 0;
+        $lineItems = [];
+
+        foreach ($items as $item) {
+            $currentItem = Item::find($item['id']);
+
+            $lineItem = [
+                'item_id' => $currentItem->id,
+                'price' => $currentItem->centPrice(),
+                'quantity' => $item['quantity'],
+            ];
+            array_push($lineItems, $lineItem);
+        }
+
+        $purchaseUnits = $this->generatePurchaseUnits($lineItems);
+
+        foreach ($purchaseUnits as $value) {
+            $total += $value['value'];
+        }
+
+        $order = $this->orderService->create(
+            $metadata['transaction_id'],
+            self::GATEWAY,
+            $metadata['firstName'],
+            $metadata['lastName'],
+            $metadata['phoneNumber'],
+            $metadata['email'],
+            $metadata['shippingType'],
+            $metadata['address'],
+            $metadata['postCode'],
+            $metadata['remarks'] ?? '',
+            $total,
+            $lineItems
+        );
+
+        return $order->transaction_id;
     }
 
     public function verify(string $transactionId): PaymentStatus
     {
-        $orderStatus = $this->client
+        $paypalOrder = $this->client
                                 ->execute(
                                     new OrdersGetRequest($transactionId)
                                 );
 
-        return $this->matchStatus($orderStatus->result->status);
+        $orderStatus = $this->matchStatus($paypalOrder->result->status);
+
+        if (PaymentStatus::COMPLETE === $orderStatus) {
+            $order = $this->orderService->findByTransactionId($paypalOrder->result->id);
+            if (!$order->is_verified) {
+                $this->orderService->markAsVerified($order->transaction_id);
+
+                foreach ($order->items as $item) {
+                    try
+                    {
+                        $this->itemService->decreaseStocks($item->item_id, $item->quantity, true);
+                    }
+                    catch(ItemStockCannotBeLowerThanZeroException $e) {
+                        report($e);
+                    }
+                }
+
+                $this->mailService->sendInvoice($order);
+            }
+        }
+
+        return $orderStatus;
     }
 
     /**
@@ -87,7 +177,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
     protected function calculateItemTotal(int $itemId, int $quantity): float
     {
         $item = $this->itemService->retrieveItem($itemId);
-        return $item->centPrice() + $quantity;
+        return $item->centPrice() * $quantity;
     }
 
     /**

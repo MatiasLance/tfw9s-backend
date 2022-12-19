@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('payment_intent_id');
+            $table->string('transaction_id');
+            $table->string('payment_gateway'); // Use PaymentGateway enum
             $table->string('firstname');
             $table->string('lastname');
             $table->string('phone_number');
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->string('post_code')->nullable();
             $table->mediumText('remarks');
             $table->integer('total');
+            $table->boolean('is_verified')->default(false);
             $table->timestamps();
         });
     }
