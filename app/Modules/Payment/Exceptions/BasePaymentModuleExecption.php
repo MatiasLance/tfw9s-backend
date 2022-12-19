@@ -4,7 +4,7 @@ namespace App\Modules\Payment\Exceptions;
 
 use App\Modules\Support\Exception;
 
-class BasePaymentModuleException extends Exception
+class BasePaymentModuleExecption extends Exception
 {
     /**
      * Response title

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Modules\Order\Traits\HasShippingOptions;
+use App\Modules\Payment\PaymentGateway;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,6 +11,11 @@ class Order extends Model
 {
     use HasFactory;
     use HasShippingOptions;
+
+    protected $casts = [
+        'payment_gateway' => PaymentGateway::class,
+        'is_verified' => 'boolean'
+    ];
 
     public function getOrderNumberAttribute()
     {

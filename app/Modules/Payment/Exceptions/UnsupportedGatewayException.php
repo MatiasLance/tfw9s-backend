@@ -2,7 +2,7 @@
 
 namespace App\Modules\Payment\Exceptions;
 
-class UnsupportedGatewayException extends BasePaymentModuleException
+class UnsupportedGatewayException extends BasePaymentModuleExecption
 {
     /**
      * Response title

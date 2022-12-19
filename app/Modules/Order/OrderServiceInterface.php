@@ -4,6 +4,7 @@ namespace App\Modules\Order;
 
 use App\Models\Order;
 use App\Models\ShippingOptions;
+use App\Modules\Payment\PaymentGateway;
 
 interface OrderServiceInterface
 {
@@ -13,14 +14,15 @@ interface OrderServiceInterface
      * 
      * @param String $transactionId
      * 
-     * @return Order
+     * @return null|Order
      */
-    public function findByTransactionId(string $transactionId): Order;
+    public function findByTransactionId(string $transactionId): ?Order;
 
     /**
      * Create a new order instance
      * 
      * @param string $paymentIntentId
+     * @param PaymentGateway $gateway
      * @param string $firstname
      * @param string $lastname
      * @param string $phoneNumber
@@ -36,6 +38,7 @@ interface OrderServiceInterface
      */
     public function create(
         string $paymentIntentId,
+        PaymentGateway $gateway,
         string $firstname,
         string $lastname,
         string $phoneNumber,
@@ -59,6 +62,15 @@ interface OrderServiceInterface
      * @return bool;
      */
     public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool;
+
+    /**
+     * Mark order as verified
+     * 
+     * @param string $transactionId
+     * 
+     * @return bool
+     */
+    public function markAsVerified(string $transactionId): bool;
 
     /**
      * Retrieve the shipping options

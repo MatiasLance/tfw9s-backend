@@ -259,7 +259,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Payment Method (Stripe)
+                                                    Payment Method ({{ ucfirst($order->payment_gateway->value) }})
                                                 </td>
                                             </tr>
                                             <tr>

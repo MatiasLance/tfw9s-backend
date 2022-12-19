@@ -3,7 +3,6 @@
 namespace App\Modules\Payment\Gateways;
 
 use App\Models\Item;
-use App\Models\Order;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Mail\MailServiceInterface;
@@ -11,6 +10,7 @@ use App\Modules\Order\Exceptions\AddressCannotBeEmptyException;
 use App\Modules\Order\OrderServiceInterface;
 use App\Modules\Order\ShippingType;
 use App\Modules\Payment\Exceptions\UnknownPaymentStatusException;
+use App\Modules\Payment\PaymentGateway;
 use App\Modules\Payment\PaymentStatus;
 use Stripe\PaymentIntent;
 use Stripe\StripeClient;
@@ -32,18 +32,25 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     protected MailServiceInterface $mailService;
 
     /**
-     * Mail Service
+     * Order Service
      * 
      * @var OrderServiceInterface $orderService
      */
     protected OrderServiceInterface $orderService;
 
     /**
-     * Mail Service
+     * Item Service
      * 
      * @var ItemServiceInterface $itemService
      */
     protected ItemServiceInterface $itemService;
+
+    /**
+     * Payment gateway code
+     * 
+     * @var PaymentGateway GATEWAY
+     */
+    public const GATEWAY = PaymentGateway::STRIPE;
 
     public function __construct(MailServiceInterface $mailService, OrderServiceInterface $orderService, ItemServiceInterface $itemService, array $config = [])
     {
@@ -121,6 +128,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
             $order = $this->orderService->create(
                                             $paymentIntent->id,
+                                            self::GATEWAY,
                                             $shippingInformation->firstName,
                                             $shippingInformation->lastName,
                                             $shippingInformation->phoneNumber,
@@ -133,8 +141,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                                             $lineItems,
                                         );
 
-            // If this is the first time the order is recorded
-            if ($order instanceof Order) {
+            if (!$order->is_verified) {
+                $this->orderService->markAsVerified($order->transaction_id);
+
                 foreach ($lineItems as $item) {
                     try
                     {

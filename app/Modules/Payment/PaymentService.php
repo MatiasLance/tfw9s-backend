@@ -4,9 +4,8 @@ namespace App\Modules\Payment;
 
 use App\Modules\Payment\Exceptions\UnsupportedGatewayException;
 use App\Modules\Payment\Gateways\PaymentGatewayInterface;
-use App\Modules\Payment\Gateways\Paypal;
-use App\Modules\Payment\Gateways\Stripe;
 use Illuminate\Support\Facades\App;
+use Psy\Exception\TypeErrorException;
 
 class PaymentService implements PaymentServiceInterface
 {
@@ -29,7 +28,7 @@ class PaymentService implements PaymentServiceInterface
     /**
      * Payment gateway factory method
      * 
-     * @see App\Modules\Payment\Gateways\PaymentGatewayInterface See for list of supported gateways
+     * @see App\Modules\Payment\PaymentGateway See for list of supported gateways
      * 
      * @param string $gateway The unique identifier for the gateway to use.
      * @param array $config Config values to pass to the Payment gateway class
@@ -38,16 +37,12 @@ class PaymentService implements PaymentServiceInterface
      */
     protected function getGateway(string $gateway, array $config = []): PaymentGatewayInterface
     {
-        switch ($gateway) {
-            case PaymentGatewayInterface::PAYMENT_METHOD_STRIPE:
-                return App::makeWith(Stripe::class, ['config' => $config]);
-
-            case PaymentGatewayInterface::PAYMENT_METHOD_PAYPAL:
-                return App::makeWith(Paypal::class, ['config' => $config]);
-            
-            default:
-                throw new UnsupportedGatewayException($gateway . ' payment gateway is unsupported.');
-                break;
+        try {
+            $paymentGateway = PaymentGateway::from($gateway);
+        }catch(TypeErrorException $e) {
+            throw new UnsupportedGatewayException($gateway . ' payment gateway is unsupported.');
         }
+
+        return App::makeWith($paymentGateway->getGatewayClass(), ['config' => $config]);
     }
 }
