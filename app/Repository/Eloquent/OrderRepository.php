@@ -18,9 +18,14 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         parent::__construct($model);
     }
 
+    public function findByTransactionId(string $transactionId): Order
+    {
+        return $this->model->where('payment_intent_id', $transactionId)->first();
+    }
+
     public function create(string $paymentIntentId, string $firstname, string $lastname, string $phoneNumber, string $email, string $shippingType, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
     {
-        $existingOrder = Order::where('payment_intent_id', $paymentIntentId)->first();
+        $existingOrder = $this->findByTransactionId($paymentIntentId);
 
         if (!is_null($existingOrder)) {
             return $existingOrder;
@@ -58,11 +63,6 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         return $order;
     }
 
-    public function retrieveShippingOptions(): ShippingOptions
-    {
-        return ShippingOptions::first();
-    }
-
     public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool
     {
         $options = ShippingOptions::first();
@@ -78,5 +78,10 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         return DB::transaction(function() use($options) {
             return $options->save();
         });
+    }
+
+    public function retrieveShippingOptions(): ShippingOptions
+    {
+        return ShippingOptions::first();
     }
 }

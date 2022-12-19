@@ -19,7 +19,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
      */
     protected PayPalHttpClient $client;
 
-    public ItemServiceInterface $itemService;
+    protected ItemServiceInterface $itemService;
 
     public function __construct(ItemServiceInterface $itemService, array $config = [])
     {

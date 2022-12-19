@@ -20,6 +20,11 @@ class OrderService implements OrderServiceInterface
     {
         $this->orderRepository = $orderRepository;
     }
+    
+    public function findByTransactionId(string $transactionId): Order
+    {
+        return $this->findByTransactionId($transactionId);
+    }
 
     public function create(string $paymentIntentId, string $firstname, string $lastname, string $phoneNumber, string $email, string $shippingType, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
     {
@@ -38,6 +43,11 @@ class OrderService implements OrderServiceInterface
         );
     }
 
+    public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool
+    {
+        return $this->orderRepository->updateShippingOptions($deliveryNote, $pickupNote);
+    }
+
     /**
      * Retrieve the shipping options
      * 
@@ -46,10 +56,5 @@ class OrderService implements OrderServiceInterface
     public function retrieveShippingOptions(): ShippingOptions
     {
         return $this->orderRepository->retrieveShippingOptions();
-    }
-
-    public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool
-    {
-        return $this->orderRepository->updateShippingOptions($deliveryNote, $pickupNote);
     }
 }

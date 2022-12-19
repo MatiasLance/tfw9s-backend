@@ -9,6 +9,15 @@ interface OrderServiceInterface
 {
 
     /**
+     * Find an existing Order by its transaction ID
+     * 
+     * @param String $transactionId
+     * 
+     * @return Order
+     */
+    public function findByTransactionId(string $transactionId): Order;
+
+    /**
      * Create a new order instance
      * 
      * @param string $paymentIntentId
@@ -40,13 +49,6 @@ interface OrderServiceInterface
     );
 
     /**
-     * Retrieve the shipping options
-     * 
-     * @return ShippingOptions
-     */
-    public function retrieveShippingOptions(): ShippingOptions;
-
-    /**
      * Update the shipping options.
      * 
      * Shipping options will show up on the checkout form as well on the invoice.
@@ -57,4 +59,11 @@ interface OrderServiceInterface
      * @return bool;
      */
     public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool;
+
+    /**
+     * Retrieve the shipping options
+     * 
+     * @return ShippingOptions
+     */
+    public function retrieveShippingOptions(): ShippingOptions;
 }

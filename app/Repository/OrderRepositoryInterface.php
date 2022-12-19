@@ -7,6 +7,16 @@ use App\Models\ShippingOptions;
 
 interface OrderRepositoryInterface
 {
+
+    /**
+     * Find an existing order by its transaction id
+     * 
+     * @param string $transactionId
+     * 
+     * @return Order
+     */
+    public function findByTransactionId(string $transactionId): Order;
+
     /**
      * Create a new Order
      * 
@@ -39,13 +49,6 @@ interface OrderRepositoryInterface
     );
 
     /**
-     * Retrieve the shipping options
-     * 
-     * @return ShippingOptions
-     */
-    public function retrieveShippingOptions(): ShippingOptions;
-
-    /**
      * Update the shipping options.
      * 
      * Shipping options will show up on the checkout form as well on the invoice.
@@ -56,4 +59,11 @@ interface OrderRepositoryInterface
      * @return bool
      */
     public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool;
+
+    /**
+     * Retrieve the shipping options
+     * 
+     * @return ShippingOptions
+     */
+    public function retrieveShippingOptions(): ShippingOptions;
 }
