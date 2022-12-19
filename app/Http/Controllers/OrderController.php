@@ -41,23 +41,25 @@ class OrderController extends Controller
     public function checkout(Request $request)
     {
         $items = $request->input('items');
-        $metadata = $request->input('metadata');
+        $metadata = $request->input('metadata') ?? [];
+        $paymentMethod = $request->input('payment_method') ?? 'stripe'; // @todo remove default stripe value
 
-        return $this->paymentService->createPaymentIntent($items, $metadata);
+        return $this->paymentService->createOrder($paymentMethod, $items, $metadata);
     }
 
     public function verify(Request $request, Message $message)
     {
-        $paymentIntentId = $request->input('paymentIntent');
+        $paymentIntentId = $request->input('transaction_id');
+        $paymentMethod = $request->input('payment_method') ?? 'stripe'; // @todo remove default stripe value
 
-        $status = $this->paymentService->verify($paymentIntentId);
+        $status = $this->paymentService->verify($paymentMethod, $paymentIntentId);
 
         $message->setContent(200, 'Payment Intent status found', '', [
             'status' => $status
         ]);
 
         return $message->render();
-    }
+    }   
 
     public function retrieveShippingOptions(Request $request, Message $message)
     {

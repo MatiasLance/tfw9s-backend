@@ -7,6 +7,7 @@ use App\Models\ShippingOptions;
 
 interface OrderServiceInterface
 {
+
     /**
      * Create a new order instance
      * 

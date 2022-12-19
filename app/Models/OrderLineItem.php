@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Repository\ItemRepositoryInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -29,7 +30,15 @@ class OrderLineItem extends Model
 
     public function getThumbnailAttribute()
     {
-        return env('APP_URL') . '/storage/' . $this->item->media[0]->path;
+        $itemMedia = $this->item->media;
+
+        if (count($itemMedia) > 0) {
+            $x = env('APP_URL') . '/storage/' . $itemMedia[0]->path;
+        } else {
+            $x = env('APP_URL') . '/storage/media/default/' . ItemRepositoryInterface::PLACEHOLDER_IMAGE;
+        }
+
+        return $x;
     }
 
     public function getSnippetAttribute()
