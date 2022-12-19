@@ -29,11 +29,11 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
         $this->itemService = $itemService;
 
         if (env('PAYPAL_ENVIRONMENT' === 'production', env('APP_ENV') === 'production')) {
-            $clientId = env('PAYPAL_SANDBOX_CLIENT_ID');
-            $secretKey = env('PAYPAL_SANDBOX_SECRET_KEY');
-        } else {
             $clientId = env('PAYPAL_LIVE_CLIENT_ID');
             $secretKey = env('PAYPAL_LIVE_SECRET_KEY');
+        } else {
+            $clientId = env('PAYPAL_SANDBOX_CLIENT_ID');
+            $secretKey = env('PAYPAL_SANDBOX_SECRET_KEY');
         }
 
         $this->context = new ApiContext(
