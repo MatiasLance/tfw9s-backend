@@ -2,6 +2,8 @@
 
 namespace App\Modules\Payment\Gateways;
 
+use App\Modules\Payment\PaymentStatus;
+
 interface PaymentGatewayInterface
 {
     /**
@@ -31,5 +33,5 @@ interface PaymentGatewayInterface
      * 
      * @param string $transactionId
      */
-    public function verify(string $transactionId);
+    public function verify(string $transactionId): PaymentStatus;
 }

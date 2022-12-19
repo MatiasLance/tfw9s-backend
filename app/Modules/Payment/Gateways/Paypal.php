@@ -3,24 +3,21 @@
 namespace App\Modules\Payment\Gateways;
 
 use App\Modules\Item\ItemServiceInterface;
-use PayPal\Api\Amount;
-use PayPal\Api\Order;
-use PayPal\Api\Payer;
-use PayPal\Api\Payment;
-use PayPal\Api\RedirectUrls;
-use PayPal\Api\Transaction;
-use PayPal\Auth\OAuthTokenCredential;
-use PayPal\Exception\PayPalConnectionException;
-use PayPal\Rest\ApiContext;
+use App\Modules\Payment\Exceptions\UnknownPaymentStatusException;
+use App\Modules\Payment\PaymentStatus;
+use PayPalCheckoutSdk\Core\PayPalHttpClient;
+use PayPalCheckoutSdk\Core\ProductionEnvironment;
+use PayPalCheckoutSdk\Core\SandboxEnvironment;
+use PayPalCheckoutSdk\Orders\OrdersGetRequest;
 
 class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
 {
     /**
      * Api Context needed for Paypal Auth
      * 
-     * @var ApiContext $context
+     * @var PayPalHttpClient $client
      */
-    protected ApiContext $context;
+    protected PayPalHttpClient $client;
 
     public ItemServiceInterface $itemService;
 
@@ -31,51 +28,38 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
         if (env('PAYPAL_ENVIRONMENT' === 'production', env('APP_ENV') === 'production')) {
             $clientId = env('PAYPAL_LIVE_CLIENT_ID');
             $secretKey = env('PAYPAL_LIVE_SECRET_KEY');
+
+            $environment = new ProductionEnvironment($clientId, $secretKey);
         } else {
             $clientId = env('PAYPAL_SANDBOX_CLIENT_ID');
             $secretKey = env('PAYPAL_SANDBOX_SECRET_KEY');
+
+            $environment = new SandboxEnvironment($clientId, $secretKey);
         }
 
-        $this->context = new ApiContext(
-            new OAuthTokenCredential($clientId, $secretKey)
-        );
+        $this->client = new PayPalHttpClient($environment);
 
         parent::__construct($config);
     }
 
+    /**
+     * @todo
+     * @see https://github.com/paypal/Checkout-PHP-SDK/blob/develop/samples/AuthorizeIntentExamples/CreateOrder.php
+     */
     public function createOrder(array $items, array $metadata = [])
     {
-        $payer = new Payer();
-        $payer->setPaymentMethod('paypal');
-
-        $transactions = $this->generateTransactions($items);
-
-        $redirectUrls = new RedirectUrls();
-        $redirectUrls
-            ->setReturnUrl(env('PAYPAL_REDIRECT_URL'))
-            ->setCancelUrl(env('PAYPAL_CANCEL_URL'));
-
-        $payment = new Payment();
-        $payment
-            ->setIntent('sale')
-            ->setPayer($payer)
-            ->setTransactions($transactions)
-            ->setRedirectUrls($redirectUrls);
-
-        try {
-            return $payment->create($this->context);
-        } catch(PayPalConnectionException $e){
-            report($e);
-            throw $e;
-        }
+        $purchaseUnits = $this->generatePurchaseUnits($items);
+        //
     }
 
-    public function verify(string $transactionId)
+    public function verify(string $transactionId): PaymentStatus
     {
-        $order = new Order();
-        $orderStatus = $order->get($transactionId, $this->context);
+        $orderStatus = $this->client
+                                ->execute(
+                                    new OrdersGetRequest($transactionId)
+                                );
 
-        return $orderStatus;
+        return $this->matchStatus($orderStatus->result->status);
     }
 
     /**
@@ -85,28 +69,58 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
      * 
      * @return array
      */
-    protected function generateTransactions(array $items): array
+    protected function generatePurchaseUnits(array $items): array
     {
-        $transactions = [];
+        $units = [];
 
         foreach ($items as $item) {
-            $amount = new Amount();
-            $amount->setCurrency($this->currency);
-            $amount->setTotal(
-                $this->calculateItemTotal($item['item_id'], $item['quantity'])
-            );
+            $unit = [
+                'currency_code' => $this->currency,
+                'value' => $this->calculateItemTotal($item['item_id'], $item['quantity']),
+            ];
 
-            $transaction = new Transaction();
-            $transaction->setAmount($amount);
-
-            array_push($transactions, $transaction);
+            array_push($units, $unit);
         }
-        return $transactions;
+        return $units;
     }
 
     protected function calculateItemTotal(int $itemId, int $quantity): float
     {
         $item = $this->itemService->retrieveItem($itemId);
         return $item->centPrice() + $quantity;
+    }
+
+    /**
+     * Match payment status from Paypal to App\Modules\Payment\PaymentStatus enums
+     * 
+     * @param string $status Status from Stripe
+     * 
+     * @return PaymentStatus
+     */
+    protected function matchStatus(string $status): PaymentStatus
+    {
+        switch ($status) {
+            case 'PAYER_ACTION_REQUIRED':
+                return PaymentStatus::PENDING;
+
+            case 'CREATED':
+                return PaymentStatus::PENDING;
+
+            case 'APPROVED':
+                return PaymentStatus::PENDING;
+
+            case 'SAVED':
+                return PaymentStatus::PROCESSING;
+
+            case 'VOIDED':
+                return PaymentStatus::FAILED;
+
+            case 'COMPLETED':
+                return PaymentStatus::COMPLETE;
+
+            default:
+                throw new UnknownPaymentStatusException('Paypal returned an unknown payment status');
+                break;
+        }
     }
 }

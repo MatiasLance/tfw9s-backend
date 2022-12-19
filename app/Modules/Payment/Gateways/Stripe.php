@@ -10,6 +10,8 @@ use App\Modules\Mail\MailServiceInterface;
 use App\Modules\Order\Exceptions\AddressCannotBeEmptyException;
 use App\Modules\Order\OrderServiceInterface;
 use App\Modules\Order\ShippingType;
+use App\Modules\Payment\Exceptions\UnknownPaymentStatusException;
+use App\Modules\Payment\PaymentStatus;
 use Stripe\PaymentIntent;
 use Stripe\StripeClient;
 
@@ -108,7 +110,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         return $paymentIntent->client_secret;
     }
 
-    public function verify(string $paymentIntentId)
+    public function verify(string $paymentIntentId): PaymentStatus
     {
         $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
 
@@ -147,7 +149,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             }
         }
 
-        return $paymentIntent->status;
+        return $this->matchStatus($paymentIntent->status);
     }
 
     /**
@@ -179,5 +181,42 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             $total += $unitPrice + $gstPrice;
         }
         return $total;
+    }
+
+    /**
+     * Match status enum from Stripe to App\Modules\Payment\PaymentStatus enums
+     * 
+     * @param string $status Status from Stripe
+     * 
+     * @return PaymentStatus
+     */
+    protected function matchStatus(string $status): PaymentStatus
+    {
+        switch ($status) {
+            case 'requires_payment_method':
+                return PaymentStatus::PENDING;
+
+            case 'requires_confirmation':
+                return PaymentStatus::PENDING;
+
+            case 'requires_action':
+                return PaymentStatus::PENDING;
+
+            case 'requires_capture':
+                return PaymentStatus::PENDING;
+
+            case 'processing':
+                return PaymentStatus::PROCESSING;
+
+            case 'canceled':
+                return PaymentStatus::CANCELLED;
+
+            case 'succeeded':
+                return PaymentStatus::COMPLETE;
+
+            default:
+                throw new UnknownPaymentStatusException('Stripe returned an unknown payment status');
+                break;
+        }
     }
 }

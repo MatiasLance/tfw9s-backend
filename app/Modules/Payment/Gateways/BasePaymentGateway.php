@@ -3,6 +3,7 @@
 namespace App\Modules\Payment\Gateways;
 
 use App\Modules\Payment\PaymentServiceInterface;
+use App\Modules\Payment\PaymentStatus;
 
 class BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -39,8 +40,8 @@ class BasePaymentGateway implements PaymentGatewayInterface
         //
     }
 
-    public function verify(string $transactionId)
+    public function verify(string $transactionId): PaymentStatus
     {
-        //
+        return PaymentStatus::FAILED;
     }
 }
