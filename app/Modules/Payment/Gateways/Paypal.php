@@ -4,6 +4,7 @@ namespace App\Modules\Payment\Gateways;
 
 use App\Modules\Item\ItemServiceInterface;
 use PayPal\Api\Amount;
+use PayPal\Api\Order;
 use PayPal\Api\Payer;
 use PayPal\Api\Payment;
 use PayPal\Api\RedirectUrls;
@@ -67,6 +68,14 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
             report($e);
             throw $e;
         }
+    }
+
+    public function verify(string $transactionId)
+    {
+        $order = new Order();
+        $orderStatus = $order->get($transactionId, $this->context);
+
+        return $orderStatus;
     }
 
     /**

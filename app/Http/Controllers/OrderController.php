@@ -49,7 +49,7 @@ class OrderController extends Controller
 
     public function verify(Request $request, Message $message)
     {
-        $paymentIntentId = $request->input('paymentIntent');
+        $paymentIntentId = $request->input('transaction_id');
         $paymentMethod = $request->input('payment_method') ?? 'stripe'; // @todo remove default stripe value
 
         $status = $this->paymentService->verify($paymentMethod, $paymentIntentId);
