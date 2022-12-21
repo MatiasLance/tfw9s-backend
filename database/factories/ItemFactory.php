@@ -21,6 +21,7 @@ class ItemFactory extends Factory
             'description' => '<p>' . $this->faker->paragraph() . '</p>',
             'price' => $this->faker->numberBetween(10, 300) * 10,
             'stock' => $this->faker->numberBetween(0, 20),
+            'is_featured' => $this->faker->boolean(10),
         ];
     }
 }
