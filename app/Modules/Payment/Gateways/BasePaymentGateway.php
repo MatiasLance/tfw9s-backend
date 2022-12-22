@@ -3,9 +3,8 @@
 namespace App\Modules\Payment\Gateways;
 
 use App\Modules\Payment\PaymentServiceInterface;
-use App\Modules\Payment\PaymentStatus;
 
-class BasePaymentGateway implements PaymentGatewayInterface
+class BasePaymentGateway
 {
     /**
      * Default configuration values
@@ -33,15 +32,5 @@ class BasePaymentGateway implements PaymentGatewayInterface
         $userConfig = array_merge($config, $this->defaultConfig);
 
         $this->currency = $userConfig['currency'];
-    }
-
-    public function createOrder(array $items, array $metadata = [])
-    {
-        //
-    }
-
-    public function verify(string $transactionId): PaymentStatus
-    {
-        return PaymentStatus::FAILED;
     }
 }
