@@ -7,22 +7,23 @@ use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Mail\MailServiceInterface;
 use App\Modules\Order\OrderServiceInterface;
+use App\Modules\Payment\Exceptions\PaymentFailedException;
 use App\Modules\Payment\Exceptions\UnknownPaymentStatusException;
 use App\Modules\Payment\PaymentGateway;
 use App\Modules\Payment\PaymentStatus;
-use PayPalCheckoutSdk\Core\PayPalHttpClient;
-use PayPalCheckoutSdk\Core\ProductionEnvironment;
-use PayPalCheckoutSdk\Core\SandboxEnvironment;
-use PayPalCheckoutSdk\Orders\OrdersGetRequest;
+use Ramsey\Uuid\Uuid;
+use Square\Models\CreatePaymentRequest;
+use Square\Models\Money;
+use Square\SquareClient;
 
-class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
+class Square extends BasePaymentGateway implements PaymentGatewayInterface
 {
     /**
-     * Api Context needed for Paypal Auth
+     * The Square Client class provided by Square SDK
      * 
-     * @var PayPalHttpClient $client
+     * @var SquareClient $client
      */
-    protected PayPalHttpClient $client;
+    protected SquareClient $client;
 
     /**
      * Mail Service
@@ -50,7 +51,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
      * 
      * @var PaymentGateway GATEWAY
      */
-    public const GATEWAY = PaymentGateway::PAYPAL;
+    public const GATEWAY = PaymentGateway::SQUARE;
 
     public function __construct(MailServiceInterface $mailService, OrderServiceInterface $orderService, ItemServiceInterface $itemService, array $config = [])
     {
@@ -58,32 +59,16 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
         $this->orderService = $orderService;
         $this->itemService = $itemService;
 
-        if (env('PAYPAL_ENVIRONMENT' === 'production', env('APP_ENV') === 'production')) {
-            $clientId = env('PAYPAL_LIVE_CLIENT_ID');
-            $secretKey = env('PAYPAL_LIVE_SECRET_KEY');
-
-            $environment = new ProductionEnvironment($clientId, $secretKey);
-        } else {
-            $clientId = env('PAYPAL_SANDBOX_CLIENT_ID');
-            $secretKey = env('PAYPAL_SANDBOX_SECRET_KEY');
-
-            $environment = new SandboxEnvironment($clientId, $secretKey);
-        }
-
-        $this->client = new PayPalHttpClient($environment);
+        $this->client = new SquareClient([
+            'accessToken' => env('SQUARE_ACCESS_TOKEN'),
+            'environment' => $this->retrieveClientEnvironment()
+        ]);
 
         parent::__construct($config);
     }
 
-    /**
-     * @todo Actual creation of order via Paypal SDK
-     * @todo Decouple item model by using item service. Add find() function on ItemService
-     * 
-     * @see https://github.com/paypal/Checkout-PHP-SDK/blob/develop/samples/AuthorizeIntentExamples/CreateOrder.php
-     */
     public function createOrder(array $items, array $metadata = [])
     {
-        $total = 0;
         $lineItems = [];
 
         foreach ($items as $item) {
@@ -96,42 +81,63 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
             ];
             array_push($lineItems, $lineItem);
         }
+        $total = $this->calculateTotal($lineItems);
+        
+        $money = new Money();
+        $money->setAmount($total);
+        $money->setCurrency(strtoupper($this->currency));
 
-        $purchaseUnits = $this->generatePurchaseUnits($lineItems);
+        $createPaymentRequest = new CreatePaymentRequest($metadata['card_token'], Uuid::uuid4(), $money);
+        $paymentsApi = $this->client->getPaymentsApi();
+        $response = $paymentsApi->createPayment($createPaymentRequest);
 
-        foreach ($purchaseUnits as $value) {
-            $total += $value['value'];
+        if ($response->isSuccess()) {
+            $paymentId = $response->getResult()->getPayment()->getId();
+
+            $this->orderService->create(
+                $paymentId,
+                self::GATEWAY,
+                $metadata['firstName'],
+                $metadata['lastName'],
+                $metadata['phoneNumber'],
+                $metadata['email'],
+                $metadata['shippingType'],
+                $metadata['address'],
+                $metadata['postCode'],
+                $metadata['remarks'] ?? '',
+                $total,
+                $lineItems
+            );
+
+            return $paymentId;
+        } else {
+            throw new PaymentFailedException('Transaction failed');
         }
-
-        $order = $this->orderService->create(
-            $metadata['transaction_id'],
-            self::GATEWAY,
-            $metadata['firstName'],
-            $metadata['lastName'],
-            $metadata['phoneNumber'],
-            $metadata['email'],
-            $metadata['shippingType'],
-            $metadata['address'],
-            $metadata['postCode'],
-            $metadata['remarks'] ?? '',
-            $total,
-            $lineItems
-        );
-
-        return $order->transaction_id;
     }
 
     public function verify(string $transactionId): PaymentStatus
     {
-        $paypalOrder = $this->client
-                                ->execute(
-                                    new OrdersGetRequest($transactionId)
-                                );
+        $paymentsApi = $this->client->getPaymentsApi();
+        $response = $paymentsApi->getPayment($transactionId);
 
-        $orderStatus = $this->matchStatus($paypalOrder->result->status);
+        if ($response->isSuccess()) {
+            $orderStatus = $this->matchStatus(
+                $response
+                    ->getResult()
+                    ->getPayment()
+                    ->getStatus()
+            );
+        } else {
+            return PaymentStatus::FAILED;
+        }
 
         if (PaymentStatus::COMPLETE === $orderStatus) {
-            $order = $this->orderService->findByTransactionId($paypalOrder->result->id);
+            $order = $this->orderService->findByTransactionId(
+                                                $response
+                                                    ->getResult()
+                                                    ->getPayment()
+                                                    ->getId()
+                                            );
             if (!$order->is_verified) {
                 $this->orderService->markAsVerified($order->transaction_id);
 
@@ -153,25 +159,20 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
     }
 
     /**
-     * Generate an array containing PayPal\Api\Transaction per item that the user ordered
+     * Calculate the total amount to be paid
      * 
      * @param array $items
      * 
-     * @return array
+     * @return float
      */
-    protected function generatePurchaseUnits(array $items): array
+    protected function calculateTotal(array $items): float
     {
-        $units = [];
-
+        $total = 0;
         foreach ($items as $item) {
-            $unit = [
-                'currency_code' => $this->currency,
-                'value' => $this->calculateItemTotal($item['item_id'], $item['quantity']),
-            ];
-
-            array_push($units, $unit);
+            $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
         }
-        return $units;
+
+        return $total;
     }
 
     /**
@@ -189,35 +190,46 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
     }
 
     /**
-     * Match payment status from Paypal to App\Modules\Payment\PaymentStatus enums
+     * Retrieve the Square client environment
      * 
-     * @param string $status Status from Paypal
+     * @return string
+     */
+    protected function retrieveClientEnvironment(): string
+    {
+        return env(
+            'SQUARE_ENVIRONMENT', 
+            env('APP_ENV') === 'production' ? 'production' : 'sandbox'
+        );
+    }
+
+    /**
+     * Match payment status from Square to App\Modules\Payment\PaymentStatus enums
+     * 
+     * @param string $status Status from Square
      * 
      * @return PaymentStatus
      */
     protected function matchStatus(string $status): PaymentStatus
     {
         switch ($status) {
-            case 'PAYER_ACTION_REQUIRED':
-                return PaymentStatus::PENDING;
 
-            case 'CREATED':
+            case 'PENDING':
                 return PaymentStatus::PENDING;
 
             case 'APPROVED':
-                return PaymentStatus::PENDING;
-
-            case 'SAVED':
                 return PaymentStatus::PROCESSING;
 
-            case 'VOIDED':
+            case 'CANCELLED':
+                return PaymentStatus::CANCELLED;
+
+            case 'FAILED':
                 return PaymentStatus::FAILED;
 
             case 'COMPLETED':
                 return PaymentStatus::COMPLETE;
 
             default:
-                throw new UnknownPaymentStatusException('Paypal returned an unknown payment status');
+                throw new UnknownPaymentStatusException('Square returned an unknown payment status');
                 break;
         }
     }

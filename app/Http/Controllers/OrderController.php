@@ -38,6 +38,9 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
+    /**
+     * @todo Forgot to use Message class to render response here. Need to make sure frontend also adjusts to the new response structure
+     */
     public function checkout(Request $request)
     {
         $items = $request->input('items');
