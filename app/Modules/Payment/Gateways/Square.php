@@ -172,6 +172,9 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
             $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
         }
 
+        // Add GST
+        $total = ($total * $this->gst) + $total;
+
         return $total;
     }
 
