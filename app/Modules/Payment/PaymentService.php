@@ -3,6 +3,12 @@
 namespace App\Modules\Payment;
 
 use Stripe\StripeClient;
+use App\Models\Shipping;
+use App\Models\StateShipping;
+use App\Models\CityShipping;
+use App\Models\OtherCountryShipping;
+use App\Models\OtherStateShipping;
+use App\Models\OtherCityShipping;
 use App\Models\Item;
 use App\Models\Order;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
@@ -59,7 +65,7 @@ class PaymentService implements PaymentServiceInterface
         $this->liveMode = env('STRIPE_LIVE_ENVIRONMENT', env('APP_ENV') === 'production');
     }
 
-    public function createPaymentIntent(array $items, array $metadata = [], $currency = null): string
+    public function createPaymentIntent(array $items, array $metadata = [], $currency = null): array
     {
         if (is_null($currency)) {
             $currency = self::CURRENCY;
@@ -70,13 +76,18 @@ class PaymentService implements PaymentServiceInterface
                 !isset($metadata['address']) ||
                 empty($metadata['address']) ||
                 !isset($metadata['postCode']) ||
-                empty($metadata['postCode'])
+                empty($metadata['postCode']) || 
+                !isset($metadata['shippingChoiceCalc']) ||
+                empty($metadata['shippingChoiceCalc'])
             ) {
                 throw new AddressCannotBeEmptyException('Attempted to create a payment intent for delivery order without address');
             }
         }
- 
-        $total = $this->calculateTotal($items);
+        $shippingchoicecalc = $metadata['shippingChoiceCalc'];
+
+        $totalshipping = $this->calculateTotal($items, $shippingchoicecalc);
+        $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
+        $total = intval(($itemSubtotal * 0.1) + $itemSubtotal);
 
         $lineItems = [];
 
@@ -90,7 +101,6 @@ class PaymentService implements PaymentServiceInterface
             ];
             array_push($lineItems, $lineItem);
         }
-
         $metadata['line_items'] = json_encode($lineItems);
 
         $productValue = [
@@ -104,7 +114,11 @@ class PaymentService implements PaymentServiceInterface
         
         $paymentIntent = $this->stripe->paymentIntents->create($productValue);
         
-        return $paymentIntent->client_secret;
+        return [
+            'totalProduct' => $totalshipping['totalProduct'],
+            'totalShipping' => $totalshipping['totalShipping'],
+            'stripeToken' => $paymentIntent->client_secret
+        ];
     }
 
     public function verify(string $paymentIntentId)
@@ -168,15 +182,83 @@ class PaymentService implements PaymentServiceInterface
      * 
      * @return int
      */
-    protected function calculateTotal(array $items): int
+    protected function calculateTotal(array $items, $shippingchoicecalc): array
     {
         $total = 0;
+        $tot = 0;
         foreach ($items as $item) {
-            $price = Item::find($item['id'])->centPrice();
-            $unitPrice = $price * $item['quantity'];
-            $gstPrice = ($unitPrice * 10) / 100;
-            $total += $unitPrice + $gstPrice;
+            if($shippingchoicecalc == "Own Country"){
+                $data = Shipping::latest()->first();
+                $sv = $data->shipping_value;
+                $iv = $data->insurance_value;
+                $rv = $data->registered_value;
+                $ev = $data->express_value;
+                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+
+                $price = Item::find($item['id'])->centPrice();
+                $unitPrice = $price * $item['quantity'];
+                $gstPrice = ($unitPrice * 10) / 100;
+                $total += $unitPrice;
+            }elseif($shippingchoicecalc == "Own State"){
+                $data = StateShipping::latest()->first();
+                $sv = $data->shipping_value;
+                $iv = $data->insurance_value;
+                $rv = $data->registered_value;
+                $ev = $data->express_value;
+                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                $price = Item::find($item['id'])->centPrice();
+                $unitPrice = $price * $item['quantity'];
+                $gstPrice = ($unitPrice * 10) / 100;
+                $total += $unitPrice;
+            }elseif($shippingchoicecalc == "Own City"){
+                $data = CityShipping::latest()->first();
+                $sv = $data->shipping_value;
+                $iv = $data->insurance_value;
+                $rv = $data->registered_value;
+                $ev = $data->express_value;
+                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                $price = Item::find($item['id'])->centPrice();
+                $unitPrice = $price * $item['quantity'];
+                $gstPrice = ($unitPrice * 10) / 100;
+                $total += $unitPrice;
+            }elseif($shippingchoicecalc == "Other Country"){
+                $data = OtherCountryShipping::latest()->first();
+                $sv = $data->shipping_value;
+                $iv = $data->insurance_value;
+                $rv = $data->registered_value;
+                $ev = $data->express_value;
+                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                $price = Item::find($item['id'])->centPrice();
+                $unitPrice = $price * $item['quantity'];
+                $gstPrice = ($unitPrice * 10) / 100;
+                $total += $unitPrice;
+            }elseif($shippingchoicecalc == "Other State"){
+                $data = OtherStateShipping::latest()->first();
+                $sv = $data->shipping_value;
+                $iv = $data->insurance_value;
+                $rv = $data->registered_value;
+                $ev = $data->express_value;
+                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                $price = Item::find($item['id'])->centPrice();
+                $unitPrice = $price * $item['quantity'];
+                $gstPrice = ($unitPrice * 10) / 100;
+                $total += $unitPrice;
+            }elseif($shippingchoicecalc == "Other City"){
+                $data = OtherCityShipping::latest()->first();
+                $sv = $data->shipping_value;
+                $iv = $data->insurance_value;
+                $rv = $data->registered_value;
+                $ev = $data->express_value;
+                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                $price = Item::find($item['id'])->centPrice();
+                $unitPrice = $price * $item['quantity'];
+                $gstPrice = ($unitPrice * 10) / 100;
+                $total += $unitPrice;
+            }
         }
-        return $total;
+        return [
+            'totalProduct' => $total,
+            'totalShipping' => $tot
+        ];
     }
 }

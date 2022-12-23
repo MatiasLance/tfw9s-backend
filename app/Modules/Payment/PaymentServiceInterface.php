@@ -20,7 +20,7 @@ interface PaymentServiceInterface
      * 
      * @return string
      */
-    public function createPaymentIntent(array $items, array $metadata = [], $currency = null): string;
+    public function createPaymentIntent(array $items, array $metadata = [], $currency = null): array;
 
     /**
      * Verify a payment intent and check its status.

@@ -2,6 +2,18 @@
 
 namespace App\Providers;
 
+use App\Modules\Shipping\ShippingService;
+use App\Modules\Shipping\ShippingServiceInterface;
+use App\Modules\Shipping\CityShippingService;
+use App\Modules\Shipping\CityShippingServiceInterface;
+use App\Modules\Shipping\StateShippingService;
+use App\Modules\Shipping\StateShippingServiceInterface;
+use App\Modules\Shipping\OtherCountryShippingService;
+use App\Modules\Shipping\OtherCountryShippingServiceInterface;
+use App\Modules\Shipping\OtherStateShippingService;
+use App\Modules\Shipping\OtherStateShippingServiceInterface;
+use App\Modules\Shipping\OtherCityShippingService;
+use App\Modules\Shipping\OtherCityShippingServiceInterface;
 use App\Modules\Item\ItemService;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Payment\PaymentService;
@@ -21,6 +33,12 @@ use App\Modules\Upload\UploadInterface;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\Eloquent\Base\EloquentRepositoryInterface;
 use App\Repository\Eloquent\ItemRepository;
+use App\Repository\Eloquent\ShippingRepository;
+use App\Repository\Eloquent\StateShippingRepository;
+use App\Repository\Eloquent\CityShippingRepository;
+use App\Repository\Eloquent\OtherCountryShippingRepository;
+use App\Repository\Eloquent\OtherStateShippingRepository;
+use App\Repository\Eloquent\OtherCityShippingRepository;
 use App\Repository\ItemRepositoryInterface;
 use App\Repository\CategoryRepositoryInterface;
 use App\Repository\Eloquent\CategoryRepository;
@@ -30,6 +48,12 @@ use App\Repository\Eloquent\UserRepository;
 use App\Repository\OrderRepositoryInterface;
 use App\Repository\TagRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
+use App\Repository\ShippingRepositoryInterface;
+use App\Repository\StateShippingRepositoryInterface;
+use App\Repository\CityShippingRepositoryInterface;
+use App\Repository\OtherCountryShippingRepositoryInterface;
+use App\Repository\OtherStateShippingRepositoryInterface;
+use App\Repository\OtherCityShippingRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -52,6 +76,12 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(StorageInterface::class, Storage::class);
         $this->app->bind(UploadInterface::class, LocalDisk::class);
         $this->app->bind(MailServiceInterface::class, MailService::class);
+        $this->app->bind(ShippingServiceInterface::class, ShippingService::class);
+        $this->app->bind(StateShippingServiceInterface::class, StateShippingService::class);
+        $this->app->bind(CityShippingServiceInterface::class, CityShippingService::class);
+        $this->app->bind(OtherCountryShippingServiceInterface::class, OtherCountryShippingService::class);
+        $this->app->bind(OtherStateShippingServiceInterface::class, OtherStateShippingService::class);
+        $this->app->bind(OtherCityShippingServiceInterface::class, OtherCityShippingService::class);
 
         /**
          * Repositories
@@ -62,6 +92,12 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(TagRepositoryInterface::class, TagRepository::class);
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
+        $this->app->bind(ShippingRepositoryInterface::class, ShippingRepository::class);
+        $this->app->bind(StateShippingRepositoryInterface::class, StateShippingRepository::class);
+        $this->app->bind(CityShippingRepositoryInterface::class, CityShippingRepository::class);
+        $this->app->bind(OtherCountryShippingRepositoryInterface::class, OtherCountryShippingRepository::class);
+        $this->app->bind(OtherStateShippingRepositoryInterface::class, OtherStateShippingRepository::class);
+        $this->app->bind(OtherCityShippingRepositoryInterface::class, OtherCityShippingRepository::class);
     }
 
     /**
