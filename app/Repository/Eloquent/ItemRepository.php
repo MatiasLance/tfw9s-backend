@@ -36,6 +36,20 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         'q' => null,
 
         /**
+         * Item and its variants
+         * 
+         * Pass an item ID to retrieve the Item and its variants. When null, the filter is skipped.
+         */
+        'itemVariant' => null,
+
+        /**
+         * Featured items filter
+         * 
+         * When a boolean value is given, will filter items' featured status based on that value
+         */
+        'featured' => null,
+
+        /**
          * Category filter
          * Filter items that are under the given category ID. Skipped when null.
          */
@@ -59,6 +73,13 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
          * The current page of items to get
          */
         'page' => 1,
+
+        /**
+         * Max item per page
+         * 
+         * Maximum number of items shown per page. When 0 or null is passed, will get every item
+         */
+        'max_item_per_page' => self::MAX_PAGE_ITEMS,
     ];
 
     public function __construct(Item $item, StorageInterface $storageService)
@@ -69,6 +90,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
     public function listItems(array $userFilters = []): Paginate
     {
+        $areVariantsShown = false;
         $items = $this->model->query();
 
         $filters = array_merge($this->defaultItemListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
@@ -79,6 +101,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $q
                     ->where('name', 'LIKE', '%' . $filters['q'] . '%');
             });
+        }
+
+        // Featured Item Filter
+        if (!is_null($filters['featured'])) {
+            $areVariantsShown = true;
+            $items = $items->where('is_featured', $filters['featured']);
         }
 
         // Category filter
@@ -96,6 +124,18 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($filters['tags'])) {
             $items = $items->whereHas('tags', function($q) use($filters) {
                 $q->whereIn('id', $filters['tags']);
+            });
+        }
+
+        // Item variant filter
+        if (!is_null($filters['itemVariant'])) {
+            $areVariantsShown = true;
+            $variantItem = $this->find($filters['itemVariant']);
+
+            $items = $items->where(function($q) use($variantItem){
+                $q
+                    ->where('id', $variantItem->id)
+                    ->orWhere('parent_id', $variantItem->id);
             });
         }
 
@@ -122,24 +162,42 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 break;
         }
 
-        return new Paginate($items, self::MAX_PAGE_ITEMS, $filters['page'], 'items');
+        if (!$areVariantsShown) {
+            $items = $items->whereNull('parent_id');
+        }
+
+        $items = $items->with([
+            'variants' => function($query) {
+                $query->select('name', 'parent_id');
+            },
+        ]);
+
+        return new Paginate($items, $filters['max_item_per_page'], $filters['page'], 'items');
     }
 
     public function retrieveItem(int $id): Item
     {
-        return $this->find($id)->append('categoryLineages');
+        return $this->find($id)
+                    ->load([
+                        'parent:id,name',
+                    ])
+                    ->append([
+                        'categoryLineages',
+                        'related',
+                    ]);
     }
 
     /**
      * @todo Remove coupling to Tag model. Use tag repository or item service instead to find the tag
      */
-    public function createItem(string $title, string $description, float $price, int $stock, array $media, array $categories, array $tags): Item
+    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, array $media, array $categories, array $tags): Item
     {
         $item = new Item();
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
         $item->stock = $stock;
+        $item->is_featured = $isFeatured;
 
         return DB::transaction(function() use($item, $categories, $tags, $media) {
             $item->save();
@@ -165,7 +223,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * @todo Check for the multiple photo update thing
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, ?array $media, ?array $categories, ?array $tags): Item
     {
         $oldItem = $this->find($id);
         $item = $oldItem->replicate();
@@ -180,6 +238,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         }
         if (!is_null($stock)) {
             $item->stock = $stock;
+        }
+        if (!is_null($isFeatured)) {
+            $item->is_featured = $isFeatured;
         }
 
         return DB::transaction(function() use($oldItem, $item, $categories, $tags, $media) {
@@ -227,13 +288,30 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         
     }
 
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, ?array $media, array $categories, array $tags): bool
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, ?array $media, ?array $categories, ?array $tags): Item
+    {
+        $item = $this->duplicateItem($id, $title, $description, $price, $stock, $isFeatured, $media, $categories, $tags);
+
+        return DB::transaction(function() use($item, $id){
+            $item->parent_id = $id;
+            $isSuccess = $item->save();
+
+            if ($isSuccess) {
+                return $item;
+            } else {
+                return null;
+            }
+        });
+    }
+
+    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, ?array $media, array $categories, array $tags): bool
     {
         $item = $this->find($id);
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
         $item->stock = $stock;
+        $item->is_featured = $isFeatured;
 
         return DB::transaction(function() use($item, $categories, $tags, $media) {
             $item->categories()->detach();
@@ -248,7 +326,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             }
 
             if (!is_null($media)) {
-
 
                 $newMedia = array_filter($media, function($mediaItem) {
                     return $mediaItem instanceof UploadedFile;
@@ -288,12 +365,14 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $item->stock = 0;
             }
 
-            throw new ItemStockCannotBeLowerThanZeroException('Attempted to decease the stocks below zero');
+            throw new ItemStockCannotBeLowerThanZeroException('Attempted to decrease the stocks below zero');
         } else {
             $item->stock -= $amount;
         }
 
-        return true;
+        return DB::transaction(function() use($item) {
+            return $item->save();
+        });
     }
 
     /**

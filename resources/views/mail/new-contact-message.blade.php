@@ -14,7 +14,7 @@
         .main-temp table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family: Helvetica, arial, sans-serif;}
         .main-temp table td {border-collapse: collapse;}
         .text--wpi-red {
-            color: #3981da;
+            color: #1a1d18;
         }
         .guestMessage {
             text-indent: 4ch;
@@ -37,11 +37,11 @@
                                         <tbody>
                                             <tr>
                                                 <td align="center">
-                                                    <a href="http://straddieworld.com/">
+                                                    <a href="http://revampedofficial.com/">
                                                         <img
                                                             style="width: 35%; padding: 0.5rem;"
-                                                            src="https://i.imgur.com/wuhL9yy.png"
-                                                            alt="Straddie Logo"
+                                                            src="https://i.imgur.com/6wAZO0L.png"
+                                                            alt="Revamped Logo"
                                                         />
                                                     </a>
                                                 </td>
@@ -75,7 +75,7 @@
                                                         <p>Hi Admin!</p>
                                                         <div style="margin-bottom: 1rem;">&nbsp;</div>
                                                         <p>
-                                                            You have a new message from a guest on straddieworld.com
+                                                            You have a new message from a guest on revampedofficial.com
                                                         </p>
                                                         <div style="margin-bottom: 1rem;">&nbsp;</div>
                                                         <div>
@@ -117,7 +117,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center;">
-                                                    <p>&copy; 2022 Straddie World</p>
+                                                    <p>&copy; 2022 Revamped</p>
                                                 </td>
                                             </tr>
                                         </tbody>

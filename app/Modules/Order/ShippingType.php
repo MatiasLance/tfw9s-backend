@@ -2,8 +2,21 @@
 
 namespace App\Modules\Order;
 
-class ShippingType
+use App\Models\ShippingOptions;
+
+enum ShippingType: string
 {
-    public const DELIVERY = 'delivery';
-    public const PICKUP = 'pickup';
+    case DELIVERY = 'delivery';
+    case PICKUP = 'pickup';
+
+    public function getShippingNote(): string
+    {
+        $option = ShippingOptions::first();
+
+        return match($this)
+        {
+            self::DELIVERY => $option->delivery_note,
+            self::PICKUP => $option->pickup_note,
+        };
+    }
 }

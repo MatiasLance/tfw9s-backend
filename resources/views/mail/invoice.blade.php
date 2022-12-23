@@ -29,11 +29,11 @@
                                         <tbody>
                                             <tr>
                                                 <td align="center">
-                                                    <a href="http://straddieworld.com/">
+                                                    <a href="http://revampedofficial.com/">
                                                         <img
                                                             style="width: 35%; padding: 0.5rem;"
-                                                            src="https://i.imgur.com/wuhL9yy.png"
-                                                            alt="Straddie Logo"
+                                                            src="https://i.imgur.com/6wAZO0L.png"
+                                                            alt="Revamped Logo"
                                                         />
                                                     </a>
                                                 </td>
@@ -54,7 +54,7 @@
                                                 </td>
                                                 <td width="40%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
                                                     <div>
-                                                        <b>Straddieworld</b>
+                                                        <b>Revamped Official</b>
                                                     </div>
                                                     <div></div>
                                                     <div></div>
@@ -259,7 +259,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Payment Method (Stripe)
+                                                    Payment Method ({{ ucfirst($order->payment_gateway->value) }})
                                                 </td>
                                             </tr>
                                             <tr>
@@ -268,7 +268,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with Straddie World.
+                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with Revamped.
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -282,7 +282,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center;">
-                                                    <p>&copy; 2022 Straddie World</p>
+                                                    <p>&copy; 2022 Revamped</p>
                                                 </td>
                                             </tr>
                                         </tbody>

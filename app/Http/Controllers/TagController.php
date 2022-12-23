@@ -3,26 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Modules\Http\Message;
-use App\Modules\Item\ItemServiceInterface;
+use App\Modules\Tags\TagServiceInterface;
 use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
     /**
-     * Item service
+     * Tag service
      * 
-     * @var ItemServiceInterface $itemService
+     * @var TagServiceInterface $tagService
      */
-    protected ItemServiceInterface $itemService;
+    protected TagServiceInterface $tagService;
 
-    public function __construct(ItemServiceInterface $itemService)
+    public function __construct(TagServiceInterface $tagService)
     {
-        $this->itemService = $itemService;
+        $this->tagService = $tagService;
     }
 
     public function list(Request $request, Message $message)
     {
-        $tags = $this->itemService->listTags();
+        $tags = $this->tagService->listTags();
 
         $message->setContent(200, 'Tags retrieved', '', [
             'tags' => $tags

@@ -2,7 +2,6 @@
 
 namespace App\Modules\Order\Traits;
 
-use App\Models\ShippingOptions;
 use App\Modules\Order\Exceptions\UnknownShippingTypeException;
 use App\Modules\Order\ShippingType;
 
@@ -17,19 +16,11 @@ trait HasShippingOptions
      */
     public function getShippingNote(string $shippingType): string
     {
-        $options = ShippingOptions::first();
-        switch ($shippingType) {
-            case ShippingType::DELIVERY:
-                return $options->delivery_note;
-                break;
-
-            case ShippingType::PICKUP:
-                return $options->pickup_note;
-                break;
-            
-            default:
-                throw new UnknownShippingTypeException();
-                break;
+        try {
+            return ShippingType::from($shippingType)
+                                    ->getShippingNote();
+        } catch (\TypeError $e) {
+            throw new UnknownShippingTypeException('Shipping type: ' . $shippingType . ' is unsupported.');
         }
     }
 }

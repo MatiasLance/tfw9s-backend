@@ -38,26 +38,31 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
+    /**
+     * @todo Forgot to use Message class to render response here. Need to make sure frontend also adjusts to the new response structure
+     */
     public function checkout(Request $request)
     {
         $items = $request->input('items');
-        $metadata = $request->input('metadata');
+        $metadata = $request->input('metadata') ?? [];
+        $paymentMethod = $request->input('payment_method');
 
-        return $this->paymentService->createPaymentIntent($items, $metadata);
+        return $this->paymentService->createOrder($paymentMethod, $items, $metadata);
     }
 
     public function verify(Request $request, Message $message)
     {
-        $paymentIntentId = $request->input('paymentIntent');
-
-        $status = $this->paymentService->verify($paymentIntentId);
+        $paymentIntentId = $request->input('transaction_id');
+        $paymentMethod = $request->input('payment_method');
+        
+        $status = $this->paymentService->verify($paymentMethod, $paymentIntentId);
 
         $message->setContent(200, 'Payment Intent status found', '', [
             'status' => $status
         ]);
 
         return $message->render();
-    }
+    }   
 
     public function retrieveShippingOptions(Request $request, Message $message)
     {

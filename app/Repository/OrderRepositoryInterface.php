@@ -4,13 +4,25 @@ namespace App\Repository;
 
 use App\Models\Order;
 use App\Models\ShippingOptions;
+use App\Modules\Payment\PaymentGateway;
 
 interface OrderRepositoryInterface
 {
+
+    /**
+     * Find an existing order by its transaction id
+     * 
+     * @param string $transactionId
+     * 
+     * @return null|Order
+     */
+    public function findByTransactionId(string $transactionId): ?Order;
+
     /**
      * Create a new Order
      * 
      * @param string $paymentIntentId
+     * @param PaymentGateway $gateway
      * @param string $firstname
      * @param string $lastname
      * @param string $phoneNumber
@@ -26,6 +38,7 @@ interface OrderRepositoryInterface
      */
     public function create(
         string $paymentIntentId,
+        PaymentGateway $gateway,
         string $firstname,
         string $lastname,
         string $phoneNumber,
@@ -39,13 +52,6 @@ interface OrderRepositoryInterface
     );
 
     /**
-     * Retrieve the shipping options
-     * 
-     * @return ShippingOptions
-     */
-    public function retrieveShippingOptions(): ShippingOptions;
-
-    /**
      * Update the shipping options.
      * 
      * Shipping options will show up on the checkout form as well on the invoice.
@@ -56,4 +62,20 @@ interface OrderRepositoryInterface
      * @return bool
      */
     public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool;
+
+    /**
+     * Mark order as verified
+     * 
+     * @param string $transactionId
+     * 
+     * @return bool
+     */
+    public function markAsVerified(string $transactionId): bool;
+
+    /**
+     * Retrieve the shipping options
+     * 
+     * @return ShippingOptions
+     */
+    public function retrieveShippingOptions(): ShippingOptions;
 }

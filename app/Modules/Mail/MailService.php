@@ -15,8 +15,8 @@ class MailService implements MailServiceInterface
         $mail = new Invoice($order);
         $content = $mail->render();
 
-        $adminSubject = 'You have a new order on straddieworld.com!';
-        $customerSubject = 'Here is the invoice for your recent order on straddieworld.com';
+        $adminSubject = 'You have a new order on revampedofficial.com!';
+        $customerSubject = 'Here is the invoice for your recent order on revampedofficial.com';
 
         $this->send([env('ADMIN_EMAIL_ADDRESS', 'tech1.sumomedia@gmail.com')], $adminSubject, $content);
         $this->send([$order->email], $customerSubject, $content);
@@ -28,7 +28,7 @@ class MailService implements MailServiceInterface
             env('ADMIN_EMAIL_ADDRESS', 'tech1.sumomedia@gmail.com')
         ];
 
-        $subject = 'You have a new message from ' . $data['name'] . ' via straddieworld.com';
+        $subject = 'You have a new message from ' . $data['name'] . ' via revampedofficial.com';
         
         $mail = new NewContactMessage($data['name'], $data['email'], $data['message']);
         $content = $mail->render();
@@ -61,7 +61,7 @@ class MailService implements MailServiceInterface
 
         $response = $guzzle->request('POST', 'http://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
             'form_params' => [
-                'from' => 'noreply@straddieworld.com',
+                'from' => 'noreply@revamp.pageone247.com',
                 'recipients' => $to,
                 'cc' => [],
                 'bcc' => [],

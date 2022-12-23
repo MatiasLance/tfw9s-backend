@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Modules\Categories\CategoryServiceInterface;
 use App\Modules\Http\Message;
 use App\Modules\Item\ItemServiceInterface;
 use Illuminate\Http\Request;
@@ -10,10 +11,13 @@ use Illuminate\Http\Request;
 class ItemController extends Controller
 {
     protected ItemServiceInterface $itemService;
+    
+    protected CategoryServiceInterface $categoryService;
 
-    public function __construct(ItemServiceInterface $itemService)
+    public function __construct(ItemServiceInterface $itemService, CategoryServiceInterface $categoryService)
     {
         $this->itemService = $itemService;
+        $this->categoryService = $categoryService;
     }
 
     public function list(Request $request, Message $message)
@@ -23,6 +27,8 @@ class ItemController extends Controller
         $tag = $request->query('tags', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
+        $itemVariant = $request->query('itemVariant', null);
+        $maxItemsPerPage = $request->query('maxItemsPerPage', null);
 
         $filter = [
             'q' => $query,
@@ -30,6 +36,8 @@ class ItemController extends Controller
             'tag' => $tag,
             'sort' => $sort,
             'page' => $page,
+            'itemVariant' => is_null($itemVariant) ? $itemVariant : intval($itemVariant),
+            'max_item_per_page' => is_null($maxItemsPerPage) ? $maxItemsPerPage : intval($maxItemsPerPage),
         ];
 
         $paginatedItems = $this->itemService->listItems($filter);
@@ -55,7 +63,7 @@ class ItemController extends Controller
         $user = $request->user();
 
         $name = $request->input('name');
-        $description = $request->input('description');
+        $description = $request->input('description') ?? '';
         $price = $request->input('price');
         if (is_numeric($price)) {
             $price = floatval($price);
@@ -65,13 +73,14 @@ class ItemController extends Controller
             $stock = intval($stock);
         }
         $tags = $request->input('tags');
+        $isFeatured = $request->boolean('isFeatured');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
         $categories = array_map(function($id) {
-            return $this->itemService->retrieveCategory(intval($id));
+            return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $item = $this->itemService->createItem($name, $description, $price, $stock, $photo, $categories, $tags);
+        $item = $this->itemService->createItem($name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
@@ -99,18 +108,19 @@ class ItemController extends Controller
             $stock = intval($stock);
         }
         $tags = $request->input('tags') ?? null;
+        $isFeatured = $request->boolean('isFeatured') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
 
         if (!is_null($categoryId)) {
             $categories = array_map(function($id) {
-                return $this->itemService->retrieveCategory(intval($id));
+                return $this->categoryService->retrieveCategory(intval($id));
             }, $categoryId);
         } else {
             $categories = null;
         }
 
-        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $stock, $photo, $categories, $tags);
+        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
 
         if ($newItem instanceof Item) {
             $message->setContent(201, 'Item duplicated', '', [
@@ -123,12 +133,52 @@ class ItemController extends Controller
         return $message->render();
     }
 
+    public function storeItemVariant(Request $request, Message $message, int $itemId)
+    {
+        $user = $request->user();
+
+        $name = $request->input('name') ?? null;
+        $description = $request->input('description') ?? null;
+        $price = $request->input('price') ?? null;
+        if (is_numeric($price)) {
+            $price = floatval($price);
+        }
+        $stock = $request->input('stock') ?? null;
+        if (is_numeric($stock)) {
+            $stock = intval($stock);
+        }
+        $tags = $request->input('tags') ?? null;
+        $isFeatured = $request->boolean('isFeatured') ?? null;
+        $photo = $request->file('photo') ?? null;
+        $categoryId = $request->input('categoryId') ?? null;
+
+        if (!is_null($categoryId)) {
+            $categories = array_map(function($id) {
+                return $this->categoryService->retrieveCategory(intval($id));
+            }, $categoryId);
+        } else {
+            $categories = null;
+        }
+
+        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
+
+        if ($newItem instanceof Item) {
+            $message->setContent(201, 'Item added as variant', '', [
+                'item' => $newItem
+            ]);
+        } else {
+            $message->setContent(400, 'Failed to add item as variant');
+        }
+
+        return $message->render();
+    }
+
     public function update(Request $request, Message $message, int $id)
     {
         $user = $request->user();
 
         $name = $request->input('name');
-        $description = $request->input('description');
+        $description = $request->input('description') ?? '';
         $price = $request->input('price');
         if (is_numeric($price)) {
             $price = floatval($price);
@@ -137,7 +187,8 @@ class ItemController extends Controller
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
-        $tags = $request->input('tags');
+        $tags = $request->input('tags') ?? [];
+        $isFeatured = $request->boolean('isFeatured');
         $newPhoto = $request->file('photo') ?? [];
         $existingPhoto = $request->input('photo') ?? [];
         $newPhotoCount = count($newPhoto);
@@ -160,10 +211,10 @@ class ItemController extends Controller
 
         $categoryId = $request->input('categoryId') ?? [];
         $categories = array_map(function($id) {
-            return $this->itemService->retrieveCategory(intval($id));
+            return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $photo, $categories, $tags);
+        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');
