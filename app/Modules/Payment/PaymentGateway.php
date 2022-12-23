@@ -7,7 +7,7 @@ use App\Modules\Payment\Gateways\Paypal;
 use App\Modules\Payment\Gateways\Square;
 use App\Modules\Payment\Gateways\Stripe;
 
-enum PaymentGateway: string
+enum PaymentGateway: String
 {
     /**
      * Stripe payment gateway

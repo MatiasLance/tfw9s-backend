@@ -5,7 +5,7 @@ namespace App\Modules\Payment;
 use App\Modules\Payment\Exceptions\UnsupportedGatewayException;
 use App\Modules\Payment\Gateways\PaymentGatewayInterface;
 use Illuminate\Support\Facades\App;
-use ValueError;
+use Psy\Exception\TypeErrorException;
 
 class PaymentService implements PaymentServiceInterface
 {
@@ -39,7 +39,7 @@ class PaymentService implements PaymentServiceInterface
     {
         try {
             $paymentGateway = PaymentGateway::from($gateway);
-        }catch(ValueError $e) {
+        }catch(TypeErrorException $e) {
             throw new UnsupportedGatewayException($gateway . ' payment gateway is unsupported.');
         }
 

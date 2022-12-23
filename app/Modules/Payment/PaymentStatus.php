@@ -4,7 +4,7 @@ namespace App\Modules\Payment;
 
 enum PaymentStatus: String
 {
-    /**
+    /** 
      * Pending status
      * 
      * A payment is in pending status when it is requiring additional input, like waiting for the

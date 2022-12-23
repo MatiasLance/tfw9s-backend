@@ -11,13 +11,6 @@ interface PaymentServiceInterface
      * @var string CURRENCY
      */
     public const CURRENCY = 'aud';
-
-    /**
-     * Percentage of GST. Must be 0-1, 1 being 100%
-     * 
-     * @var float GST
-     */
-    public const GST = 0.1;
     
     /**
      * Initiate a new order for the selected payment gateway
