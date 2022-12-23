@@ -11,8 +11,10 @@ enum PaymentGateway: string
 {
     /**
      * Stripe payment gateway
+     * 
+     * Application does not currently use stripe
      */
-    case STRIPE = 'stripe';
+    // case STRIPE = 'stripe';
 
     /**
      * Paypal payment gateway
@@ -38,7 +40,7 @@ enum PaymentGateway: string
     {
         return match($this)
         {
-            self::STRIPE => Stripe::class,
+            // self::STRIPE => Stripe::class,
             self::PAYPAL => Paypal::class,
             self::SQUARE => Square::class,
             self::AFTERPAY => Afterpay::class,
