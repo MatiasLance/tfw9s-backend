@@ -10,6 +10,9 @@ use Ramsey\Uuid\Uuid;
 use Square\Models\CreatePaymentRequest;
 use Square\Models\Money;
 
+/**
+ * Extends square since the afterpay integration is using Square as payment gateway
+ */
 class Afterpay extends Square
 {
     /**
