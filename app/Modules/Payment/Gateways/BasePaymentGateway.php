@@ -17,7 +17,14 @@ class BasePaymentGateway
          * 
          * @var string
          */
-        'currency' => PaymentServiceInterface::CURRENCY
+        'currency' => PaymentServiceInterface::CURRENCY,
+
+        /**
+         * ISO-3 currency code to use
+         * 
+         * @var string
+         */
+        'gst' => PaymentServiceInterface::GST,
     ];
 
     /**
@@ -27,10 +34,18 @@ class BasePaymentGateway
      */
     protected string $currency;
 
+    /**
+     * GST percentage
+     * 
+     * @var string
+     */
+    protected string $gst;
+
     public function __construct(array $config = [])
     {
         $userConfig = array_merge($config, $this->defaultConfig);
 
         $this->currency = $userConfig['currency'];
+        $this->gst = $userConfig['gst'];
     }
 }
