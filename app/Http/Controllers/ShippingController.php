@@ -49,7 +49,7 @@ class ShippingController extends Controller
         $otherCityShippingService = $this->otherCityShippingService->retrieve();
 
         $shippingOptions = [$shippingService, $stateShippingService, $cityShippingService,
-        $otherCityShippingService, $otherStateShippingService, $otherCityShippingService];
+        $otherCountryShippingService, $otherStateShippingService, $otherCityShippingService];
 
             $message->setContent(200, 'Shipping data retrieved', '', [
                 'data' => $shippingOptions,
