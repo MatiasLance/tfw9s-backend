@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Shipping;
 use App\Modules\Shipping\ShippingServiceInterface;
 use App\Modules\Http\Message;
+use App\Modules\Shipping\CityShippingServiceInterface;
+use App\Modules\Shipping\OtherCityShippingServiceInterface;
+use App\Modules\Shipping\OtherCountryShippingServiceInterface;
+use App\Modules\Shipping\OtherStateShippingServiceInterface;
+use App\Modules\Shipping\StateShippingServiceInterface;
+
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -13,9 +19,16 @@ class ShippingController extends Controller
 
     protected ShippingServiceInterface $shippingService;
 
-    public function __construct(ShippingServiceInterface $shippingService)
+    public function __construct(ShippingServiceInterface $shippingService, StateShippingServiceInterface $stateShippingService,
+    CityShippingServiceInterface $cityShippingService, OtherCountryShippingServiceInterface $otherCountryShippingService,
+    OtherStateShippingServiceInterface $otherStateShippingService, OtherCityShippingServiceInterface $otherCityShippingService)
     {
         $this->shippingService = $shippingService;
+        $this->stateShippingService = $stateShippingService;
+        $this->cityShippingService = $cityShippingService;
+        $this->otherCountryShippingService = $otherCountryShippingService;
+        $this->otherStateShippingService = $otherStateShippingService;
+        $this->otherCityShippingService = $otherCityShippingService;
     }
 
     public function list() {
@@ -28,11 +41,19 @@ class ShippingController extends Controller
 
     public function retrieve(Request $request, Message $message) {
 
-        $data = $this->shippingService->retrieve();
+        $shippingService = $this->shippingService->retrieve();
+        $stateShippingService = $this->stateShippingService->retrieve();
+        $cityShippingService = $this->cityShippingService->retrieve();
+        $otherCountryShippingService = $this->otherCountryShippingService->retrieve();
+        $otherStateShippingService = $this->otherStateShippingService->retrieve();
+        $otherCityShippingService = $this->otherCityShippingService->retrieve();
 
-        $message->setContent(200, 'Shipping data retrieved', '', [
-            'data' => $data,
-        ]);
+        $shippingOptions = [$shippingService, $stateShippingService, $cityShippingService,
+        $otherCityShippingService, $otherStateShippingService, $otherCityShippingService];
+
+            $message->setContent(200, 'Shipping data retrieved', '', [
+                'data' => $shippingOptions,
+            ]);
 
         return $message->render();
     }
