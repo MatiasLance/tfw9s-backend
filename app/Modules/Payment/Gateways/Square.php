@@ -97,12 +97,12 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
         $addinsurance = in_array('Insurance Value', $shippingoptions);
 
         $total = $this->calculateTotal(
+            $lineItems,
             $shippingchoicecalc,
             $shippingoptions,
             $registeredpost,
             $expresspost,
-            $addinsurance,
-            $lineItems
+            $addinsurance
         );
         
         unset($metadata['shippingOptions']);
