@@ -105,8 +105,8 @@ class OrderController extends Controller
         
         $items = $request->input('items');
         $metadata = $request->input('metadata') ?? [];
-        $lineItems = [];
 
+        $lineItems = [];
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
 
@@ -129,7 +129,7 @@ class OrderController extends Controller
         $totalshipping = $this->calculateTotal($lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
 
         return response()->json([
-                $totalshipping
+               'shippingCalculation' => $totalshipping
         ]);
 
     }
