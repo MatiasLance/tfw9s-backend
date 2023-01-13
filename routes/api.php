@@ -121,6 +121,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix('orders')->group(function () { // Order API Endpoints
         Route::post('/checkout', 'App\Http\Controllers\OrderController@checkout');
         Route::post('/verify', 'App\Http\Controllers\OrderController@verify');
+        Route::post('/calculation', 'App\Http\Controllers\OrderController@shippingCalc');
 
         Route::prefix('shipping-notes')->group(function () {
             Route::get('/', 'App\Http\Controllers\OrderController@retrieveShippingOptions');
