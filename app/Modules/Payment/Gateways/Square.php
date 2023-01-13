@@ -73,39 +73,6 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
         parent::__construct($config);
     }
 
-    public function shippingCalc(array $items, array $metadata = [])
-    {
-
-        $lineItems = [];
-
-        foreach ($items as $item) {
-            $currentItem = Item::find($item['id']);
-
-            $lineItem = [
-                'item_id' => $currentItem->id,
-                'price' => $currentItem->centPrice(),
-                'quantity' => $item['quantity'],
-            ];
-            array_push($lineItems, $lineItem);
-        }
-
-        // Added from WPI
-        $shippingchoicecalc = $metadata['shippingChoiceCalc'];
-        $shippingoptions = $metadata['shippingOptions']['selected'];
-
-        $registeredpost = in_array('Registered Value', $shippingoptions);
-        $expresspost = in_array('Express Value', $shippingoptions);
-        $addinsurance = in_array('Insurance Value', $shippingoptions);
-
-        $totalshipping = $this->calculateTotal($lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
-        $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
-        $total = intval(($itemSubtotal * 0.1) + $itemSubtotal); // gst
-
-        $metadata['line_items'] = json_encode($lineItems);
-
-        unset($metadata['shippingOptions']);
-    }
-
     public function createOrder(array $items, array $metadata = [])
     {
 
