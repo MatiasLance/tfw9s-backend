@@ -199,18 +199,18 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
                 $data = NewShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
+                $tot += intval($data->shipping_value());
                 if($registeredpost){
-                    $rv = $data->registeredCentPrice();
+                    $rv = $data->registered_value();
                     $tot += intval($rv);
                 
                 }
                 if($expresspost){
-                    $ev = $data->expressCentPrice();
+                    $ev = $data->express_value();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
+                    $iv = $data->insurance_value();
                     $tot += intval($iv);
                 }
 
@@ -218,86 +218,86 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
                 $data = StateShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
+                $tot += intval($data->shipping_value());
 
                 if($registeredpost){
-                    $rv = $data->registeredCentPrice();
+                    $rv = $data->registered_value();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->expressCentPrice();
+                    $ev = $data->express_value();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
+                    $iv = $data->insurance_value();
                     $tot += intval($iv);
                 }
             }elseif($shippingchoicecalc == "Own City"){
                 $data = CityShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
+                $tot += intval($data->shipping_value());
 
                 if($registeredpost){
-                    $rv = $data->registeredCentPrice();
+                    $rv = $data->registered_value();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->expressCentPrice();
+                    $ev = $data->express_value();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
+                    $iv = $data->insurance_value();
                     $tot += intval($iv);
                 }
             }elseif($shippingchoicecalc == "Other Country"){
                 $data = OtherCountryShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
+                $tot += intval($data->shipping_value());
 
                 if($registeredpost){
-                    $rv = $data->registeredCentPrice();
+                    $rv = $data->registered_value();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->expressCentPrice();
+                    $ev = $data->express_value();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
+                    $iv = $data->insurance_value();
                     $tot += intval($iv);
                 }
             }elseif($shippingchoicecalc == "Other State"){
                 $data = OtherStateShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
+                $tot += intval($data->shipping_value());
 
                 if($registeredpost){
-                    $rv = $data->registeredCentPrice();
+                    $rv = $data->registered_value();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->expressCentPrice();
+                    $ev = $data->express_value();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
+                    $iv = $data->insurance_value();
                     $tot += intval($iv);
                 }
             }elseif($shippingchoicecalc == "Other City"){
                 $data = OtherCityShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
+                $tot += intval($data->shipping_value());
                 
                 if($registeredpost){
-                    $rv = $data->registeredCentPrice();
+                    $rv = $data->registered_value();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->expressCentPrice();
+                    $ev = $data->express_value();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
