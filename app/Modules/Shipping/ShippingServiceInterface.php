@@ -2,7 +2,6 @@
 
 namespace App\Modules\Shipping;
 
-use App\Models\Shipping;
 use App\Models\NewShipping;
 use Illuminate\Database\Eloquent\Collection;
 

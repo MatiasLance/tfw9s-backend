@@ -159,14 +159,18 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
      * 
      * @return array
      */
-    protected function generatePurchaseUnits(array $items): array
+    protected function generatePurchaseUnits(array $items, array $metadata = []): array
     {
         $units = [];
 
         foreach ($items as $item) {
             $unit = [
                 'currency_code' => $this->currency,
-                'value' => $this->calculateItemTotal($item['item_id'], $item['quantity']),
+                'value' => $this->calculateItemTotal(
+                    $item['item_id'], 
+                    $item['quantity'],
+                    $metadata['shippingChoiceCalc']
+                ),
             ];
 
             array_push($units, $unit);

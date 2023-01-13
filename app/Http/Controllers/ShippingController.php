@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shipping;
+use App\Models\NewShipping;
 use App\Modules\Shipping\ShippingServiceInterface;
 use App\Modules\Http\Message;
 use App\Modules\Shipping\CityShippingServiceInterface;
@@ -32,7 +32,7 @@ class ShippingController extends Controller
     }
 
     public function list() {
-        $list = Shipping::orderBy('created_at', 'desc')->simplePaginate(4);
+        $list = NewShipping::orderBy('created_at', 'desc')->simplePaginate(4);
 
         return response()->json([
             'list' => $list
