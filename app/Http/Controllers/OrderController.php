@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\NewShipping;
+use App\Models\NewShipping;  
+use App\Models\MasterShippingSetting;
 use App\Models\StateShipping;
 use App\Models\CityShipping;
 use App\Models\OtherCountryShipping;
@@ -98,9 +99,12 @@ class OrderController extends Controller
         return $message->render();
     }
 
-    public function shippingCalc(array $items, array $metadata = [])
+    public function shippingCalc(Request $request, array $items, array $metadata = [])
     {
 
+        
+        $items = $request->input('items');
+        $metadata = $request->input('metadata') ?? [];
         $lineItems = [];
 
         foreach ($items as $item) {
@@ -248,6 +252,10 @@ class OrderController extends Controller
             }
         }
 
+        $data = MasterShippingSetting::latest()->first();
+        if($total > 100) {
+            $total + intval($data->maxshipping_value);
+        }
         
 
         return [
