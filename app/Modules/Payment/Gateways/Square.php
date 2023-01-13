@@ -75,6 +75,7 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
 
     public function createOrder(array $items, array $metadata = [])
     {
+
         $lineItems = [];
 
         foreach ($items as $item) {
@@ -96,16 +97,26 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
         $expresspost = in_array('Express Value', $shippingoptions);
         $addinsurance = in_array('Insurance Value', $shippingoptions);
 
-        $total = $this->calculateTotal(
-            $lineItems,
-            $shippingchoicecalc,
-            $shippingoptions,
-            $registeredpost,
-            $expresspost,
-            $addinsurance
-        );
-        
+        $totalshipping = $this->calculateTotal($lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
+        $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
+        $total = intval(($itemSubtotal * 0.1) + $itemSubtotal); // gst
+
+        $metadata['line_items'] = json_encode($lineItems);
+
         unset($metadata['shippingOptions']);
+
+        
+        // Add GST
+        //$total = ($total * $this->gst) + $total;
+
+        // $total = $this->calculateTotal(
+        //     $lineItems,
+        //     $shippingchoicecalc,
+        //     $shippingoptions,
+        //     $registeredpost,
+        //     $expresspost,
+        //     $addinsurance
+        // );
 
         $money = new Money();
         $money->setAmount($total);
@@ -194,23 +205,23 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
         $total = 0;
         $tot = 0;
         foreach ($items as $item) {
-            $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
+
             if($shippingchoicecalc == "Own Country"){
                 $data = NewShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shipping_value());
+                $tot += intval($data->shippingCentPrice());
                 if($registeredpost){
-                    $rv = $data->registered_value();
+                    $rv = $data->registeredCentPrice();
                     $tot += intval($rv);
                 
                 }
                 if($expresspost){
-                    $ev = $data->express_value();
+                    $ev = $data->expressCentPrice();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insurance_value();
+                    $iv = $data->insuranceCentPrice();
                     $tot += intval($iv);
                 }
 
@@ -218,86 +229,86 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
                 $data = StateShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shipping_value());
+                $tot += intval($data->shippingCentPrice());
 
                 if($registeredpost){
-                    $rv = $data->registered_value();
+                    $rv = $data->registeredCentPrice();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->express_value();
+                    $ev = $data->expressCentPrice();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insurance_value();
+                    $iv = $data->insuranceCentPrice();
                     $tot += intval($iv);
                 }
             }elseif($shippingchoicecalc == "Own City"){
                 $data = CityShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shipping_value());
+                $tot += intval($data->shippingCentPrice());
 
                 if($registeredpost){
-                    $rv = $data->registered_value();
+                    $rv = $data->registeredCentPrice();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->express_value();
+                    $ev = $data->expressCentPrice();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insurance_value();
+                    $iv = $data->insuranceCentPrice();
                     $tot += intval($iv);
                 }
             }elseif($shippingchoicecalc == "Other Country"){
                 $data = OtherCountryShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shipping_value());
+                $tot += intval($data->shippingCentPrice());
 
                 if($registeredpost){
-                    $rv = $data->registered_value();
+                    $rv = $data->registeredCentPrice();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->express_value();
+                    $ev = $data->expressCentPrice();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insurance_value();
+                    $iv = $data->insuranceCentPrice();
                     $tot += intval($iv);
                 }
             }elseif($shippingchoicecalc == "Other State"){
                 $data = OtherStateShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shipping_value());
+                $tot += intval($data->shippingCentPrice());
 
                 if($registeredpost){
-                    $rv = $data->registered_value();
+                    $rv = $data->registeredCentPrice();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->express_value();
+                    $ev = $data->expressCentPrice();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
-                    $iv = $data->insurance_value();
+                    $iv = $data->insuranceCentPrice();
                     $tot += intval($iv);
                 }
             }elseif($shippingchoicecalc == "Other City"){
                 $data = OtherCityShipping::latest()->first();
 
                 $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shipping_value());
+                $tot += intval($data->shippingCentPrice());
                 
                 if($registeredpost){
-                    $rv = $data->registered_value();
+                    $rv = $data->registeredCentPrice();
                     $tot += intval($rv);
                 }
                 if($expresspost){
-                    $ev = $data->express_value();
+                    $ev = $data->expressCentPrice();
                     $tot += intval($ev);
                 }
                 if($addinsurance){
@@ -307,8 +318,7 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
             }
         }
 
-        // Add GST
-        $total = ($total * $this->gst) + $total;
+        
 
         return [
             'totalProduct' => $total,
