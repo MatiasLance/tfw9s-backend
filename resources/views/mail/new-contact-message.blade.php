@@ -39,8 +39,8 @@
                                                 <td align="center">
                                                     <a href="http://thedrumhq.com.au/">
                                                         <img
-                                                            style="width: 35%; padding: 0.5rem;"
-                                                            src="https://i.imgur.com/6wAZO0L.png"
+                                                            style="width: 160px; padding: 0.5rem;"
+                                                            src="https://i.imgur.com/fjx6udM.png"
                                                             alt="Drum HQ Logo"
                                                         />
                                                     </a>

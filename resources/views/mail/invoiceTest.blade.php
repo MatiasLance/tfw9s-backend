@@ -49,8 +49,8 @@
                                                     </h3>
                                                 </td>
                                                 <td width="30%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
-                                                    <div><span style="font-weight: bold; display: block;">Order Number:</span>{{ $order->orderNumber }}</div>
-                                                    <div><span style="font-weight: bold; display: block;">Order Date:</span> {{ $order->created_at->toFormattedDateString() }}</div>
+                                                    <div><span style="font-weight: bold; display: block;">Order Number:</span>1000101</div>
+                                                    <div><span style="font-weight: bold; display: block;">Order Date:</span>2023-01-26</div>
                                                 </td>
                                                 <td width="40%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
                                                     <div>
@@ -96,14 +96,14 @@
                                                         <b>Shipping Type:</b>
                                                     </span>
                                                     <span>
-                                                        {{ ucfirst($order->shipping_type) }}
+                                                        Pick-up
                                                     </span>
                                                 </td>
                                             </tr>
                                             <tr style="padding-top: 2rem; padding-bottom: 10px;">
                                                 <td style="font-size: 16px; line-height: 18px; color: #666666;" colspan="2">
                                                     <span>
-                                                        {!! $order->shippingNote !!}
+                                                        Shipping note here
                                                     </span>
                                                 </td>
                                             </tr>
@@ -112,7 +112,7 @@
                                                     &nbsp;
                                                 </td>
                                             </tr>
-                                            @if(!is_null($order->address))
+                                            
                                             <tr>
                                                 <td style="width: 55%; font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 5px;">
                                                     Delivery Address
@@ -121,25 +121,25 @@
                                                     Billing Address
                                                 </td>
                                             </tr>
-                                            @endif
+                                           
                                             <tr>
                                                 <td style="width: 55%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->customerFullName }}
+                                                   John Doe
                                                 </td>
                                                 <td style="width: 45%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->customerFullName }}
+                                                   John Doe
                                                 </td>
                                             </tr>
-                                            @if(!is_null($order->address))
+                                            
                                             <tr>
                                                 <td style="width: 55%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->address }}
+                                                    221B Baker Street
                                                 </td>
                                                 <td style="width: 45%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->address }}
+                                                    221B Baker Street
                                                 </td>
                                             </tr>
-                                            @endif
+                         
                                             <tr>
                                                 <td colspan="2">
                                                     &nbsp;
@@ -153,46 +153,44 @@
                             
                             <!-- Start product Section -->
 
-                            @foreach($order->items as $lineItem)
                             <tr>
                                 <td style="padding-top: 0;">
                                     <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #eeeeee;">
                                         <tbody>
                                             <tr>
                                                 <td rowspan="5" style="padding-right: 10px; padding-bottom: 10px;">
-                                                    <img style="height: 80px;" src="{{ $lineItem->thumbnail }}" alt="Product Image" />
+                                                    <img style="height: 80px;" src="https://i.imgur.com/JXetxQh.jpeg" alt="Product Image" />
                                                 </td>
                                                 <td colspan="2" style="font-size: 14px; font-weight: bold; color: #666666; padding-bottom: 11px;">
-                                                    {{ $lineItem->item->name }}
+                                                   Dogge
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575; width: 440px;">
-                                                    Description: {{ $lineItem->item->snippet }}
+                                                    Description: Dogge
                                                 </td>
                                                 <td style="width: 130px; font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    ${{ number_format($lineItem->value, 2) }} Per Unit
+                                                    2 Per Unit
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575;">
-                                                    Quantity: {{ $lineItem->quantity }}
+                                                    Quantity: 1
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    ${{ number_format($lineItem->GST, 2) }} GST
+                                                    149.90 GST
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575;"></td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    <b style="color: #666666;">${{ number_format($lineItem->total, 2) }}</b> Total
+                                                    <b style="color: #666666;">149.90</b> Total
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </td>
                             </tr>
-                            @endForeach
                             <!-- End product Section -->
                             
                             <!-- Start calculation Section -->
@@ -206,7 +204,7 @@
                                                     Sub-Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format($order->subTotal, 2) }}
+                                                    149.90
                                                 </td>
                                             </tr>
                                             <tr>
@@ -214,7 +212,7 @@
                                                     Total GST:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                    ${{ number_format($order->totalGST, 2) }}
+                                                   14.99
                                                 </td>
                                             </tr>
                                             <tr>
@@ -222,7 +220,7 @@
                                                     Order Total
                                                 </td>
                                                 <td style="font-size: 14px; font-weight: bold; line-height: 18px; color: #666666; padding-top: 10px; text-align: right; padding-bottom: 10px;">
-                                                    ${{ number_format($order->total, 2) }}
+                                                    164.89
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -243,7 +241,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; font-size: 14px; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    {{ $order->remarks }}
+                                                    This is a remark.
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -259,7 +257,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Payment Method ({{ ucfirst($order->payment_gateway->value) }})
+                                                    Payment Method Stripe
                                                 </td>
                                             </tr>
                                             <tr>
@@ -268,7 +266,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with Drum HQ.
+                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for $164.89 is attached. Thank you for shopping with Drum HQ.
                                                 </td>
                                             </tr>
                                         </tbody>

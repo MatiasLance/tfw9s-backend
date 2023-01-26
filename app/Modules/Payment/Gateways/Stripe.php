@@ -133,7 +133,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             'stripeToken' => $paymentIntent->client_secret
         ];
         
-        //return $paymentIntent->client_secret;
+        // return $paymentIntent->client_secret;
     }
 
     public function verify(string $paymentIntentId): PaymentStatus
