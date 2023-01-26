@@ -1,7 +1,5 @@
 <?php
 
-use App\Mail\NewContactMessage;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,5 +23,5 @@ Route::prefix('api')->group(function() {
             Route::post('reset-password', 'App\Http\Controllers\AuthController@resetPassword')->name('resetPassword');
         });
     });
-    
+
 });
