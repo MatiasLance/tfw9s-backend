@@ -37,11 +37,11 @@
                                         <tbody>
                                             <tr>
                                                 <td align="center">
-                                                    <a href="http://revampedofficial.com/">
+                                                    <a href="http://thedrumhq.com.au/">
                                                         <img
-                                                            style="width: 35%; padding: 0.5rem;"
-                                                            src="https://i.imgur.com/6wAZO0L.png"
-                                                            alt="Revamped Logo"
+                                                            style="width: 160px; padding: 0.5rem;"
+                                                            src="https://i.imgur.com/fjx6udM.png"
+                                                            alt="Drum HQ Logo"
                                                         />
                                                     </a>
                                                 </td>
@@ -75,7 +75,7 @@
                                                         <p>Hi Admin!</p>
                                                         <div style="margin-bottom: 1rem;">&nbsp;</div>
                                                         <p>
-                                                            You have a new message from a guest on revampedofficial.com
+                                                            You have a new message from a guest on thedrumhq.com.au
                                                         </p>
                                                         <div style="margin-bottom: 1rem;">&nbsp;</div>
                                                         <div>
@@ -117,7 +117,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center;">
-                                                    <p>&copy; 2022 Revamped</p>
+                                                    <p>&copy; 2022-<?=date("Y");?> Drum HQ</p>
                                                 </td>
                                             </tr>
                                         </tbody>

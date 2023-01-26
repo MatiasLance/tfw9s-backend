@@ -14,7 +14,7 @@ enum PaymentGateway: String
      * 
      * Application does not currently use stripe
      */
-    // case STRIPE = 'stripe';
+    case STRIPE = 'stripe';
 
     /**
      * Paypal payment gateway
@@ -24,12 +24,13 @@ enum PaymentGateway: String
     /**
      * Square payment gateway
      */
-    case SQUARE = 'square';
+    // case SQUARE = 'square';
 
     /**
      * Afterpay payment gateway
      */
-    case AFTERPAY = 'afterpay';
+    // case AFTERPAY = 'afterpay';
+
 
     /**
      * Retrieve the associated `App\Modules\Payment\Gateways\PaymentGatewayInterface` class with the gateway
@@ -40,10 +41,10 @@ enum PaymentGateway: String
     {
         return match($this)
         {
-            // self::STRIPE => Stripe::class,
+            self::STRIPE => Stripe::class,
             self::PAYPAL => Paypal::class,
-            self::SQUARE => Square::class,
-            self::AFTERPAY => Afterpay::class,
+            // self::SQUARE => Square::class,
+            // self::AFTERPAY => Afterpay::class,
         };
     }
 }

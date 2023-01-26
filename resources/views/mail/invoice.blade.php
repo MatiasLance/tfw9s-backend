@@ -29,11 +29,11 @@
                                         <tbody>
                                             <tr>
                                                 <td align="center">
-                                                    <a href="http://revampedofficial.com/">
+                                                    <a href="http://thedrumhq.com.au/">
                                                         <img
-                                                            style="width: 35%; padding: 0.5rem;"
-                                                            src="https://i.imgur.com/6wAZO0L.png"
-                                                            alt="Revamped Logo"
+                                                            style="padding: 0.5rem;"
+                                                            src="https://i.imgur.com/fjx6udM.png"
+                                                            alt="Drum HQ Logo"
                                                         />
                                                     </a>
                                                 </td>
@@ -54,7 +54,7 @@
                                                 </td>
                                                 <td width="40%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
                                                     <div>
-                                                        <b>Revamped Official</b>
+                                                        <b>Drum HQ</b>
                                                     </div>
                                                     <div></div>
                                                     <div></div>
@@ -268,7 +268,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with Revamped.
+                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with Drum HQ.
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -282,7 +282,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center;">
-                                                    <p>&copy; 2022 Revamped</p>
+                                                    <p>&copy; 2022-<?=date("Y");?> Drum HQ</p>
                                                 </td>
                                             </tr>
                                         </tbody>
