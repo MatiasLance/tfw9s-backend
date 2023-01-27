@@ -4,6 +4,7 @@ namespace App\Modules\Payment\Gateways;
 
 use App\Models\Item;
 use App\Models\Shipping;
+use App\Models\NewShipping;
 use App\Models\StateShipping;
 use App\Models\CityShipping;
 use App\Models\OtherCountryShipping;
@@ -99,8 +100,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         $totalshipping = $this->calculateTotal($items, $shippingchoicecalc);
         $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
         $total = intval(($itemSubtotal * 0.1) + $itemSubtotal);
- 
-        // $total = $this->calculateTotal($items);
 
         $lineItems = [];
 
@@ -117,6 +116,8 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         $metadata['line_items'] = json_encode($lineItems);
 
+        unset($metadata['shippingOptions']);
+
         $productValue = [
             'amount' => $total,
             'currency' => $this->currency,
@@ -127,11 +128,14 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         ];
         
         $paymentIntent = $this->stripe->paymentIntents->create($productValue);
-        return [
+
+        $responseValues = [
             'totalProduct' => $totalshipping['totalProduct'],
             'totalShipping' => $totalshipping['totalShipping'],
             'stripeToken' => $paymentIntent->client_secret
         ];
+
+        return response()->json($responseValues);
         
         // return $paymentIntent->client_secret;
     }
@@ -213,79 +217,81 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         $total = 0;
         $tot = 0;
         foreach ($items as $item) {
-            if($shippingchoicecalc == "Own Country"){
-                $data = Shipping::latest()->first();
-                $sv = $data->shipping_value;
-                $iv = $data->insurance_value;
-                $rv = $data->registered_value;
-                $ev = $data->express_value;
-                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
-
-                $price = Item::find($item['id'])->centPrice();
-                $unitPrice = $price * $item['quantity'];
-                $gstPrice = ($unitPrice * 10) / 100;
-                $total += $unitPrice;
-            }elseif($shippingchoicecalc == "Own State"){
-                $data = StateShipping::latest()->first();
-                $sv = $data->shipping_value;
-                $iv = $data->insurance_value;
-                $rv = $data->registered_value;
-                $ev = $data->express_value;
-                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
-                $price = Item::find($item['id'])->centPrice();
-                $unitPrice = $price * $item['quantity'];
-                $gstPrice = ($unitPrice * 10) / 100;
-                $total += $unitPrice;
-            }elseif($shippingchoicecalc == "Own City"){
-                $data = CityShipping::latest()->first();
-                $sv = $data->shipping_value;
-                $iv = $data->insurance_value;
-                $rv = $data->registered_value;
-                $ev = $data->express_value;
-                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
-                $price = Item::find($item['id'])->centPrice();
-                $unitPrice = $price * $item['quantity'];
-                $gstPrice = ($unitPrice * 10) / 100;
-                $total += $unitPrice;
-            }elseif($shippingchoicecalc == "Other Country"){
-                $data = OtherCountryShipping::latest()->first();
-                $sv = $data->shipping_value;
-                $iv = $data->insurance_value;
-                $rv = $data->registered_value;
-                $ev = $data->express_value;
-                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
-                $price = Item::find($item['id'])->centPrice();
-                $unitPrice = $price * $item['quantity'];
-                $gstPrice = ($unitPrice * 10) / 100;
-                $total += $unitPrice;
-            }elseif($shippingchoicecalc == "Other State"){
-                $data = OtherStateShipping::latest()->first();
-                $sv = $data->shipping_value;
-                $iv = $data->insurance_value;
-                $rv = $data->registered_value;
-                $ev = $data->express_value;
-                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
-                $price = Item::find($item['id'])->centPrice();
-                $unitPrice = $price * $item['quantity'];
-                $gstPrice = ($unitPrice * 10) / 100;
-                $total += $unitPrice;
-            }elseif($shippingchoicecalc == "Other City"){
-                $data = OtherCityShipping::latest()->first();
-                $sv = $data->shipping_value;
-                $iv = $data->insurance_value;
-                $rv = $data->registered_value;
-                $ev = $data->express_value;
-                $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
-                $price = Item::find($item['id'])->centPrice();
-                $unitPrice = $price * $item['quantity'];
-                $gstPrice = ($unitPrice * 10) / 100;
-                $total += $unitPrice;
+            if (!empty($shippingchoicecalc)) {
+                if($shippingchoicecalc == "Own Country") {
+                    $data = NewShipping::latest()->first();
+                    $sv = $data->shipping_value;
+                    $iv = $data->insurance_value;
+                    $rv = $data->registered_value;
+                    $ev = $data->express_value;
+                    $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+    
+                    $total += $this->calculateItemTotal($item['id'], $item['quantity']);
+    
+                }elseif($shippingchoicecalc == "Own State"){
+                    $data = StateShipping::latest()->first();
+                    $sv = $data->shipping_value;
+                    $iv = $data->insurance_value;
+                    $rv = $data->registered_value;
+                    $ev = $data->express_value;
+                    $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                    $total += $this->calculateItemTotal($item['id'], $item['quantity']);
+                }elseif($shippingchoicecalc == "Own City"){
+                    $data = CityShipping::latest()->first();
+                    $sv = $data->shipping_value;
+                    $iv = $data->insurance_value;
+                    $rv = $data->registered_value;
+                    $ev = $data->express_value;
+                    $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                    $total += $this->calculateItemTotal($item['id'], $item['quantity']);
+                }elseif($shippingchoicecalc == "Other Country"){
+                    $data = OtherCountryShipping::latest()->first();
+                    $sv = $data->shipping_value;
+                    $iv = $data->insurance_value;
+                    $rv = $data->registered_value;
+                    $ev = $data->express_value;
+                    $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                    $total += $this->calculateItemTotal($item['id'], $item['quantity']);
+                }elseif($shippingchoicecalc == "Other State"){
+                    $data = OtherStateShipping::latest()->first();
+                    $sv = $data->shipping_value;
+                    $iv = $data->insurance_value;
+                    $rv = $data->registered_value;
+                    $ev = $data->express_value;
+                    $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                    $total += $this->calculateItemTotal($item['id'], $item['quantity']);
+                }elseif($shippingchoicecalc == "Other City"){
+                    $data = OtherCityShipping::latest()->first();
+                    $sv = $data->shipping_value;
+                    $iv = $data->insurance_value;
+                    $rv = $data->registered_value;
+                    $ev = $data->express_value;
+                    $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
+                    $total += $this->calculateItemTotal($item['id'], $item['quantity']);
+                }
+            } else {
+                $tot = 0;
+                $total += $this->calculateItemTotal($item['id'], $item['quantity']);
             }
         }
         return [
             'totalProduct' => $total,
             'totalShipping' => $tot
         ];
+    }
+
+    /**
+     * Calculate total item price with quantity taken into consideration
+     * 
+     * @param int $itemId ID of the item
+     * @param int $quantity
+     * 
+     * @return float
+     */
+    protected function calculateItemTotal(int $itemId, int $quantity): float
+    {
+        $item = $this->itemService->retrieveItem($itemId);
+        return $item->centPrice() * $quantity;
     }
 
     /**

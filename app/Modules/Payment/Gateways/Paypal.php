@@ -97,7 +97,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
             array_push($lineItems, $lineItem);
         }
 
-        $purchaseUnits = $this->generatePurchaseUnits($lineItems);
+        $purchaseUnits = $this->generatePurchaseUnits($lineItems, $metadata);
 
         foreach ($purchaseUnits as $value) {
             $total += $value['value'];
@@ -145,7 +145,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
                     }
                 }
 
-                $this->mailService->sendInvoice($order);
+              $this->mailService->sendInvoice($order);
             }
         }
 
