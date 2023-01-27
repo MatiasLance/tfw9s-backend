@@ -59,7 +59,7 @@ class MailService implements MailServiceInterface
     {
         $guzzle = new Client();
 
-        $response = $guzzle->request('POST', 'http://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
+        $response = $guzzle->request('POST', 'https://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
             'form_params' => [
                 'from' => 'noreply@thedrumhq.com.au',
                 'recipients' => $to,
