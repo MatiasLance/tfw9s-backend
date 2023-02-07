@@ -74,13 +74,14 @@ class ItemController extends Controller
         }
         $tags = $request->input('tags');
         $isFeatured = $request->boolean('isFeatured');
+        $isHideOutOfStock = $request->boolean('isHideOutOfStock');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
         $categories = array_map(function($id) {
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $item = $this->itemService->createItem($name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
+        $item = $this->itemService->createItem($name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $tags);
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
@@ -149,6 +150,7 @@ class ItemController extends Controller
         }
         $tags = $request->input('tags') ?? null;
         $isFeatured = $request->boolean('isFeatured') ?? null;
+        $isHideOutOfStock = $request->boolean('isHideOutOfStock') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
 
@@ -160,7 +162,7 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
+        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $tags);
 
         if ($newItem instanceof Item) {
             $message->setContent(201, 'Item added as variant', '', [
@@ -189,6 +191,7 @@ class ItemController extends Controller
         }
         $tags = $request->input('tags') ?? [];
         $isFeatured = $request->boolean('isFeatured');
+        $isHideOutOfStock = $request->boolean('isHideOutOfStock');
         $newPhoto = $request->file('photo') ?? [];
         $existingPhoto = $request->input('photo') ?? [];
         $newPhotoCount = count($newPhoto);
@@ -214,7 +217,7 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
+        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $tags);
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');
