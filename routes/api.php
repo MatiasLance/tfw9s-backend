@@ -183,6 +183,15 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
             Route::patch('/{id}', 'App\Http\Controllers\MasterShippingSettingController@update');
             Route::delete('/{id}', 'App\Http\Controllers\MasterShippingSettingController@delete');
         });
-  
+        
+    });
+    // Discount Code API Endpoints
+    Route::prefix('discountcode')->group(function() {
+        Route::get('/', 'App\Http\Controllers\DiscountCodeController@list');
+        Route::get('/{id}', 'App\Http\Controllers\DiscountCodeController@retrieve');
+        Route::post('/', 'App\Http\Controllers\DiscountCodeController@store');
+        Route::post('/verifycode', 'App\Http\Controllers\DiscountCodeController@discountCodeCheck');
+        Route::delete('/{id}', 'App\Http\Controllers\DiscountCodeController@delete');
+        Route::patch('/{id}', 'App\Http\Controllers\DiscountCodeController@update');
     });
 });
