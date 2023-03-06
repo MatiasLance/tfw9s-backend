@@ -4,6 +4,7 @@ namespace App\Repository\Eloquent;
 
 use App\Models\Category;
 use App\Models\Item;
+use App\Models\DiscountCode;
 use App\Models\Tag;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\Filter;
@@ -11,6 +12,7 @@ use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\ItemRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -22,6 +24,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
      * @var StorageInterface $storageService
      */
     protected StorageInterface $storageService;
+
+    protected DiscountCode $discountCode;
 
     /**
      * Default filters for retrieving list of items
@@ -82,10 +86,11 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         'max_item_per_page' => self::MAX_PAGE_ITEMS,
     ];
 
-    public function __construct(Item $item, StorageInterface $storageService)
+    public function __construct(Item $item, StorageInterface $storageService, DiscountCode $discountCode)
     {
-        $this->storageService = $storageService;
         parent::__construct($item);
+        $this->storageService = $storageService;
+        $this->discountCode = $discountCode;
     }
 
     public function listItems(array $userFilters = []): Paginate
@@ -395,5 +400,32 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
             return $item->delete();
         });
+    }
+
+    public function discountCodeItems(array $userFilters = []): Paginate{
+        $items = $this->discountCode->query();
+        $filters = array_merge($this->defaultItemListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+    
+        // Search Filter
+        if (!is_null($filters['q'])) {
+            $items = $items->where(function ($q) use($filters) {
+                $q
+                    ->where('code', 'LIKE', '%' . $filters['q'] . '%');
+            });
+        }
+
+        return new Paginate($items, self::MAX_PAGE_ITEMS, $filters['page'], 'items');
+    }
+
+    public function listDiscountCode(): Collection
+    {
+        return $this->discountCode
+                        ->orderBy('created_at', 'DESC')
+                        ->get();
+    }
+
+    public function totalDiscountCode(): int
+    {
+        return $this->discountCode->count();
     }
 }

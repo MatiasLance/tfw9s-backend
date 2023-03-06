@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Models\Category;
 use App\Models\Item;
 use App\Modules\Utility\Pagination\Paginate;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 
 interface ItemRepositoryInterface
@@ -123,4 +124,26 @@ interface ItemRepositoryInterface
      * @return bool
      */
     public function deleteItem(int $id): bool;
+
+    /**
+     * Retrieve a list of discount codes.
+     * 
+     * @param array $userFilters
+     * 
+     * @return Paginate<Item>
+     */
+    public function discountCodeItems(array $userFilters = []): Paginate;
+
+    /**
+     * Retrieve list of all discount codes
+     * 
+     * @return Collection<Category>
+     */
+    public function listDiscountCode(): Collection;
+    /**
+     * Retrieve total count of all discount codes
+     * 
+     * @return int
+     */
+    public function totalDiscountCode(): int;
 }

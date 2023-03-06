@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class DiscountCode extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'code',
+        'rate',
+        'description',
+        'amountapplied'
+    ];
 }

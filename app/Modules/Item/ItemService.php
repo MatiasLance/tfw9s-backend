@@ -8,6 +8,7 @@ use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\CategoryRepositoryInterface;
 use App\Repository\ItemRepositoryInterface;
 use App\Repository\TagRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class ItemService implements ItemServiceInterface
 {
@@ -17,6 +18,10 @@ class ItemService implements ItemServiceInterface
      * @var ItemRepositoryInterface $itemRepository
      */
     protected ItemRepositoryInterface $itemRepository;
+
+    protected CategoryRepositoryInterface $categoryRepository;
+
+    protected TagRepositoryInterface $tagRepository;
 
     public function __construct(ItemRepositoryInterface $itemRepository, CategoryRepositoryInterface $categoryRepository, TagRepositoryInterface $tagRepository)
     {
@@ -62,5 +67,20 @@ class ItemService implements ItemServiceInterface
     public function deleteItem(User $initiator, Item $item): bool
     {
         return $this->itemRepository->deleteItem($item->id);
+    }
+
+    public function listDiscountCode(): Collection
+    {
+        return $this->itemRepository->listDiscountCode();
+    }
+
+    public function countDiscountCode(): int
+    {
+        return $this->itemRepository->totalDiscountCode();
+    }
+
+    public function discountCodeItems(array $filters = []): Paginate
+    {
+        return $this->itemRepository->discountCodeItems($filters);
     }
 }

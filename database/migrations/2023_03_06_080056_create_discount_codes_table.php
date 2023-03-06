@@ -15,6 +15,10 @@ return new class extends Migration
     {
         Schema::create('discount_codes', function (Blueprint $table) {
             $table->id();
+            $table->string('code');
+            $table->string('rate');
+            $table->text('description');
+            $table->string('amountapplied');
             $table->timestamps();
         });
     }

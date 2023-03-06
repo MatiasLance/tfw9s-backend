@@ -161,4 +161,42 @@ class Message implements MessageInterface
     {
         $this->data[$key] = $value;
     }
+
+    public function successMessage() {
+        return response()->json([
+            "message" => "Data save successfully",
+            "status" => 200
+        ]);
+    }
+    public function errorMessage() {
+        return response()->json([
+            "message" => "Data failed to save",
+            "status" => 400
+        ]);
+    }
+
+    public function updateSuccessMessage() {
+        return response()->json([
+            "Message" => "Data successfully updated",
+            "Status" => 200
+        ]);
+    }
+    public function updateErrorMessage() {
+        return response()->json([
+            "Message" => "Data failed to update",
+            "Status" => 400
+        ]);
+    }
+    public function deleteSuccessMessage() {
+        return response()->json([
+            "Message" => "Data successfully deleted",
+            "Status" => 200
+        ]);
+    }
+    public function deleteErrorMessage() {
+        return response()->json([
+            "Message" => "Failed to delete data",
+            "Status" => 400
+        ]);
+    }
 }

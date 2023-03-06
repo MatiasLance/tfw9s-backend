@@ -112,4 +112,20 @@ interface ItemServiceInterface
      * @return bool
      */
     public function deleteItem(User $initiator, Item $item): bool;
+
+    /**
+     * List item discount code
+     * 
+     * @return Collection<Category>
+     */
+    public function listDiscountCode(): Collection;
+
+     /**
+     * Get total number of item news
+     * 
+     * @return int
+     */
+    public function countDiscountCode(): int;
+
+    public function discountCodeItems(array $filters = []): Paginate;
 }
