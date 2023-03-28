@@ -195,7 +195,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * @todo Remove coupling to Tag model. Use tag repository or item service instead to find the tag
      */
-    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, array $media, array $categories, array $tags): Item
+    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, array $media, array $categories, string $shippingId, array $tags): Item
     {
         $item = new Item();
         $item->name = $title;
@@ -203,6 +203,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $item->price = $price;
         $item->stock = $stock;
         $item->is_featured = $isFeatured;
+        $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
 
         return DB::transaction(function() use($item, $categories, $tags, $media) {
@@ -310,7 +311,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         });
     }
 
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, array $categories, array $tags): bool
+    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool
     {
         $item = $this->find($id);
         $item->name = $title;
@@ -318,6 +319,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $item->price = $price;
         $item->stock = $stock;
         $item->is_featured = $isFeatured;
+        $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
 
         return DB::transaction(function() use($item, $categories, $tags, $media) {
