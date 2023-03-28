@@ -77,11 +77,13 @@ class ItemController extends Controller
         $isHideOutOfStock = $request->boolean('isHideOutOfStock');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
+        /** todo: add shipping setting id */
+        $shippingId = $request->input('selected_shippingid');
         $categories = array_map(function($id) {
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $item = $this->itemService->createItem($name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $tags);
+        $item = $this->itemService->createItem($name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
@@ -216,8 +218,10 @@ class ItemController extends Controller
         $categories = array_map(function($id) {
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
+        /** todo: add shipping setting id */
+        $shippingId = $request->input('selected_shippingid');
 
-        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $tags);
+        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');

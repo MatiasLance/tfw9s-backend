@@ -52,11 +52,12 @@ interface ItemRepositoryInterface
      * @param bool $isFeatured Mark item as featured.
      * @param array<UploadedFile> $media List of media for the Item
      * @param array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
+     * @param string $shippingId
      * @param array<Tags> $tags Array of tags that this item will have
      * 
      * @return Item
      */
-    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, array $media, array $categories, array $tags): Item;
+    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, array $media, array $categories, string $shippingId, array $tags): Item;
 
     /**
      * Duplicate an existing Item. Pass null to retain the value from the original item.
@@ -99,11 +100,12 @@ interface ItemRepositoryInterface
      * @param bool $isFeatured Mark item as featured.
      * @param null|array<UploadedFile|string> $media List of media for the Item
      * @param array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
+     * @param string $shippingId
      * @param array<Tags> $tags Array of tags that this item will have
      * 
      * @return bool
      */
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, array $categories, array $tags): bool;
+    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool;
 
     /**
      * Decrease the stocks of an item. Useful when Item is bought by a customer
