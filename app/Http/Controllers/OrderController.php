@@ -120,7 +120,7 @@ class OrderController extends Controller
 
         // Added from WPI
         $shippingchoicecalc = $metadata['shippingChoiceCalc'];
-        $shippingoptions = $metadata['shippingOptions']['selected'];
+        $shippingoptions = $metadata['shippingOptions']['selected'] ?? $metadata['shippingOptions'];
 
         $registeredpost = in_array('Registered Value', $shippingoptions);
         $expresspost = in_array('Express Value', $shippingoptions);
