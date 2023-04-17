@@ -151,22 +151,20 @@ class OrderController extends Controller
            "Other City" => OtherCityShipping::latest()->first()
         ];
 
-        if(isset($data[$shippingchoicecalc])) {
-           $price_data = $data[$shippingchoicecalc];
-           $tot += intval($price_data->shippingCentPrice());
+        $price_data = $data[$shippingchoicecalc];
+        $tot += intval($price_data->shippingCentPrice());
 
-           if($registeredpost){
-              $rv = $price_data->registeredCentPrice();
-              $tot += intval($rv);
-           }
-           if($expresspost){
-              $ev = $price_data->expressCentPrice();
-              $tot += intval($ev);
-           }
-           if($addinsurance){
-              $iv = $price_data->insuranceCentPrice();
-              $tot += intval($iv);
-           }
+        if($registeredpost){
+        $rv = $price_data->registeredCentPrice();
+        $tot += intval($rv);
+        }
+        if($expresspost){
+            $ev = $price_data->expressCentPrice();
+            $tot += intval($ev);
+        }
+        if($addinsurance){
+            $iv = $price_data->insuranceCentPrice();
+            $tot += intval($iv);
         }
 
         $max_shipping_value = MasterShippingSetting::latest()->first()->maxshipping_value;
