@@ -120,7 +120,7 @@ class OrderController extends Controller
 
         // Added from WPI
         $shippingchoicecalc = $metadata['shippingChoiceCalc'];
-        $shippingoptions = $metadata['shippingOptions']['selected'];
+        $shippingoptions = $metadata['shippingOptions']['selected'] ?? $metadata['shippingOptions'];
 
         $registeredpost = in_array('Registered Value', $shippingoptions);
         $expresspost = in_array('Express Value', $shippingoptions);
@@ -151,20 +151,22 @@ class OrderController extends Controller
            "Other City" => OtherCityShipping::latest()->first()
         ];
 
-        $price_data = $data[$shippingchoicecalc];
-        $tot += intval($price_data->shippingCentPrice());
+        if(isset($data[$shippingchoicecalc])) {
+           $price_data = $data[$shippingchoicecalc];
+           $tot += intval($price_data->shippingCentPrice());
 
-        if($registeredpost){
-        $rv = $price_data->registeredCentPrice();
-        $tot += intval($rv);
-        }
-        if($expresspost){
-            $ev = $price_data->expressCentPrice();
-            $tot += intval($ev);
-        }
-        if($addinsurance){
-            $iv = $price_data->insuranceCentPrice();
-            $tot += intval($iv);
+           if($registeredpost){
+              $rv = $price_data->registeredCentPrice();
+              $tot += intval($rv);
+           }
+           if($expresspost){
+              $ev = $price_data->expressCentPrice();
+              $tot += intval($ev);
+           }
+           if($addinsurance){
+              $iv = $price_data->insuranceCentPrice();
+              $tot += intval($iv);
+           }
         }
 
         $max_shipping_value = MasterShippingSetting::latest()->first()->maxshipping_value;
