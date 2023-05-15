@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tax>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
  */
-class TaxFactory extends Factory
+class ToggleTaxFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,8 +17,8 @@ class TaxFactory extends Factory
     public function definition()
     {
         return [
-            'addTaxValue' => fake()->numberBetween(1, 100),
-            'includeTaxValue' => fake()->numberBetween(1, 100)
+            'toggleControl1' => fake()->boolean(),
+            'toggleControl2' => fake()->boolean()
         ];
     }
 }

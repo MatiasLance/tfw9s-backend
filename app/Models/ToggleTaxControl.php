@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Tax extends Model
+class ToggleTaxControl extends Model
 {
     use HasFactory;
 
-    public $fillable = [
-        "addTaxValue",
-        "includeTaxValue"
+    public $casts = [
+        "toggleControl1" => "boolean",
+        "toggleControl2" => "boolean"
     ];
 }
