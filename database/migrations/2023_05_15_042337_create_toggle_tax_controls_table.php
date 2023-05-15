@@ -13,10 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('taxes', function (Blueprint $table) {
+        Schema::create('toggle_tax_controls', function (Blueprint $table) {
             $table->id();
-            $table->float('addtax_value');
-            $table->float('includetax_value');
+            $table->boolean('toggleControl1')->default(0);
+            $table->boolean('toggleControl2')->default(0);
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('taxes');
+        Schema::dropIfExists('toggle_tax_controls');
     }
 };

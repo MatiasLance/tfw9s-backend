@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Tax;
+use App\Models\ToggleTaxControl;
 
-class TaxController extends Controller
+class ToggleTaxControlController extends Controller
 {
-
     public function retrieve($id)
     {
-        $retrieveData = Tax::findOrFail($id);
+        $retrieveData = ToggleTaxControl::findOrFail($id);
         return response()->json([
             "message" => "Data retrieved successfully",
             "me" => $retrieveData,
@@ -21,13 +20,13 @@ class TaxController extends Controller
     public function update(Request $request, $id) {
 
         // Retrieve incoming input
-        $addtax_value = $request->input('addtax_value');
-        $includetax_value = $request->input('includetax_value');
+        $toggleControl1 = $request->input('toggleControl1');
+        $toggleControl2 = $request->input('toggleControl2');
 
         // Updating data in database
-        $updateData = Tax::find($id);
-        $updateData->addtax_value = $addtax_value;
-        $updateData->includetax_value = $includetax_value;
+        $updateData = ToggleTaxControl::find($id);
+        $updateData->toggleControl1 = $toggleControl1;
+        $updateData->toggleControl2 = $toggleControl2;
 
         // Check if all data to be store are not empty
         if(!empty($updateData)) {

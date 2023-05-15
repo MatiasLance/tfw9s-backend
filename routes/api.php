@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TaxController;
+use App\Http\Controllers\ToggleTaxControlController;
 
 /*
 |--------------------------------------------------------------------------
@@ -95,8 +96,7 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
                 Route::delete('/{id}', 'App\Http\Controllers\MasterShippingSettingController@delete');
             });
 
-             Route::prefix('togglemastershippingsetting')->group(function () { // Toggle Master Shipping Setting  API Endpoints
-            // Route::post('/', 'App\Http\Controllers\ToggleMasterShippingSettingController@store');
+            Route::prefix('togglemastershippingsetting')->group(function () { // Toggle Master Shipping Setting  API Endpoints
             Route::get('/{id}', 'App\Http\Controllers\ToggleMasterShippingSettingController@retrieve');
             Route::patch('/{id}', 'App\Http\Controllers\ToggleMasterShippingSettingController@update');
             });
@@ -106,6 +106,11 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::prefix("tax")->group(function() { // Tax Setting  API Endpoints
                 Route::get('/{id}', [TaxController::class, 'retrieve']);
                 Route::patch('/{id}', [TaxController::class, 'update']);
+            });
+
+            Route::prefix("toogletax")->group(function() { // Tax Setting  API Endpoints
+                Route::get('/{id}', [TaxController::class, 'retrieve']);
+                Route::patch('/{id}', [ToggleTaxControlController::class, 'update']);
             });
 
     });
