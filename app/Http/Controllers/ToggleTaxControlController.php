@@ -20,8 +20,8 @@ class ToggleTaxControlController extends Controller
     public function update(Request $request, $id) {
 
         // Retrieve incoming input
-        $toggleControl1 = $request->input('toggleControl1');
-        $toggleControl2 = $request->input('toggleControl2');
+        $toggleControl1 = $request->boolean('toggleControl1');
+        $toggleControl2 = $request->boolean('toggleControl2');
 
         // Updating data in database
         $updateData = ToggleTaxControl::find($id);
