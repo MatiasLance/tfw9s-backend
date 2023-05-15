@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('taxes', function (Blueprint $table) {
             $table->id();
-            $table->float('addtax_value');
-            $table->float('includetax_value');
+            $table->float('addTaxValue');
+            $table->float('includeTaxValue');
             $table->timestamps();
         });
     }
