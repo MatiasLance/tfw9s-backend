@@ -15,8 +15,8 @@ return new class extends Migration
     public function up()
     {
         Tax::factory()->create([
-            'addtax_value' => floatval(0),
-            'includetax_value' => floatval(0)
+            'addTaxValue' => floatval(0),
+            'includeTaxValue' => floatval(0)
         ]);
     }
 
