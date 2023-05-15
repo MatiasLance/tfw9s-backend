@@ -21,13 +21,13 @@ class TaxController extends Controller
     public function update(Request $request, $id) {
 
         // Retrieve incoming input
-        $addtax_value = $request->input('addtax_value');
-        $includetax_value = $request->input('includetax_value');
+        $addTaxValue = $request->input('addTaxValue');
+        $includetax_value = $request->input('includeTaxValue');
 
         // Updating data in database
         $updateData = Tax::find($id);
-        $updateData->addtax_value = $addtax_value;
-        $updateData->includetax_value = $includetax_value;
+        $updateData->addTaxValue = $addTaxValue;
+        $updateData->includeTaxValue = $includetax_value;
 
         // Check if all data to be store are not empty
         if(!empty($updateData)) {
