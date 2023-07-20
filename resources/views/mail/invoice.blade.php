@@ -178,9 +178,6 @@
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575;">
                                                     Quantity: {{ $lineItem->quantity }}
                                                 </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    ${{ number_format($lineItem->GST, 2) }} GST
-                                                </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575;"></td>
@@ -214,7 +211,8 @@
                                                     Total GST:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                    ${{ number_format($order->totalGST, 2) }}
+                                                    GST Inclusive
+                                                    {{-- ${{ number_format($order->totalGST, 2) }} --}}
                                                 </td>
                                             </tr>
                                             <tr>

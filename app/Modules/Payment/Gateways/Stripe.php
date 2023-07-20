@@ -99,7 +99,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         $totalshipping = $this->calculateTotal($items, $shippingchoicecalc);
         $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
-        $total = intval(($itemSubtotal * 0.1) + $itemSubtotal);
+        // todo: remove GST as per client, instead assign itemSubtotal
+        // $total = intval(($itemSubtotal * 0.1) + $itemSubtotal);
+        $total = $itemSubtotal;
 
         $lineItems = [];
 
