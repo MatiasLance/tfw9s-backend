@@ -63,6 +63,6 @@ class OrderLineItem extends Model
 
     public function getTotalAttribute()
     {
-        return ($this->value + $this->GST) * $this->quantity;
+        return ($this->value) * $this->quantity;
     }
 }
