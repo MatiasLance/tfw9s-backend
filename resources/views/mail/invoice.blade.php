@@ -198,12 +198,24 @@
                                     <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #bbbbbb; margin-top: -5px;">
                                         <tbody>
                                             <tr>
-                                                <td rowspan="3" style="width: 55%;"></td>
+                                                <td rowspan="5" style="width: 55%;"></td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
                                                     Sub-Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format($order->subTotal, 2) }}
+                                                    <?php
+                                                        $newSubTotal = number_format($order->subTotal / 1.10, 2);
+                                                        $taxAmount = number_format($order->total - $newSubTotal, 2);   
+                                                    ?>
+                                                    ${{ $newSubTotal }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
+                                                    Tax Value:
+                                                </td>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
+                                                    ${{ $taxAmount }}
                                                 </td>
                                             </tr>
                                             <tr>
