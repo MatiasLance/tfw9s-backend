@@ -204,4 +204,10 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::delete('/{id}', 'App\Http\Controllers\DiscountCodeController@delete');
         Route::patch('/{id}', 'App\Http\Controllers\DiscountCodeController@update');
     });
+
+    // non-admin tax retrieve
+    Route::prefix('tax')->group(function() {
+        Route::get('/{id}', [TaxController::class, 'retrieve']);
+    });
 });
+
