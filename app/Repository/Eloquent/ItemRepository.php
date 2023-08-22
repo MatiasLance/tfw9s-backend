@@ -195,14 +195,17 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * @todo Remove coupling to Tag model. Use tag repository or item service instead to find the tag
      */
-    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, array $media, array $categories, string $shippingId, array $tags): Item
+    public function createItem(string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, array $media, array $categories, string $shippingId, array $tags): Item
     {
         $item = new Item();
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
+        $item->saleprice = $saleprice;
         $item->stock = $stock;
         $item->is_featured = $isFeatured;
+        $item->show_rrp = $isRRP;
+        $item->is_on_sale = $isOnSale;
         $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
 
@@ -230,7 +233,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * @todo Check for the multiple photo update thing
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, ?array $media, ?array $categories, ?array $tags): Item
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, ?array $media, ?array $categories, ?array $tags): Item
     {
         $oldItem = $this->find($id);
         $item = $oldItem->replicate();
@@ -243,11 +246,20 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($price)) {
             $item->price = $price;
         }
+        if (!is_null($saleprice)) {
+            $item->saleprice = $saleprice;
+        }
         if (!is_null($stock)) {
             $item->stock = $stock;
         }
         if (!is_null($isFeatured)) {
             $item->is_featured = $isFeatured;
+        }
+        if (!is_null($isRRP)) {
+            $item->show_rrp = $isRRP;
+        }
+        if (!is_null($isOnSale)) {
+            $item->is_on_sale = $isOnSale;
         }
 
         return DB::transaction(function() use($oldItem, $item, $categories, $tags, $media) {
@@ -311,14 +323,17 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         });
     }
 
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool
+    public function updateItem(int $id, string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool
     {
         $item = $this->find($id);
         $item->name = $title;
         $item->description = $description;
         $item->price = $price;
+        $item->saleprice = $saleprice;
         $item->stock = $stock;
         $item->is_featured = $isFeatured;
+        $item->show_rrp = $isRRP;
+        $item->is_on_sale = $isOnSale;
         $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
 

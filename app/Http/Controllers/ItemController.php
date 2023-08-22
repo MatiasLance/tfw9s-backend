@@ -68,12 +68,18 @@ class ItemController extends Controller
         if (is_numeric($price)) {
             $price = floatval($price);
         }
+        $saleprice = $request->input('salePrice');
+        if (is_numeric($saleprice)) {
+            $saleprice = floatval($saleprice);
+        }
         $stock = $request->input('stock');
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
         $tags = $request->input('tags');
         $isFeatured = $request->boolean('isFeatured');
+        $isRRP = $request->boolean('isRRP');
+        $isOnSale = $request->boolean('isOnSale');
         $isHideOutOfStock = $request->boolean('isHideOutOfStock');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
@@ -83,7 +89,8 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $item = $this->itemService->createItem($name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
+        // TODO: add saleprice, isRRP, isOnSale 
+        $item = $this->itemService->createItem($name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
@@ -106,12 +113,18 @@ class ItemController extends Controller
         if (is_numeric($price)) {
             $price = floatval($price);
         }
+        $saleprice = $request->input('salePrice') ?? null;
+        if (is_numeric($saleprice)) {
+            $saleprice = floatval($saleprice);
+        }
         $stock = $request->input('stock') ?? null;
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
         $tags = $request->input('tags') ?? null;
         $isFeatured = $request->boolean('isFeatured') ?? null;
+        $isRRP = $request->boolean('isRRP') ?? null;
+        $isOnSale = $request->boolean('isOnSale') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
 
@@ -123,7 +136,7 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $stock, $isFeatured, $photo, $categories, $tags);
+        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $photo, $categories, $tags);
 
         if ($newItem instanceof Item) {
             $message->setContent(201, 'Item duplicated', '', [
@@ -187,12 +200,18 @@ class ItemController extends Controller
         if (is_numeric($price)) {
             $price = floatval($price);
         }
+        $saleprice = $request->input('salePrice');
+        if (is_numeric($saleprice)) {
+            $saleprice = floatval($saleprice);
+        }
         $stock = $request->input('stock');
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
         $tags = $request->input('tags') ?? [];
         $isFeatured = $request->boolean('isFeatured');
+        $isRRP = $request->boolean('isRRP');
+        $isOnSale = $request->boolean('isOnSale');
         $isHideOutOfStock = $request->boolean('isHideOutOfStock');
         $newPhoto = $request->file('photo') ?? [];
         $existingPhoto = $request->input('photo') ?? [];
@@ -221,7 +240,7 @@ class ItemController extends Controller
         /** todo: add shipping setting id */
         $shippingId = $request->input('selected_shippingid');
 
-        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
+        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');
