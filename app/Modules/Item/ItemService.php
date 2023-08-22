@@ -40,23 +40,23 @@ class ItemService implements ItemServiceInterface
         return $this->itemRepository->retrieveItem($id);
     }
 
-    public function createItem(string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, array $media, array $categories, string $shippingId, array $tags): Item
+    public function createItem(string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, array $media, array $categories, string $shippingId, array $tags): Item
     {
-        return $this->itemRepository->createItem($title, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $media, $categories, $shippingId, $tags);
+        return $this->itemRepository->createItem($title, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $media, $categories, $shippingId, $tags);
     }
 
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, ?array $media, ?array $categories, ?array $tags): Item
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, ?array $media, ?array $categories, ?array $tags): Item
     {
-        return $this->itemRepository->duplicateItem($id, $title, $description, $price, $stock, $isFeatured, $media, $categories, $tags);
+        return $this->itemRepository->duplicateItem($id, $title, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $media, $categories, $tags);
     }
 
     public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item
     {
         return $this->itemRepository->addItemVariant($id, $title, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $media, $categories, $tags);
     }
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool
+    public function updateItem(int $id, string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool
     {
-        return $this->itemRepository->updateItem($id, $title, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $media, $categories, $shippingId, $tags);
+        return $this->itemRepository->updateItem($id, $title, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $media, $categories, $shippingId, $tags);
     }
 
     public function decreaseStocks(int $id, int $amount, bool $override = false): bool
