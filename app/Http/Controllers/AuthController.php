@@ -64,6 +64,7 @@ class AuthController extends Controller
             $message->setTitle("User successfully logged in");
             $response['isLoggedIn'] = true;
             $response['user'] = $request->user()->only($exposedAttributes);
+
         }
 
         $message->setData($response);

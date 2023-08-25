@@ -18,7 +18,7 @@ class MailService implements MailServiceInterface
         $adminSubject = 'You have a new order on thedrumhq.com.au!';
         $customerSubject = 'Here is the invoice for your recent order on thedrumhq.com.au';
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'tech1.sumomedia@gmail.com')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'hello@thedrumhq.com.au')], $adminSubject, $content);
         $this->send([$order->email], $customerSubject, $content);
     }
 
