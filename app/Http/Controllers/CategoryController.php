@@ -3,28 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Modules\Categories\CategoryServiceInterface;
 use App\Modules\Http\Message;
-use App\Modules\Item\ItemServiceInterface;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
     /**
-     * Item service
+     * Category service
      * 
-     * @var ItemServiceInterface $itemService
+     * @var CategoryServiceInterface $categoryService
      */
-    protected ItemServiceInterface $itemService;
+    protected CategoryServiceInterface $categoryService;
 
-    public function __construct(ItemServiceInterface $itemService)
+    public function __construct(CategoryServiceInterface $categoryService)
     {
-        $this->itemService = $itemService;
+        $this->categoryService = $categoryService;
     }
     
     public function list(Request $request, Message $message)
     {
-        $categories = $this->itemService->listCategories();
-        $total_categories = $this->itemService->countCategories();
+        $categories = $this->categoryService->listCategories();
+        $total_categories = $this->categoryService->countCategories();
 
         $message->setContent(200, 'Categories retrieved', '', [
             'categories' => $categories,
@@ -44,7 +44,7 @@ class CategoryController extends Controller
             $parentId = intval($parentId);
         }
 
-        $category = $this->itemService->createCategory($name, $parentId);
+        $category = $this->categoryService->createCategory($name, $parentId);
 
         if ($category instanceof Category) {
             $message->setContent(201, 'Category created', '', [
@@ -67,7 +67,7 @@ class CategoryController extends Controller
             $parentId = intval($parentId);
         }
         
-        $isSuccess = $this->itemService->updateCategory($id, $name, $parentId);
+        $isSuccess = $this->categoryService->updateCategory($id, $name, $parentId);
 
         if ($isSuccess) {
             $message->setContent(200, 'Category updated');
@@ -87,7 +87,7 @@ class CategoryController extends Controller
             $target = intval($target);
         }
 
-        $isSuccess = $this->itemService->moveCategory($categories, $target);
+        $isSuccess = $this->categoryService->moveCategory($categories, $target);
 
         if ($isSuccess) {
             $message->setContent(200, 'Categories moved successfully');
@@ -102,7 +102,7 @@ class CategoryController extends Controller
     {
         $user = $request->user();
         
-        $isSuccess = $this->itemService->deleteCategory($user, $id);
+        $isSuccess = $this->categoryService->deleteCategory($user, $id);
 
         if ($isSuccess) {
             $message->setContent(200, 'Category deleted');

@@ -15,6 +15,7 @@ class Item extends Model
     use HandlesCurrency;
 
     protected $hidden = [
+        'parent_id',
         'deleted_at',
         'created_at',
         'updated_at',
@@ -27,7 +28,14 @@ class Item extends Model
     ];
 
     protected $appends = [
-        'snippet'
+        'snippet',
+        'isVariant' => 'is_variant',
+        'hasVariants' => 'has_variants',
+    ];
+
+    protected $casts = [
+        'is_featured' => 'boolean',
+        'isHideOutOfStock' => 'boolean'
     ];
 
     public function price(): Attribute
@@ -35,6 +43,32 @@ class Item extends Model
         return Attribute::make(
             get: fn ($val) => $this->toPrice($val),
             set: fn ($val) => $this->toCent($val),
+        );
+    }
+
+    public function getIsVariantAttribute()
+    {
+        return $this->checkIfVariant();
+    }
+
+    public function checkIfVariant()
+    {
+        return !is_null($this->parent_id);
+    }
+
+    /**
+     * Related items
+     * 
+     * For some reason Laravel cannot detect accessors that have an uppercase letter on it.
+     * 
+     * @return Attribute
+     */
+    public function related(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                return $this->variants;
+            }
         );
     }
 
@@ -58,6 +92,21 @@ class Item extends Model
         return $this->hasMany(Media::class);
     }
 
+    public function variants()
+    {
+        return $this->hasMany(Item::class, 'parent_id', 'id');
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Item::class, 'parent_id', 'id');
+    }
+
+    public function getHasVariantsAttribute()
+    {
+        return $this->variants()->exists();
+    }
+
     /**
      * Retrieve the lingeages of the categories associated with this item.
      * 
@@ -75,11 +124,13 @@ class Item extends Model
 
     public function getSnippetAttribute() {
         $snippetLength = 160;
-        $sanitized = $this->sanitize($this->description);
-        if (strlen($sanitized) > $snippetLength) {
-            return substr($sanitized, 0, $snippetLength) . '...';
-        } else {
-            return $sanitized;
+        if (isset($this->description) && !is_null($this->description)) {
+            $sanitized = $this->sanitize($this->description);
+            if (strlen($sanitized) > $snippetLength) {
+                return substr($sanitized, 0, $snippetLength) . '...';
+            } else {
+                return $sanitized;
+            }
         }
     }
 

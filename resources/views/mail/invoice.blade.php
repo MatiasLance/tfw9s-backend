@@ -29,11 +29,11 @@
                                         <tbody>
                                             <tr>
                                                 <td align="center">
-                                                    <a href="http://straddieworld.com/">
+                                                    <a href="http://thedrumhq.com.au/">
                                                         <img
-                                                            style="width: 35%; padding: 0.5rem;"
-                                                            src="https://i.imgur.com/wuhL9yy.png"
-                                                            alt="Straddie Logo"
+                                                            style="padding: 0.5rem;"
+                                                            src="https://i.imgur.com/fjx6udM.png"
+                                                            alt="Drum HQ Logo"
                                                         />
                                                     </a>
                                                 </td>
@@ -54,7 +54,7 @@
                                                 </td>
                                                 <td width="40%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
                                                     <div>
-                                                        <b>Straddieworld</b>
+                                                        <b>Drum HQ</b>
                                                     </div>
                                                     <div></div>
                                                     <div></div>
@@ -178,9 +178,6 @@
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575;">
                                                     Quantity: {{ $lineItem->quantity }}
                                                 </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    ${{ number_format($lineItem->GST, 2) }} GST
-                                                </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575;"></td>
@@ -201,12 +198,24 @@
                                     <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #bbbbbb; margin-top: -5px;">
                                         <tbody>
                                             <tr>
-                                                <td rowspan="3" style="width: 55%;"></td>
+                                                <td rowspan="5" style="width: 55%;"></td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
                                                     Sub-Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format($order->subTotal, 2) }}
+                                                    <?php
+                                                        $newSubTotal = number_format($order->subTotal / 1.10, 2);
+                                                        $taxAmount = number_format($order->total - $newSubTotal, 2);   
+                                                    ?>
+                                                    ${{ $newSubTotal }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
+                                                    Tax Value:
+                                                </td>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
+                                                    ${{ $taxAmount }}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -214,7 +223,8 @@
                                                     Total GST:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                    ${{ number_format($order->totalGST, 2) }}
+                                                    GST Inclusive
+                                                    {{-- ${{ number_format($order->totalGST, 2) }} --}}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -259,7 +269,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Payment Method (Stripe)
+                                                    Payment Method ({{ ucfirst($order->payment_gateway->value) }})
                                                 </td>
                                             </tr>
                                             <tr>
@@ -268,7 +278,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with Straddie World.
+                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with Drum HQ.
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -282,7 +292,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center;">
-                                                    <p>&copy; 2022 Straddie World</p>
+                                                    <p>&copy; 2022-<?=date("Y");?> Drum HQ</p>
                                                 </td>
                                             </tr>
                                         </tbody>

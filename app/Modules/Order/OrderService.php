@@ -4,6 +4,7 @@ namespace App\Modules\Order;
 
 use App\Models\Order;
 use App\Models\ShippingOptions;
+use App\Modules\Payment\PaymentGateway;
 use App\Repository\OrderRepositoryInterface;
 
 class OrderService implements OrderServiceInterface
@@ -20,11 +21,17 @@ class OrderService implements OrderServiceInterface
     {
         $this->orderRepository = $orderRepository;
     }
+    
+    public function findByTransactionId(string $transactionId): ?Order
+    {
+        return $this->orderRepository->findByTransactionId($transactionId);
+    }
 
-    public function create(string $paymentIntentId, string $firstname, string $lastname, string $phoneNumber, string $email, string $shippingType, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
+    public function create(string $paymentIntentId, PaymentGateway $gateway, string $firstname, string $lastname, string $phoneNumber, string $email, string $shippingType, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
     {
         return $this->orderRepository->create(
             $paymentIntentId,
+            $gateway,
             $firstname,
             $lastname,
             $phoneNumber,
@@ -38,6 +45,16 @@ class OrderService implements OrderServiceInterface
         );
     }
 
+    public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool
+    {
+        return $this->orderRepository->updateShippingOptions($deliveryNote, $pickupNote);
+    }
+
+    public function markAsVerified(string $transactionId): bool
+    {
+        return $this->orderRepository->markAsVerified($transactionId);
+    }
+
     /**
      * Retrieve the shipping options
      * 
@@ -46,10 +63,5 @@ class OrderService implements OrderServiceInterface
     public function retrieveShippingOptions(): ShippingOptions
     {
         return $this->orderRepository->retrieveShippingOptions();
-    }
-
-    public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool
-    {
-        return $this->orderRepository->updateShippingOptions($deliveryNote, $pickupNote);
     }
 }

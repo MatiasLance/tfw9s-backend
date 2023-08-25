@@ -15,21 +15,21 @@ class MailService implements MailServiceInterface
         $mail = new Invoice($order);
         $content = $mail->render();
 
-        $adminSubject = 'You have a new order on straddieworld.com!';
-        $customerSubject = 'Here is the invoice for your recent order on straddieworld.com';
+        $adminSubject = 'You have a new order on thedrumhq.com.au!';
+        $customerSubject = 'Here is the invoice for your recent order on thedrumhq.com.au';
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'tech1.sumomedia@gmail.com')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'hello@thedrumhq.com.au')], $adminSubject, $content);
         $this->send([$order->email], $customerSubject, $content);
     }
 
     public function sendContactForm(array $data)
     {
         $to = [
-            env('ADMIN_EMAIL_ADDRESS', 'tech1.sumomedia@gmail.com')
+            env('ADMIN_EMAIL_ADDRESS', 'hello@thedrumhq.com.au')
         ];
 
-        $subject = 'You have a new message from ' . $data['name'] . ' via straddieworld.com';
-        
+        $subject = 'You have a new message from ' . $data['name'] . ' via thedrumhq.com.au';
+
         $mail = new NewContactMessage($data['name'], $data['email'], $data['message']);
         $content = $mail->render();
 
@@ -48,11 +48,11 @@ class MailService implements MailServiceInterface
 
     /**
      * Sends the mail to the email relay server.
-     * 
+     *
      * @param array $to The recipients of the email
      * @param string $subject
      * @param string $content
-     * 
+     *
      * @return bool
      */
     protected function send(array $to, string $subject, string $content): bool
@@ -61,7 +61,7 @@ class MailService implements MailServiceInterface
 
         $response = $guzzle->request('POST', 'http://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
             'form_params' => [
-                'from' => 'noreply@straddieworld.com',
+                'from' => 'noreply@thedrumhq.com.au',
                 'recipients' => $to,
                 'cc' => [],
                 'bcc' => [],

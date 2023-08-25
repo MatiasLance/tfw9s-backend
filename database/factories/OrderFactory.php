@@ -23,7 +23,7 @@ class OrderFactory extends Factory
         ];
 
         return [
-            'payment_intent_id' => $this->faker->bothify('pi_*****************'),
+            'transaction_id' => $this->faker->bothify('tid_*****************'),
             'firstname' => $this->faker->firstName(),
             'lastname' => $this->faker->lastName(),
             'phone_number' => $this->faker->phoneNumber(),

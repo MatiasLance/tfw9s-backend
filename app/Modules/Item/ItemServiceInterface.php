@@ -35,14 +35,19 @@ interface ItemServiceInterface
      * @param string $title
      * @param string $description
      * @param float $price Cent value of the item price
+     * @param float $saleprice Cent value of the item sale price
      * @param int $stock Number of items on stock. Cannot be below 0.
+     * @param null|bool $isFeatured Mark item as featured.
+     * @param null|bool $isRRP
+     * @param null|bool $isOnSale
+     * @param null|bool $isHideOutOfStock
      * @param array<UploadedFile> $media List of media for the Item
      * @param array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param array<Tags> $tags Array of tags that this item will have
      * 
      * @return Item
      */
-    public function createItem(string $title, string $description, float $price, int $stock, array $media, array $categories, array $tags): Item;
+    public function createItem(string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, array $media, array $categories, string $shippingId, array $tags): Item;
 
     /**
      * Duplicate an existing Item. Pass null to retain the value from the original item.
@@ -51,12 +56,31 @@ interface ItemServiceInterface
      * @param null|string $title
      * @param null|string $description
      * @param null|float $price Cent value of the item price
+     * @param null|float $saleprice Cent value of the item price
      * @param null|int $stock Number of items on stock. Cannot be below 0.
+     * @param null|bool $isFeatured Mark item as featured.
+     * @param null|bool $isRRP Mark item as featured.
+     * @param null|bool $isOnSale Mark item as featured.
      * @param null|array<UploadedFile|string> $media List of media for the Item
      * @param null|array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param null|array<Tags> $tags Array of tags that this item will have
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, ?array $media, ?array $categories, ?array $tags): Item;
+    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, ?array $media, ?array $categories, ?array $tags): Item;
+
+    /**
+     * Add another item as a variant of an existing Item. Arguments can be optionally passed to overwrite parent item values
+     *
+     * @param int $id Parent item ID
+     * @param null|string $title
+     * @param null|string $description
+     * @param null|float $price Cent value of the item price
+     * @param null|int $stock Number of items on stock. Cannot be below 0.
+     * @param null|bool $isFeatured Mark item as featured.
+     * @param null|array<UploadedFile|string> $media List of media for the Item
+     * @param null|array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
+     * @param null|array<Tags> $tags Array of tags that this item will have
+     */
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item;
 
     /**
      * Update an existing Item
@@ -66,13 +90,15 @@ interface ItemServiceInterface
      * @param string $description
      * @param float $price Cent value of the item price
      * @param int $stock Number of items on stock. Cannot be below 0.
+     * @param null|bool $isFeatured Mark item as featured.
      * @param null|array<UploadedFile|string> $media List of media for the Item
      * @param array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
+     * @param string $shippingId
      * @param array<Tags> $tags Array of tags that this item will have
      * 
      * @return bool
      */
-    public function updateItem(int $id, string $title, string $description, float $price, int $stock, ?array $media, array $categories, array $tags): bool;
+    public function updateItem(int $id, string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool;
 
     /**
      * Decrease the stocks of an item. Useful when Item is bought by a customer
@@ -96,111 +122,18 @@ interface ItemServiceInterface
     public function deleteItem(User $initiator, Item $item): bool;
 
     /**
-     * List item categories
+     * List item discount code
      * 
      * @return Collection<Category>
      */
-    public function listCategories(): Collection;
+    public function listDiscountCode(): Collection;
 
      /**
-     * Get total number of item categories
+     * Get total number of item news
      * 
      * @return int
      */
-    public function countCategories(): int;
+    public function countDiscountCode(): int;
 
-    /**
-     * Retrieve an item category
-     * 
-     * @param int $id ID of category
-     * 
-     * @return Category
-     */
-    public function retrieveCategory(int $id): Category;
-
-    /**
-     * Create a new item Category
-     * 
-     * @param string    $name       Category name
-     * @param null|int  $parentId   (Optional) Id of the parent, if has any.
-     * 
-     * @return Category
-     */
-    public function createCategory(string $name, ?int $parentId = null): Category;
-
-    /**
-     * Update an existing category
-     * 
-     * @param int       $id         ID of category
-     * @param string    $name
-     * @param null|int  $parentId   (Optional) Id of the parent, if has any.
-     * 
-     * @return bool
-     */
-    public function updateCategory(int $id, string $name, ?int $parentId = null): bool;
-
-    /**
-     * Move categories under another category or to the root
-     * 
-     * @param array<int>    $categories Ids of the category to move
-     * @param null|int      $target     ID of the target category. When null, categories are set as root
-     * 
-     * @return bool
-     */
-    public function moveCategory(array $categories, ?int $target): bool;
-
-    /**
-     * Delete existing category
-     * 
-     * @param User $initiator The user who initiated the delete command
-     * @param int $id ID of the category to be deleted
-     * 
-     * @return bool
-     */
-    public function deleteCategory(User $initiator, int $id): bool;
-
-    /**
-     * List all available item tags
-     * 
-     * @return Collection<Tag>
-     */
-    public function listTags(): Collection;
-
-    /**
-     * Retrieve an existing item tag
-     * 
-     * @param int $id ID of the item tag
-     * 
-     * @return Tag
-     */
-    public function retrieveTag(int $id): Tag;
-
-    /**
-     * Create a new item Tag
-     * 
-     * @param string $name
-     * 
-     * @return Tag
-     */
-    public function createTag(string $name): Tag;
-
-    /**
-     * Update an existing tag
-     * 
-     * @param int $id ID of the tag to update
-     * @param string $name
-     * 
-     * @return bool
-     */
-    public function updateTag(int $Id, string $name): bool;
-
-    /**
-     * Delete an existing item tag
-     * 
-     * @param User $initiator
-     * @param int $id ID of the tag to be deleted
-     * 
-     * @return bool
-     */
-    public function deleteTag(User $initiator, int $Id): bool;
+    public function discountCodeItems(array $filters = []): Paginate;
 }

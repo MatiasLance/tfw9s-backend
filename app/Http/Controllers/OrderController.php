@@ -2,6 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\NewShipping;
+use App\Models\MasterShippingSetting;
+use App\Models\StateShipping;
+use App\Models\CityShipping;
+use App\Models\OtherCountryShipping;
+use App\Models\OtherStateShipping;
+use App\Models\OtherCityShipping;
+use App\Models\Item;
 use App\Modules\Http\Message;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Order\OrderServiceInterface;
@@ -12,21 +20,21 @@ class OrderController extends Controller
 {
     /**
      * Item service
-     * 
+     *
      * @var ItemServiceInterface $itemService
      */
     protected ItemServiceInterface $itemService;
 
     /**
      * Payment service
-     * 
+     *
      * @var PaymentServiceInterface $paymentService
      */
     protected PaymentServiceInterface $paymentService;
 
     /**
      * Order service
-     * 
+     *
      * @var OrderServiceInterface $orderService
      */
     protected OrderServiceInterface $orderService;
@@ -38,19 +46,24 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
+    /**
+     * @todo Forgot to use Message class to render response here. Need to make sure frontend also adjusts to the new response structure
+     */
     public function checkout(Request $request)
     {
         $items = $request->input('items');
-        $metadata = $request->input('metadata');
+        $metadata = $request->input('metadata') ?? [];
+        $paymentMethod = $request->input('payment_method');
 
-        return $this->paymentService->createPaymentIntent($items, $metadata);
+        return $this->paymentService->createOrder($paymentMethod, $items, $metadata);
     }
 
     public function verify(Request $request, Message $message)
     {
-        $paymentIntentId = $request->input('paymentIntent');
+        $paymentIntentId = $request->input('transaction_id');
+        $paymentMethod = $request->input('payment_method');
 
-        $status = $this->paymentService->verify($paymentIntentId);
+        $status = $this->paymentService->verify($paymentMethod, $paymentIntentId);
 
         $message->setContent(200, 'Payment Intent status found', '', [
             'status' => $status
@@ -84,5 +97,93 @@ class OrderController extends Controller
         }
 
         return $message->render();
+    }
+
+    public function shippingCalc(Request $request, array $items, array $metadata = [])
+    {
+
+
+        $items = $request->input('items');
+        $metadata = $request->input('metadata') ?? [];
+
+        $lineItems = [];
+        foreach ($items as $item) {
+            $currentItem = Item::find($item['id']);
+
+            $lineItem = [
+                'item_id' => $currentItem->id,
+                'price' => $currentItem->centPrice(),
+                'quantity' => $item['quantity'],
+            ];
+            array_push($lineItems, $lineItem);
+        }
+
+        // Added from WPI
+        $shippingchoicecalc = $metadata['shippingChoiceCalc'];
+        $shippingoptions = $metadata['shippingOptions']['selected'] ?? $metadata['shippingOptions'];
+
+        $registeredpost = in_array('Registered Value', $shippingoptions);
+        $expresspost = in_array('Express Value', $shippingoptions);
+        $addinsurance = in_array('Insurance Value', $shippingoptions);
+
+        $totalshipping = $this->calculateTotal($lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
+
+        return response()->json([
+               'shippingCalculation' => $totalshipping
+        ]);
+
+    }
+
+    protected function calculateTotal(array $items, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance): array
+    {
+        $total = 0;
+        $tot = 0;
+        foreach ($items as $item) {
+           $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
+        }
+
+        $data = [
+           "Own Country" => NewShipping::latest()->first(),
+           "Own State" => StateShipping::latest()->first(),
+           "Own City" => CityShipping::latest()->first(),
+           "Other Country" => OtherCountryShipping::latest()->first(),
+           "Other State" => OtherStateShipping::latest()->first(),
+           "Other City" => OtherCityShipping::latest()->first()
+        ];
+
+        if(isset($data[$shippingchoicecalc])) {
+           $price_data = $data[$shippingchoicecalc];
+           $tot += intval($price_data->shippingCentPrice());
+
+           if($registeredpost){
+              $rv = $price_data->registeredCentPrice();
+              $tot += intval($rv);
+           }
+           if($expresspost){
+              $ev = $price_data->expressCentPrice();
+              $tot += intval($ev);
+           }
+           if($addinsurance){
+              $iv = $price_data->insuranceCentPrice();
+              $tot += intval($iv);
+           }
+        }
+
+        $max_shipping_value = MasterShippingSetting::latest()->first()->maxshipping_value;
+        if($total > 100 && isset($max_shipping_value)) {
+           $total += intval($max_shipping_value);
+        }
+
+        return [
+           'totalProduct' => $total,
+           'totalShipping' => $tot
+        ];
+
+    }
+
+    protected function calculateItemTotal(int $itemId, int $quantity): float
+    {
+        $item = $this->itemService->retrieveItem($itemId);
+        return $item->centPrice() * $quantity;
     }
 }
