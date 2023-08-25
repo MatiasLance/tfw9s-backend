@@ -159,12 +159,18 @@ class ItemController extends Controller
         if (is_numeric($price)) {
             $price = floatval($price);
         }
+        $saleprice = $request->input('salePrice') ?? null;
+        if (is_numeric($saleprice)) {
+            $saleprice = floatval($saleprice);
+        }
         $stock = $request->input('stock') ?? null;
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
         $tags = $request->input('tags') ?? null;
         $isFeatured = $request->boolean('isFeatured') ?? null;
+        $isRRP = $request->boolean('isRRP') ?? null;
+        $isOnSale = $request->boolean('isOnSale') ?? null;
         $isHideOutOfStock = $request->boolean('isHideOutOfStock') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
@@ -177,7 +183,7 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $photo, $categories, $tags);
+        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $photo, $categories, $tags);
 
         if ($newItem instanceof Item) {
             $message->setContent(201, 'Item added as variant', '', [

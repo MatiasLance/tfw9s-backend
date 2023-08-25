@@ -90,7 +90,7 @@ interface ItemRepositoryInterface
      * @param null|array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param null|array<Tags> $tags Array of tags that this item will have
      */
-    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item;
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item;
 
     /**
      * Update an existing Item instance

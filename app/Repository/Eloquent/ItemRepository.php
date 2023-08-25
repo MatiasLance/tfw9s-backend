@@ -307,9 +307,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         
     }
 
-    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item
     {
-        $item = $this->duplicateItem($id, $title, $description, $price, $stock, $isFeatured, $media, $categories, $tags);
+        $item = $this->duplicateItem($id, $title, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $media, $categories, $tags);
 
         return DB::transaction(function() use($item, $id){
             $item->parent_id = $id;
