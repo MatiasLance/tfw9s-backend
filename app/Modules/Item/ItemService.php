@@ -50,9 +50,9 @@ class ItemService implements ItemServiceInterface
         return $this->itemRepository->duplicateItem($id, $title, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $media, $categories, $tags);
     }
 
-    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?int $stock, bool $isFeatured, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item
+    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item
     {
-        return $this->itemRepository->addItemVariant($id, $title, $description, $price, $stock, $isFeatured, $isHideOutOfStock, $media, $categories, $tags);
+        return $this->itemRepository->addItemVariant($id, $title, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $media, $categories, $tags);
     }
     public function updateItem(int $id, string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool
     {
