@@ -145,6 +145,7 @@ class Item extends Model
         $sanitized = preg_replace($whitespacePattern, ' ', $value);
         $sanitized = strip_tags($sanitized);
         $sanitized = trim($sanitized);
+        $sanitized = html_entity_decode($sanitized);
 
         return $sanitized;
     }
