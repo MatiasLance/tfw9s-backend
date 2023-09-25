@@ -337,6 +337,7 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
     protected function calculateItemTotal(int $itemId, int $quantity): float
     {
         $item = $this->itemService->retrieveItem($itemId);
+        $price = $item->isOnSale() ? $item->centSalePrice() : $item->centPrice();
         return $item->centPrice() * $quantity;
     }
 

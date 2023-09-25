@@ -184,6 +184,7 @@ class OrderController extends Controller
     protected function calculateItemTotal(int $itemId, int $quantity): float
     {
         $item = $this->itemService->retrieveItem($itemId);
-        return $item->centPrice() * $quantity;
+        $price = $item->isOnSale() ? $item->centSalePrice() : $item->centPrice();
+        return $price * $quantity;
     }
 }

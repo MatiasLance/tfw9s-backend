@@ -110,7 +110,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
             $lineItem = [
                 'item_id' => $currentItem->id,
-                'price' => $currentItem->centPrice(),
+                'price' => $currentItem->isOnSale() ? $currentItem->centSalePrice() : $currentItem->centPrice(),
                 'quantity' => $item['quantity'],
             ];
             array_push($lineItems, $lineItem);
@@ -293,7 +293,8 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     protected function calculateItemTotal(int $itemId, int $quantity): float
     {
         $item = $this->itemService->retrieveItem($itemId);
-        return $item->centPrice() * $quantity;
+        $price = $item->isOnSale() ? $item->centSalePrice() : $item->centPrice();
+        return $price * $quantity;
     }
 
     /**

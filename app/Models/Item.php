@@ -45,6 +45,13 @@ class Item extends Model
             set: fn ($val) => $this->toCent($val),
         );
     }
+    public function saleprice(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($val) => $this->toPrice($val),
+            set: fn ($val) => $this->toCent($val),
+        );
+    }
 
     public function getIsVariantAttribute()
     {
@@ -75,6 +82,17 @@ class Item extends Model
     public function centPrice(): int
     {
         return $this->getAttributes()['price'];
+    }
+
+    public function centSalePrice(): int
+    {
+        return $this->getAttributes()['saleprice'];
+        // todo: if error then return as integer
+    }
+
+    public function isOnSale(): bool
+    {
+        return $this->getAttributes()['is_on_sale'];
     }
 
     public function categories()

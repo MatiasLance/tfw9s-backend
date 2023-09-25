@@ -58,7 +58,10 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
         $this->orderService = $orderService;
         $this->itemService = $itemService;
 
-        if (env('PAYPAL_ENVIRONMENT' === 'production', env('APP_ENV') === 'production')) {
+        $paypalEnvironment = env('PAYPAL_ENVIRONMENT');
+        $appEnvironment = env('APP_ENV');
+
+        if ($paypalEnvironment === 'production' && $appEnvironment === 'production') {
             $clientId = env('PAYPAL_LIVE_CLIENT_ID');
             $secretKey = env('PAYPAL_LIVE_SECRET_KEY');
 
@@ -91,7 +94,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
 
             $lineItem = [
                 'item_id' => $currentItem->id,
-                'price' => $currentItem->centPrice(),
+                'price' => $currentItem->isOnSale() ? $currentItem->centSalePrice() : $currentItem->centPrice(),
                 'quantity' => $item['quantity'],
             ];
             array_push($lineItems, $lineItem);
@@ -189,7 +192,8 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
     protected function calculateItemTotal(int $itemId, int $quantity): float
     {
         $item = $this->itemService->retrieveItem($itemId);
-        return $item->centPrice() * $quantity;
+        $price = $item->isOnSale() ? $item->centSalePrice() : $item->centPrice();
+        return $price * $quantity;
     }
 
     /**
