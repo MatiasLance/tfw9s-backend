@@ -45,13 +45,13 @@ class Item extends Model
             set: fn ($val) => $this->toCent($val),
         );
     }
-    public function saleprice(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($val) => $this->toPrice($val),
-            set: fn ($val) => $this->toCent($val),
-        );
-    }
+    // public function saleprice(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn ($val) => $this->toPrice($val),
+    //         set: fn ($val) => $this->toCent($val),
+    //     );
+    // }
 
     public function getIsVariantAttribute()
     {
@@ -65,9 +65,9 @@ class Item extends Model
 
     /**
      * Related items
-     * 
+     *
      * For some reason Laravel cannot detect accessors that have an uppercase letter on it.
-     * 
+     *
      * @return Attribute
      */
     public function related(): Attribute
@@ -84,11 +84,11 @@ class Item extends Model
         return $this->getAttributes()['price'];
     }
 
-    public function centSalePrice(): int
-    {
-        return $this->getAttributes()['saleprice'];
-        // todo: if error then return as integer
-    }
+    // public function centSalePrice(): int
+    // {
+    //     return $this->getAttributes()['saleprice'];
+    //     // todo: if error then return as integer
+    // }
 
     public function isOnSale(): bool
     {
@@ -127,7 +127,7 @@ class Item extends Model
 
     /**
      * Retrieve the lingeages of the categories associated with this item.
-     * 
+     *
      * @return array
      */
     public function getCategoryLineagesAttribute()
@@ -154,7 +154,7 @@ class Item extends Model
 
     /**
      * Remove the html tags and replace hard breaks with spaces.
-     * 
+     *
      * @return string
      */
     protected function sanitize(string $value): string

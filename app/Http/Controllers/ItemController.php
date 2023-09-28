@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class ItemController extends Controller
 {
     protected ItemServiceInterface $itemService;
-    
+
     protected CategoryServiceInterface $categoryService;
 
     public function __construct(ItemServiceInterface $itemService, CategoryServiceInterface $categoryService)
@@ -89,8 +89,9 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        // TODO: add saleprice, isRRP, isOnSale 
+        // TODO: add saleprice, isRRP, isOnSale
         $item = $this->itemService->createItem($name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
+        dd($item);
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
@@ -223,7 +224,7 @@ class ItemController extends Controller
         $existingPhoto = $request->input('photo') ?? [];
         $newPhotoCount = count($newPhoto);
         $existingPhotoCount = count($existingPhoto);
-        
+
         if (
             $request->has('photo') &&
             (
