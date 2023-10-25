@@ -209,5 +209,10 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix('tax')->group(function() {
         Route::get('/{id}', [TaxController::class, 'retrieve']);
     });
+
+    // non-admin toggletax retrieve
+    Route::prefix("toogletax")->group(function() {
+        Route::get('/retrieve/{id}', [ToggleTaxControlController::class, 'retrieve']);
+    });
 });
 
