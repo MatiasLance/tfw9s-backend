@@ -203,11 +203,12 @@
                                                     Sub-Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    <?php
-                                                        $newSubTotal = number_format($order->subTotal / 1.10, 2);
-                                                        $taxAmount = number_format($order->total - $newSubTotal, 2);   
-                                                    ?>
-                                                    ${{ $newSubTotal }}
+                                                <?php
+                                                    $subTotal = $order->subTotal / ($taxValue / 100 + 1);
+                                                    $calculatedTaxAmount = $order->total - $subTotal;
+                                                    $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
+                                                ?>
+                                                    ${{ number_format($order->subTotal, 2) }}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -215,7 +216,7 @@
                                                     Tax Value:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ $taxAmount }}
+                                                    ${{ number_format($taxAmount, 2) }}
                                                 </td>
                                             </tr>
                                             <tr>
