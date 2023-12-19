@@ -94,7 +94,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 throw new AddressCannotBeEmptyException('Attempted to create a payment intent for delivery order without address');
             }
         }
-
         $res = DiscountCode::where('code', $discountcode)->first();
 
         $lineItems = [];
@@ -144,7 +143,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             ],
             'metadata' => $metadata,
         ];
-        
+
         $paymentIntent = $this->stripe->paymentIntents->create($productValue);
 
         $responseValues = [
