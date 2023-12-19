@@ -3,6 +3,7 @@
 namespace App\Modules\Payment\Gateways;
 
 use App\Models\Item;
+use App\Models\DiscountCode;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Mail\MailServiceInterface;
@@ -84,23 +85,38 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
      * 
      * @see https://github.com/paypal/Checkout-PHP-SDK/blob/develop/samples/AuthorizeIntentExamples/CreateOrder.php
      */
-    public function createOrder(array $items, array $metadata = [])
+    public function createOrder($discountcode, array $items, array $metadata = [])
     {
         $total = 0;
         $lineItems = [];
+        $res = DiscountCode::where('code', $discountcode)->first();
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
+            $onSale = $currentItem->isOnSale();
+            $hasDiscount = !empty($res);
+            $salePrice = $currentItem->centSalePrice();
+            $regularPrice = $currentItem->centPrice();
+
+            if ($onSale && $hasDiscount) {
+                $price = $salePrice * (1 - $res->rate);
+            } elseif ($onSale && !$hasDiscount) {
+                $price = $salePrice;
+            } elseif (!$onSale && $hasDiscount) {
+                $price = $regularPrice * (1 - $res->rate);
+            } else {
+                $price = $regularPrice;
+            }
 
             $lineItem = [
                 'item_id' => $currentItem->id,
-                'price' => $currentItem->isOnSale() ? $currentItem->centSalePrice() : $currentItem->centPrice(),
+                'price' => $price,
                 'quantity' => $item['quantity'],
             ];
             array_push($lineItems, $lineItem);
         }
 
-        $purchaseUnits = $this->generatePurchaseUnits($lineItems, $metadata);
+        $purchaseUnits = $this->generatePurchaseUnits($discountcode, $lineItems, $metadata);
 
         foreach ($purchaseUnits as $value) {
             $total += $value['value'];
@@ -162,7 +178,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
      * 
      * @return array
      */
-    protected function generatePurchaseUnits(array $items, array $metadata = []): array
+    protected function generatePurchaseUnits($discountcode, array $items, array $metadata = []): array
     {
         $units = [];
 
@@ -170,6 +186,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
             $unit = [
                 'currency_code' => $this->currency,
                 'value' => $this->calculateItemTotal(
+                    $discountcode,
                     $item['item_id'], 
                     $item['quantity'],
                     $metadata['shippingChoiceCalc']
@@ -189,10 +206,27 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
      * 
      * @return float
      */
-    protected function calculateItemTotal(int $itemId, int $quantity): float
+    protected function calculateItemTotal($discountcode, int $itemId, int $quantity): float
     {
         $item = $this->itemService->retrieveItem($itemId);
-        $price = $item->isOnSale() ? $item->centSalePrice() : $item->centPrice();
+        $res = DiscountCode::where('code', $discountcode)->first();
+
+        $onSale = $item->isOnSale();
+        $hasDiscount = !empty($res);
+        $salePrice = $item->centSalePrice();
+        $regularPrice = $item->centPrice();
+
+        if ($onSale && $hasDiscount) {
+            $dprice = $salePrice * (1 - $res->rate);
+        } elseif ($onSale && !$hasDiscount) {
+            $dprice = $salePrice;
+        } elseif (!$onSale && $hasDiscount) {
+            $dprice = $regularPrice * (1 - $res->rate);
+        } else {
+            $dprice = $regularPrice;
+        }
+
+        $price = $dprice;
         return $price * $quantity;
     }
 

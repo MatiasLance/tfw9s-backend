@@ -15,4 +15,9 @@ class DiscountCode extends Model
         'description',
         'amountapplied'
     ];
+
+    public function items()
+    {
+        return $this->hasMany(Item::class, 'discount_id');
+    }
 }

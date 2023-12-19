@@ -12,7 +12,7 @@ interface PaymentGatewayInterface
      * @param array $items List of items and their quantities
      * @param array $metadata Metadata regarding the order
      */
-    public function createOrder(array $items, array $metadata = []);
+    public function createOrder($discountcode, array $items, array $metadata = []);
 
     /**
      * Verify transaction status

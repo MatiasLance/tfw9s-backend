@@ -10,6 +10,7 @@ use App\Models\OtherCountryShipping;
 use App\Models\OtherStateShipping;
 use App\Models\OtherCityShipping;
 use App\Models\Item;
+use App\Models\DiscountCode;
 use App\Modules\Http\Message;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Order\OrderServiceInterface;
@@ -54,8 +55,9 @@ class OrderController extends Controller
         $items = $request->input('items');
         $metadata = $request->input('metadata') ?? [];
         $paymentMethod = $request->input('payment_method');
+        $discountcode = $request->input('discountcode');
 
-        return $this->paymentService->createOrder($paymentMethod, $items, $metadata);
+        return $this->paymentService->createOrder($discountcode, $paymentMethod, $items, $metadata);
     }
 
     public function verify(Request $request, Message $message)
@@ -105,28 +107,43 @@ class OrderController extends Controller
 
         $items = $request->input('items');
         $metadata = $request->input('metadata') ?? [];
+        $discountcode = $request->input('discountcode');
+        $res = DiscountCode::where('code', $discountcode)->first();
 
         $lineItems = [];
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
+            $onSale = $currentItem->isOnSale();
+            $hasDiscount = !empty($discountcode);
+            $salePrice = $currentItem->centSalePrice();
+            $regularPrice = $currentItem->centPrice();
+
+            if ($onSale && $hasDiscount) {
+                $price = $salePrice * (1 - $res->rate);
+            } elseif ($onSale && !$hasDiscount) {
+                $price = $salePrice;
+            } elseif (!$onSale && $hasDiscount) {
+                $price = $regularPrice * (1 - $res->rate);
+            } else {
+                $price = $regularPrice;
+            }
 
             $lineItem = [
                 'item_id' => $currentItem->id,
-                'price' => $currentItem->centPrice(),
+                'price' => $price,
                 'quantity' => $item['quantity'],
             ];
             array_push($lineItems, $lineItem);
         }
-
         // Added from WPI
-        $shippingchoicecalc = $metadata['shippingChoiceCalc'];
+            $shippingchoicecalc = $metadata['shippingChoiceCalc'];
         $shippingoptions = $metadata['shippingOptions']['selected'] ?? $metadata['shippingOptions'];
 
         $registeredpost = in_array('Registered Value', $shippingoptions);
         $expresspost = in_array('Express Value', $shippingoptions);
         $addinsurance = in_array('Insurance Value', $shippingoptions);
 
-        $totalshipping = $this->calculateTotal($lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
+        $totalshipping = $this->calculateTotal($discountcode, $lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
 
         return response()->json([
                'shippingCalculation' => $totalshipping
@@ -134,12 +151,12 @@ class OrderController extends Controller
 
     }
 
-    protected function calculateTotal(array $items, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance): array
+    protected function calculateTotal($discountcode, array $items, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance): array
     {
         $total = 0;
         $tot = 0;
         foreach ($items as $item) {
-           $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
+           $total += $this->calculateItemTotal($discountcode, $item['item_id'], $item['quantity']);
         }
 
         $data = [
@@ -181,10 +198,26 @@ class OrderController extends Controller
 
     }
 
-    protected function calculateItemTotal(int $itemId, int $quantity): float
+    protected function calculateItemTotal($discountcode, int $itemId, int $quantity): float
     {
+        $res = DiscountCode::where('code', $discountcode)->first();
+
         $item = $this->itemService->retrieveItem($itemId);
-        $price = $item->isOnSale() ? $item->centSalePrice() : $item->centPrice();
+        $onSale = $item->isOnSale();
+        $hasDiscount = !empty($discountcode);
+        $salePrice = $item->centSalePrice();
+        $regularPrice = $item->centPrice();
+
+        if ($onSale && $hasDiscount) {
+            $dprice = $salePrice * (1 - $res->rate);
+        } elseif ($onSale && !$hasDiscount) {
+            $dprice = $salePrice;
+        } elseif (!$onSale && $hasDiscount) {
+            $dprice = $regularPrice * (1 - $res->rate);
+        } else {
+            $dprice = $regularPrice;
+        }
+        $price = $dprice;
         return $price * $quantity;
     }
 }
