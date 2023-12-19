@@ -15,7 +15,6 @@ class Item extends Model
     use HandlesCurrency;
 
     protected $hidden = [
-        'discount_id',
         'parent_id',
         'deleted_at',
         'created_at',
