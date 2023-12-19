@@ -79,7 +79,7 @@ class Item extends Model
 
     public function centSalePrice(): int
     {
-        return $this->getAttributes()['saleprice'] * 100;
+        return $this->getAttributes()['saleprice'];
     }
 
     public function isOnSale(): bool

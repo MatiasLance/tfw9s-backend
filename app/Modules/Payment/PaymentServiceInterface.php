@@ -26,7 +26,7 @@ interface PaymentServiceInterface
      * @param array $items List of items and item quantity
      * @param array $metadata Metadata about the order
      */
-    public function createOrder(string $gateway, array $items, array $metadata = [], $currency = null);
+    public function createOrder($discountcode, string $gateway, array $items, array $metadata = [], $currency = null);
 
     /**
      * Verify a payment intent and check its status.

@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             ->create();
 
         Item::factory()
-            ->count(80)
+            ->count(20)
             ->has(
                 Tag::factory()->count(2)
             )
