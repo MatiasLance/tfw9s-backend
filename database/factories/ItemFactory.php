@@ -16,7 +16,7 @@ class ItemFactory extends Factory
      */
     public function definition()
     {
-        $price = $this->faker->numberBetween(10, 300) * 10;
+        $price = $this->faker->numberBetween(1, 15) * 10;
         $onSale = fake()->boolean();
 
         return [
