@@ -10,6 +10,7 @@ use App\Models\Media;
 use App\Models\Tag;
 use App\Repository\ItemRepositoryInterface;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
