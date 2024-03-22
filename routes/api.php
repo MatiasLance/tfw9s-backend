@@ -103,15 +103,21 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
 
         });
 
-            Route::prefix("tax")->group(function() { // Tax Setting  API Endpoints
-                Route::get('/{id}', [TaxController::class, 'retrieve']);
-                Route::patch('/{id}', [TaxController::class, 'update']);
-            });
+        Route::prefix("tax")->group(function() { // Tax Setting  API Endpoints
+            Route::get('/{id}', [TaxController::class, 'retrieve']);
+            Route::patch('/{id}', [TaxController::class, 'update']);
+        });
 
-            Route::prefix("toogletax")->group(function() { // Tax Setting  API Endpoints
-                Route::get('/{id}', [ToggleTaxControlController::class, 'retrieve']);
-                Route::patch('/{id}', [ToggleTaxControlController::class, 'update']);
-            });
+        Route::prefix("toogletax")->group(function() { // Tax Setting  API Endpoints
+            Route::get('/{id}', [ToggleTaxControlController::class, 'retrieve']);
+            Route::patch('/{id}', [ToggleTaxControlController::class, 'update']);
+        });
+
+        Route::prefix("regions")->group(function() {
+            Route::post('/', 'App\Http\Controllers\RegionController@store');
+            Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
+            Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
+        });
 
     });
 });
@@ -213,6 +219,11 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     // non-admin toggletax retrieve
     Route::prefix("toogletax")->group(function() {
         Route::get('/retrieve/{id}', [ToggleTaxControlController::class, 'retrieve']);
+    });
+
+    Route::prefix("regions")->group(function() {
+        Route::get('/', 'App\Http\Controllers\RegionController@list');
+        Route::get('/{id}', 'App\Http\Controllers\RegionController@retrieve');
     });
 });
 
