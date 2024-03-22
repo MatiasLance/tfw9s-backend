@@ -132,13 +132,6 @@ class RegionRepository extends BaseRepository implements RegionRepositoryInterfa
         $region = $this->find($id);
 
         return DB::transaction(function() use($region) {
-            foreach ($region->categories as $category) {
-                $region->categories()->detach($category);
-            }
-
-            foreach ($region->tags as $tag) {
-                $region->tags()->detach($tag);
-            }
 
             return $region->delete();
         });
