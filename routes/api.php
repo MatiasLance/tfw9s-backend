@@ -224,6 +224,19 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("regions")->group(function() {
         Route::get('/', 'App\Http\Controllers\RegionController@list');
         Route::get('/{id}', 'App\Http\Controllers\RegionController@retrieve');
+        Route::post('/', 'App\Http\Controllers\RegionController@store');
+        Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
     });
+
+    Route::prefix("fields")->group(function() {
+        Route::get('/', 'App\Http\Controllers\FieldController@list');
+        Route::get('/{id}', 'App\Http\Controllers\FieldController@retrieve');
+        Route::post('/', 'App\Http\Controllers\FieldController@store');
+        Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
+    });
+
+
 });
 
