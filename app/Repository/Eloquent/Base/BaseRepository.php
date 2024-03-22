@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * class BaseRepository
  * @package App\Repository\Eloquent
- * 
+ *
  * Base Class for Eloquent Repositories
  */
 class BaseRepository implements EloquentRepositoryInterface
@@ -21,7 +21,7 @@ class BaseRepository implements EloquentRepositoryInterface
 
     /**
      * BaseRepository Constructor
-     * 
+     *
      * @param Model $model
      */
     public function __construct(Model $model)
@@ -31,7 +31,7 @@ class BaseRepository implements EloquentRepositoryInterface
 
     /**
      * Retrieves all the instances of Model
-     * 
+     *
      * @return Collection
      */
     public function all(): Collection
@@ -41,9 +41,9 @@ class BaseRepository implements EloquentRepositoryInterface
 
     /**
      * Find a Model instance using ID
-     * 
+     *
      * @param int $id
-     * 
+     *
      * @return null|Model
      */
     public function find(int $id): ?Model
@@ -53,9 +53,9 @@ class BaseRepository implements EloquentRepositoryInterface
 
     /**
      * Delete a Model instance
-     * 
+     *
      * @param int $id
-     * 
+     *
      * @return bool
      */
     public function delete(int $id): bool
