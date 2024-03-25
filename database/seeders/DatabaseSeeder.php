@@ -9,6 +9,9 @@ use App\Models\Item;
 use App\Models\Media;
 use App\Models\Tag;
 use App\Models\Region;
+use App\Models\Event;
+use App\Models\Team;
+use App\Models\Field;
 use App\Repository\ItemRepositoryInterface;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -55,6 +58,20 @@ class DatabaseSeeder extends Seeder
             )
             ->create();
 
-        Region::factory()->count(15)->create();
+        Region::factory()
+            ->count(15)
+            ->create();
+
+        Event::factory()
+            ->count(15)
+            ->create();
+
+        Team::factory()
+            ->count(15)
+            ->create();
+
+        Field::factory()
+            ->count(15)
+            ->create();
     }
 }
