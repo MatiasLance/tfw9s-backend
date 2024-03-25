@@ -10,6 +10,12 @@ class Event extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $hidden = [
+        'deleted_at',
+        'created_at',
+        'updated_at',
+    ];
+
     protected $with = [
         'field'
 

@@ -88,7 +88,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_team_per_page']) ? $teams->count() : $filters['max_region_per_page'];
+        $maxPerPage = is_null($userFilters['max_team_per_page']) ? $teams->count() : $filters['max_team_per_page'];
 
         return new Paginate($teams, $maxPerPage, $filters['page'], 'teams');
     }
