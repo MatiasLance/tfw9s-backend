@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->integer('min_age');
             $table->integer('max_age');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
