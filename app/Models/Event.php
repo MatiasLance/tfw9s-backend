@@ -4,19 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $with = [
-        'event_matches',
         'field'
 
     ];
 
-    public function event_matches()
+    public function field()
     {
-        return $this->hasMany(EventMatch::class);
+        return $this->belongsTo(Field::class);
     }
 }

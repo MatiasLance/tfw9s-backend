@@ -18,4 +18,10 @@ class Field extends Model
     {
         return $this->belongsTo(Region::class);
     }
+
+    public function event()
+    {
+        return $this->hasMany(Event::class);
+    }
+
 }

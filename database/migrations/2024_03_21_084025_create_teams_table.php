@@ -17,9 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description');
-            $table->integer('wins');
-            $table->integer('draws');
-            $table->integer('losses');
+            $table->foreignId('field_id')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -119,6 +119,24 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
         });
 
+        Route::prefix("fields")->group(function() {
+            Route::post('/', 'App\Http\Controllers\FieldController@store');
+            Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
+            Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
+        });
+
+        Route::prefix("teams")->group(function() {
+            Route::post('/', 'App\Http\Controllers\TeamController@store');
+            Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
+            Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
+        });
+
+        Route::prefix("events")->group(function() {
+            Route::post('/', 'App\Http\Controllers\EventController@store');
+            Route::post('/{id}', 'App\Http\Controllers\EventController@update');
+            Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
+        });
+
     });
 });
 
@@ -224,19 +242,37 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("regions")->group(function() {
         Route::get('/', 'App\Http\Controllers\RegionController@list');
         Route::get('/{id}', 'App\Http\Controllers\RegionController@retrieve');
-        Route::post('/', 'App\Http\Controllers\RegionController@store');
-        Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
-        Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
+        // Route::post('/', 'App\Http\Controllers\RegionController@store');
+        // Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
+        // Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
+
     });
 
     Route::prefix("fields")->group(function() {
         Route::get('/', 'App\Http\Controllers\FieldController@list');
         Route::get('/{id}', 'App\Http\Controllers\FieldController@retrieve');
-        Route::post('/', 'App\Http\Controllers\FieldController@store');
-        Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
-        Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
+        // Route::post('/', 'App\Http\Controllers\FieldController@store');
+        // Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
+        // Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
+
     });
 
+    Route::prefix("teams")->group(function() {
+        Route::get('/', 'App\Http\Controllers\TeamController@list');
+        Route::get('/{id}', 'App\Http\Controllers\TeamController@retrieve');
+        // Route::post('/', 'App\Http\Controllers\TeamController@store');
+        // Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
+        // Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
+
+    });
+
+    Route::prefix("events")->group(function() {
+        Route::get('/', 'App\Http\Controllers\EventController@list');
+        Route::get('/{id}', 'App\Http\Controllers\EventController@retrieve');
+        // Route::post('/', 'App\Http\Controllers\EventController@store');
+        // Route::post('/{id}', 'App\Http\Controllers\EventController@update');
+        // Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
+    });
 
 });
 

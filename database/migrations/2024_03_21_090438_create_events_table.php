@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('description');
             $table->dateTime('datetime');
             $table->foreignId('field_id');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
