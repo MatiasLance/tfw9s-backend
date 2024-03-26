@@ -17,12 +17,23 @@ class Event extends Model
     ];
 
     protected $with = [
-        'field'
+        'field',
+        'manager',
+        'eventmatch'
 
     ];
 
     public function field()
     {
         return $this->belongsTo(Field::class);
+    }
+    public function manager()
+    {
+        return $this->belongsTo(Manager::class);
+    }
+
+    public function eventmatch()
+    {
+        return $this->hasMany(EventMatch::class);
     }
 }

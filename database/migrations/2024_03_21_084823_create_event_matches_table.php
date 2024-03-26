@@ -15,14 +15,18 @@ return new class extends Migration
     {
         Schema::create('event_matches', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('event_id');
+            $table->dateTime('event_date');
+            $table->time('match_time');
             $table->foreignId('team1');
             $table->foreignId('team2');
-            $table->integer('team1_score');
-            $table->integer('team2_score');
+            $table->integer('team1_score')->default(0);
+            $table->integer('team2_score')->default(0);
             $table->string('winner')->default('none');
             $table->string('losser')->default('none');
             $table->boolean('isDraw')->default(false);
-            $table->foreignId('event_match_video_id');
+            $table->foreignId('event_match_video_id')->nullable()->change();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

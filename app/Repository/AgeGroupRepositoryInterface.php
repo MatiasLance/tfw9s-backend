@@ -12,7 +12,7 @@ interface AgeGroupRepositoryInterface
     /**
      * Maximum ageGroups to be shown per page
      *
-     * @var int MAX_PAGE_ageGroupS
+     * @var int MAX_PAGE_ageGroups
      */
     public const MAX_PAGE_AGEGROUPS = 12;
 
