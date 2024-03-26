@@ -90,7 +90,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_region_per_page'];
+        $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
 
         return new Paginate($events, $maxPerPage, $filters['page'], 'events');
     }

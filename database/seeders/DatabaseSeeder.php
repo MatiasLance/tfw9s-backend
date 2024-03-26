@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
+use App\Models\User;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\Media;
@@ -12,6 +13,7 @@ use App\Models\Region;
 use App\Models\Event;
 use App\Models\Team;
 use App\Models\Field;
+use App\Models\AgeGroup;
 use App\Repository\ItemRepositoryInterface;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -25,6 +27,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+
+        User::factory(10)->create()->each(function ($user) {
+            $role = Role::find(3); // Fetch role with ID 3
+        
+            if ($role) {
+                $user->assignRole($role);
+            }
+        });
+
         // Seed root Categories
         Category::factory()
             ->count(5)
@@ -62,16 +73,18 @@ class DatabaseSeeder extends Seeder
             ->count(15)
             ->create();
 
-        Event::factory()
-            ->count(15)
-            ->create();
-
         Team::factory()
             ->count(15)
             ->create();
 
-        Field::factory()
-            ->count(15)
+        AgeGroup::factory()
+            ->count(7)
             ->create();
+
+            $this->call(ManagersSeeder::class);
+
+            $this->call(EventsSeeder::class);
+
+            $this->call(EventMatchesSeeder::class);
     }
 }

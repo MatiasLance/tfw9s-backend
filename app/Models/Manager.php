@@ -5,13 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AgeGroup extends Model
+class Manager extends Model
 {
     use HasFactory;
-    
-    protected $hidden = [
-        'deleted_at',
-        'created_at',
-        'updated_at',
+
+    protected $with = [
+        'user',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

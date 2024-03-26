@@ -17,13 +17,15 @@ class UserFactory extends Factory
      */
     public function definition()
     {
+
         return [
             'first_name' => $this->faker->firstName,
             'last_name' => $this->faker->lastName,
             'phone' => $this->faker->phoneNumber,
             'email' => $this->faker->safeEmail,
             'email_verified_at' => now(),
-            'password' => bcrypt('thefinalwhistle123'),
+            'subscription_status' => '0',
+            'password' => bcrypt('fighterhive123'), // password
             'remember_token' => Str::random(10),
         ];
     }

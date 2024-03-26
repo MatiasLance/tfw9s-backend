@@ -22,7 +22,7 @@ class EventController extends Controller
         $query = $request->query('q', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
-        $maxEventsPerPage = $request->query('maxeventsPerPage', null);
+        $maxEventsPerPage = $request->query('maxEventsPerPage', null);
 
         $filter = [
             'q' => $query,
