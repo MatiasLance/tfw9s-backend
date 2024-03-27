@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description');
-            $table->dateTime('event_date');
+            $table->date('event_date');
             $table->foreignId('field_id');
             $table->foreignId('manager_id');
             $table->softDeletes();

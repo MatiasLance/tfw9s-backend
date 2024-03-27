@@ -70,11 +70,11 @@ class DatabaseSeeder extends Seeder
             ->create();
 
         Region::factory()
-            ->count(15)
+            ->count(5)
             ->create();
 
         Team::factory()
-            ->count(15)
+            ->count(30)
             ->create();
 
         AgeGroup::factory()

@@ -11,7 +11,7 @@ class EventMatch extends Model
 
     protected $with = [
         'team1',
-        'team2'
+        'team2',
     ];
 
     public function event()

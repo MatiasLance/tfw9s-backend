@@ -18,8 +18,8 @@ class TeamFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->unique()->word,
-            'description' => $this->faker->sentence,
+            'name' => $this->faker->unique()->streetName(),
+            'description' => $this->faker->realText($maxNbChars = 200, $indexSize = 2),
             'field_id' => function () {
                 return Field::factory()->create()->id;
             },

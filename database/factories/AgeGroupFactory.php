@@ -21,7 +21,7 @@ public function definition()
         $maxAge = $this->faker->numberBetween($minAge + 4, 30);
 
         return [
-            'name' => $this->faker->unique()->word,
+            'name' => $this->faker->unique()->numerify('ageGroup-####'),
             'min_age' => $minAge,
             'max_age' => $maxAge,
         ];
