@@ -16,10 +16,6 @@ class AgeGroupController extends Controller
         $this->ageGroupService = $ageGroupService;
     }
 
-    public function test(){
-        return 'AgeGroup Controller have been contacted';
-    }
-
     public function list(Request $request, Message $message)
     {
         $query = $request->query('q', null);

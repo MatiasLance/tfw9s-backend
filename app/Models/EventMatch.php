@@ -11,7 +11,7 @@ class EventMatch extends Model
 
     protected $with = [
         'team1',
-        'team2'
+        'team2',
     ];
 
     public function event()
@@ -33,5 +33,15 @@ class EventMatch extends Model
     public function event_match_video()
     {
         return $this->hasOne(EventMatchVideo::class);
+    }
+
+    public function team1()
+    {
+        return $this->belongsTo(Team::class, 'team1');
+    }
+
+    public function team2()
+    {
+        return $this->belongsTo(Team::class, 'team2');
     }
 }

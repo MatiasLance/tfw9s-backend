@@ -17,8 +17,8 @@ class RegionFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->unique()->word(),
-            'description' => $this->faker->sentence(),
+            'name' => $this->faker->unique()->state(),
+            'description' => $this->faker->realText($maxNbChars = 200, $indexSize = 2),
         ];
     }
 }

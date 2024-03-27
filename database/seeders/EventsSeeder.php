@@ -20,8 +20,8 @@ class EventsSeeder extends Seeder
         foreach (range(1, 5) as $index) { // Adjust the range as needed
             Event::create([
                 'name' => $faker->unique()->word,
-                'description' => $faker->sentence,
-                'event_date' => $faker->dateTime(),
+                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
+                'event_date' => $faker->date(),
                 'field_id' => $faker->randomElement($fieldIds),
                 'manager_id' => $faker->randomElement($managerIds),
             ]);

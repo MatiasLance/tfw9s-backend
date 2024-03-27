@@ -19,7 +19,7 @@ class EventFactory extends Factory
     {
         return [
             'name' => $this->faker->unique()->word,
-            'description' => $this->faker->sentence,
+            'description' => $this->faker->paragraphs(),
             'datetime' => $this->faker->dateTime(),
             'field_id' => function () {
                 return Field::factory()->create()->id;

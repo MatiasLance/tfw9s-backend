@@ -19,8 +19,8 @@ class FieldFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->unique()->word,
-            'description' => $this->faker->sentence,
+            'name' => $this->faker->unique()->city() ,
+            'description' => $this->faker->realText($maxNbChars = 200, $indexSize = 2),
             'region_id' => function () {
                 return Region::factory()->create()->id;
             },
