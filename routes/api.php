@@ -137,6 +137,25 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
         });
 
+        Route::prefix("agegroups")->group(function() {
+            Route::post('/', 'App\Http\Controllers\AgeGroupController@store');
+            Route::post('/{id}', 'App\Http\Controllers\AgeGroupController@update');
+            Route::delete('/{id}', 'App\Http\Controllers\AgeGroupController@delete');
+        });
+
+        Route::prefix("eventmatches")->group(function() {
+            Route::post('/', 'App\Http\Controllers\EventMatchController@store');
+            Route::post('/{id}', 'App\Http\Controllers\EventMatchController@update');
+            Route::delete('/{id}', 'App\Http\Controllers\EventMatchController@delete');
+        });
+
+        Route::prefix("partnersponsors")->group(function() {
+            Route::post('/', 'App\Http\Controllers\PartnerSponsorController@store');
+            Route::post('/{id}', 'App\Http\Controllers\PartnerSponsorController@update');
+            Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
+        });
+
+
     });
 });
 
@@ -261,10 +280,9 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/test', 'App\Http\Controllers\AgeGroupController@test');
         Route::get('/', 'App\Http\Controllers\AgeGroupController@list');
         Route::get('/{id}', 'App\Http\Controllers\AgeGroupController@retrieve');
-        Route::post('/', 'App\Http\Controllers\AgeGroupController@store');
-        Route::post('/{id}', 'App\Http\Controllers\AgeGroupController@update');
-        Route::delete('/{id}', 'App\Http\Controllers\AgeGroupController@delete');
-
+        // Route::post('/', 'App\Http\Controllers\AgeGroupController@store');
+        // Route::post('/{id}', 'App\Http\Controllers\AgeGroupController@update');
+        // Route::delete('/{id}', 'App\Http\Controllers\AgeGroupController@delete');
     });
 
     Route::prefix("teams")->group(function() {
@@ -282,6 +300,22 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         // Route::post('/', 'App\Http\Controllers\EventController@store');
         // Route::post('/{id}', 'App\Http\Controllers\EventController@update');
         // Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
+    });
+
+    Route::prefix("eventmatches")->group(function() {
+        Route::get('/', 'App\Http\Controllers\EventMatchController@list');
+        Route::get('/{id}', 'App\Http\Controllers\EventMatchController@retrieve');
+        // Route::post('/', 'App\Http\Controllers\EventMatchController@store');
+        // Route::post('/{id}', 'App\Http\Controllers\EventMatchController@update');
+        // Route::delete('/{id}', 'App\Http\Controllers\EventMatchController@delete');
+    });
+
+    Route::prefix("partnersponsors")->group(function() {
+        Route::get('/', 'App\Http\Controllers\PartnerSponsorController@list');
+        Route::get('/{id}', 'App\Http\Controllers\PartnerSponsorController@retrieve');
+        // Route::post('/', 'App\Http\Controllers\PartnerSponsorController@store');
+        // Route::post('/{id}', 'App\Http\Controllers\PartnerSponsorController@update');
+        // Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
     });
 
 });

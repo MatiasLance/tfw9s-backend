@@ -13,10 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('event_match_videos', function (Blueprint $table) {
+        Schema::create('videos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('event_match_id');
-            $table->foreignId('video_id');
+            $table->string('hash');
+            $table->string('path');
+            $table->string('format');
+            $table->string('mime_type');
+            $table->integer('size');
             $table->timestamps();
         });
     }
@@ -28,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('event_match_videos');
+        Schema::dropIfExists('videos');
     }
 };
