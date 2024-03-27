@@ -20,7 +20,6 @@ class EventMatchesSeeder extends Seeder
         foreach ($Events as $event) {
             DB::table('event_matches')->insert([
                 'event_id' => $event->id,
-                'event_date' => $event->event_date,
                 'match_time' => $faker->time,
                 'team1' => $faker->randomElement($teamIds),
                 'team2' => $faker->randomElement($teamIds),
@@ -30,7 +29,6 @@ class EventMatchesSeeder extends Seeder
 
             DB::table('event_matches')->insert([
                 'event_id' => $event->id,
-                'event_date' => $event->event_date,
                 'match_time' => $faker->time,
                 'team1' => $faker->randomElement($teamIds),
                 'team2' => $faker->randomElement($teamIds),
@@ -40,7 +38,6 @@ class EventMatchesSeeder extends Seeder
 
             DB::table('event_matches')->insert([
                 'event_id' => $event->id,
-                'event_date' => $event->event_date,
                 'match_time' => $faker->time,
                 'team1' => $faker->randomElement($teamIds),
                 'team2' => $faker->randomElement($teamIds),

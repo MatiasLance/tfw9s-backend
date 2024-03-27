@@ -14,7 +14,7 @@ class Team extends Model
         'created_at',
         'updated_at',
     ];
-    
+
     protected $with = [
         'field'
     ];
@@ -22,6 +22,11 @@ class Team extends Model
     public function field()
     {
         return $this->belongsTo(Field::class);
+    }
+
+    public function eventMatches()
+    {
+        return $this->hasMany(EventMatch::class);
     }
 
 }
