@@ -34,14 +34,4 @@ class EventMatch extends Model
     {
         return $this->hasOne(EventMatchVideo::class);
     }
-
-    public function team1()
-    {
-        return $this->belongsTo(Team::class, 'team1');
-    }
-
-    public function team2()
-    {
-        return $this->belongsTo(Team::class, 'team2');
-    }
 }
