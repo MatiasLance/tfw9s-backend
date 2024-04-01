@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('headline');
             $table->text('lead');
             $table->text('body');
-            $table->dateTime('datetime');
             $table->timestamps();
         });
     }

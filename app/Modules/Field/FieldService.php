@@ -32,12 +32,12 @@ class FieldService implements FieldServiceInterface
         return $this->fieldRepository->retrieveField($id);
     }
 
-    public function createField($name, $description, $region_id): Field
+    public function createField(string $name, string $description, int $region_id): Field
     {
         return $this->fieldRepository->createField($name, $description, $region_id);
     }
 
-    public function updateField(int $id, string $name, string $description, $region_id): bool
+    public function updateField(int $id, string $name, string $description, int $region_id): bool
     {
         return $this->fieldRepository->updateField($id, $name, $description, $region_id);
     }

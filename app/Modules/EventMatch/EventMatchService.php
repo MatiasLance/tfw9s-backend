@@ -6,8 +6,6 @@ use App\Models\User;
 use App\Models\EventMatch;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\EventMatchRepositoryInterface;
-use Doctrine\Common\EventManager;
-use Illuminate\Database\Eloquent\Collection;
 
 class EventMatchService implements EventMatchServiceInterface
 {
@@ -33,18 +31,19 @@ class EventMatchService implements EventMatchServiceInterface
         return $this->eventMatchRepository->retrieveEventMatch($id);
     }
 
-    public function createEventMatch(int $event_id, string $match_time, int $team1, int $team2, int $team1_score, int $team2_score): EventMatch
+    public function createEventMatch(int $event_id, string $match_time, int $team1, int $team2): EventMatch
     {
-        list($winner, $losser, $isDraw) = $this->decision($team1, $team1_score, $team2, $team2_score);
-
-        return $this->eventMatchRepository->createEventMatch($event_id, $match_time, $team1, $team2, $team1_score, $team2_score, $winner, $losser, $isDraw);
+        return $this->eventMatchRepository->createEventMatch($event_id, $match_time, $team1, $team2);
     }
 
-    public function updateEventMatch(int $id, int $event_id, string $match_time, int $team1, int $team2, int $team1_score, int $team2_score): bool
+    public function updateEventMatch(int $id, int $event_id, string $match_time, int $team1, int $team2): bool
     {
-        list($winner, $losser, $isDraw) = $this->decision($team1, $team1_score, $team2, $team2_score);
+        return $this->eventMatchRepository->updateEventMatch($id, $event_id, $match_time, $team1, $team2);
+    }
 
-        return $this->eventMatchRepository->updateEventMatch($id, $event_id, $match_time, $team1, $team2, $team1_score, $team2_score, $winner, $losser, $isDraw);
+    public function storeResult(int $id, int $team1_score, int $team2_score): bool
+    {
+        return $this->eventMatchRepository->storeResult($id, $team1_score, $team2_score);
     }
 
     public function deleteEventMatch(User $initiator, EventMatch $eventMatch): bool
@@ -52,23 +51,4 @@ class EventMatchService implements EventMatchServiceInterface
         return $this->eventMatchRepository->deleteEventMatch($eventMatch->id);
     }
 
-    private function decision(int $team1, int $team1_score, int $team2, int $team2_score): array
-    {
-        $winner = null;
-        $losser = null;
-        $isDraw = false;
-
-        if ($team1_score > $team2_score) {
-            $winner = $team1;
-            $losser = $team2;
-        } elseif ($team1_score < $team2_score) {
-            $winner = $team2;
-            $losser = $team1;
-        } else {
-            $isDraw = true;
-        }
-
-        return [$winner, $losser, $isDraw];
-
-    }
 }

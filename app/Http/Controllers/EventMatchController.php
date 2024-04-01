@@ -48,63 +48,22 @@ class EventMatchController extends Controller
         return $message->render();
     }
 
-    public function store(Request $request, Message $message)
+    public function result(Request $request, Message $message, int $id)
     {
-        $event_id = $request->input('event_id');
-        $match_time = $request->input('match_time');
-        $team1 = $request->input('team1');
-        $team2 = $request->input('team2');
         $team1_score = $request->input('team1_score');
         $team2_score = $request->input('team2_score');
 
-        $eventMatch = $this->eventMatchService->createEventMatch($event_id, $match_time, $team1, $team2, $team1_score, $team2_score);
-
-        if ($eventMatch instanceof EventMatch) {
-            $message->setContent(201, 'EventMatch created', '', [
-                'eventMatch' => $eventMatch
-            ]);
-        } else {
-            $message->setContent(400, 'EventMatch not created');
-        }
-
-        return $message->render();
-    }
-
-    public function update(Request $request, Message $message, int $id)
-    {
-        $event_id = $request->input('event_id');
-        $match_time = $request->input('match_time');
-        $team1 = $request->input('team1');
-        $team2 = $request->input('team2');
-        $team1_score = $request->input('team1_score');
-        $team2_score = $request->input('team2_score');
-
-        $isSuccess = $this->eventMatchService->updateEventMatch($id, $event_id, $match_time, $team1, $team2, $team1_score, $team2_score);
+        $isSuccess = $this->eventMatchService->storeResult($id, $team1_score, $team2_score);
 
         if ($isSuccess) {
-            $message->setContent(200, 'EventMatch updated');
+            $message->setContent(200, 'Result updated');
         } else {
-            $message->setContent(400, 'EventMatch not updated');
+            $message->setContent(400, 'Result not updated');
         }
 
         return $message->render();
     }
 
-    public function delete(Request $request, Message $message, int $id)
-    {
-        $user = $request->user();
-        $eventMatch = $this->eventMatchService->retrieveEventMatch($id);
-
-        $isSuccess = $this->eventMatchService->deleteEventMatch($user, $eventMatch);
-
-        if ($isSuccess) {
-            $message->setContent(200, 'EventMatch deleted');
-        } else {
-            $message->setContent(400, 'EventMatch not updated');
-        }
-
-        return $message->render();
-    }
 }
 
 
