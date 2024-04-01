@@ -15,10 +15,11 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('item_id');
+            $table->unsignedBigInteger('imageable_id');
+            $table->string('imageable_type');
             $table->string('hash');
             $table->string('path');
-            $table->string('format');            
+            $table->string('format');
             $table->string('mime_type');
             $table->integer('size');
             $table->timestamps();

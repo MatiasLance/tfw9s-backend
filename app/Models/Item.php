@@ -99,7 +99,7 @@ class Item extends Model
 
     public function media()
     {
-        return $this->hasMany(Media::class);
+        return $this->morphOne('App\Models\Media', 'imageable');
     }
 
     public function variants()

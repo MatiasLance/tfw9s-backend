@@ -49,15 +49,10 @@ interface EventMatchRepositoryInterface
      * @param string $match_time
      * @param int $team1
      * @param int $team2
-     * @param int $team1_score
-     * @param int $team2_score
-     * @param int|null $winner
-     * @param int|null $losser
-     * @param boolean $isDraw
      *
      * @return eventMatch
      */
-    public function createEventMatch(int $event_id, string $match_time, int $team1, int $team2, int $team1_score, int $team2_score, ?int $winner, ?int $losser, bool $isDraw): EventMatch;
+    public function createEventMatch(int $event_id, string $match_time, int $team1, int $team2): EventMatch;
 
     /**
      * Update an existing eventMatch instance
@@ -67,15 +62,22 @@ interface EventMatchRepositoryInterface
      * @param string $match_time
      * @param int $team1
      * @param int $team2
-     * @param int $team1_score
-     * @param int $team2_score
-     * @param int|null $winner
-     * @param int|null $losser
-     * @param boolean $isDraw
      *
      * @return bool
      */
-    public function updateEventMatch(int $id, int $event_id, string $match_time, int $team1, int $team2, int $team1_score, int $team2_score, ?int $winner, ?int $losser, bool $isDraw): bool;
+    public function updateEventMatch(int $id, int $event_id, string $match_time, int $team1, int $team2): bool;
+
+    /**
+     * Update an existing eventMatch instance
+     *
+     * @param int $id
+     * @param int $team1_score
+     * @param int $team2_score
+     *
+     * @return bool
+     */
+    public function storeResult(int $id, int $team1_score, int $team2_score): bool;
+
 
     /**
      * Delete an existing eventMatch instance

@@ -29,9 +29,13 @@ class EventMatch extends Model
         return $this->belongsTo(Team::class, 'team2');
     }
 
-
     public function event_match_video()
     {
         return $this->hasOne(EventMatchVideo::class);
+    }
+
+    public function media()
+    {
+        return $this->morphOne('App\Models\Media', 'imageable');
     }
 }

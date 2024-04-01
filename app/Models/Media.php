@@ -11,7 +11,6 @@ class Media extends Model
 
     protected $hidden = [
         'id',
-        'item_id',
         'format',
         'mime_type',
         'size',
@@ -19,8 +18,9 @@ class Media extends Model
         'updated_at',
     ];
 
-    public function item()
+    public function imageable()
     {
-        return $this->belongsTo(Item::class);
+        return $this->morphTo();
     }
+
 }

@@ -111,44 +111,53 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         return $this->find($id);
     }
 
-    public function createEventMatch(int $event_id, string $match_time, int $team1, int $team2, int $team1_score, int $team2_score, ?int $winner, ?int $losser, bool $isDraw): EventMatch
+    public function createEventMatch(int $event_id, string $match_time, int $team1, int $team2): EventMatch
     {
         $eventMatch = new EventMatch();
         $eventMatch->event_id = $event_id;
         $eventMatch->match_time = $match_time;
         $eventMatch->team1 = $team1;
         $eventMatch->team2 = $team2;
-        $eventMatch->team1_score = $team1_score;
-        $eventMatch->team2_score = $team2_score;
-        $eventMatch->winner = $winner;
-        $eventMatch->losser = $losser;
-        $eventMatch->isDraw = $isDraw;
 
         return DB::transaction(function() use($eventMatch) {
-            $eventMatch->save();
 
             return $eventMatch;
         });
     }
 
-    public function updateEventMatch(int $id, int $event_id, string $match_time, int $team1, int $team2, int $team1_score, int $team2_score, ?int $winner, ?int $losser, bool $isDraw): bool
+    public function updateEventMatch(int $id, int $event_id, string $match_time, int $team1, int $team2): bool
     {
         $eventMatch = $this->find($id);
         $eventMatch->event_id = $event_id;
         $eventMatch->match_time = $match_time;
         $eventMatch->team1 = $team1;
         $eventMatch->team2 = $team2;
+
+        return DB::transaction(function() use($eventMatch) {
+
+            return $eventMatch->save();
+        });
+    }
+
+    public function storeResult(int $id, int $team1_score, int $team2_score): bool
+    {
+        $eventMatch = $this->find($id);
+        $team1 = $eventMatch->team1;
+        $team2 = $eventMatch->team2;
+
+        list($winner, $losser, $isDraw) = $this->decision($team1, $team2, $team1_score, $team2_score);
+
         $eventMatch->team1_score = $team1_score;
         $eventMatch->team2_score = $team2_score;
         $eventMatch->winner = $winner;
         $eventMatch->losser = $losser;
         $eventMatch->isDraw = $isDraw;
 
-
         return DB::transaction(function() use($eventMatch) {
 
             return $eventMatch->save();
         });
+
     }
 
     public function deleteEventMatch(int $id): bool
@@ -159,5 +168,25 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
 
             return $eventMatch->delete();
         });
+    }
+
+    private function decision(int $team1, int $team2, int $team1_score, int $team2_score): array
+    {
+        $winner = null;
+        $losser = null;
+        $isDraw = false;
+
+        if ($team1_score > $team2_score) {
+            $winner = $team1;
+            $losser = $team2;
+        } elseif ($team1_score < $team2_score) {
+            $winner = $team2;
+            $losser = $team1;
+        } else {
+            $isDraw = true;
+        }
+
+        return [$winner, $losser, $isDraw];
+
     }
 }
