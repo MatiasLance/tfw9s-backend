@@ -9,19 +9,6 @@ class EventMatch extends Model
 {
     use HasFactory;
 
-    
-    protected $hidden = [
-        'deleted_at',
-        'created_at',
-        'updated_at',
-    ];
-
-    protected $fillable = [
-        'match_time',
-        'team1',
-        'team2',
-    ];
-
     protected $with = [
         'team1',
         'team2',
@@ -29,7 +16,7 @@ class EventMatch extends Model
 
     public function event()
     {
-        return $this->belongsTo(Event::class, 'event_id');
+        return $this->belongsTo(Event::class);
     }
 
     public function team1()
@@ -49,6 +36,6 @@ class EventMatch extends Model
 
     public function media()
     {
-        return $this->morphOne('App\Models\Media', 'imageable');
+        return $this->morphOne('App\Media', 'imageable');
     }
 }

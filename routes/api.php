@@ -310,7 +310,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("eventmatches")->group(function() {
         Route::get('/', 'App\Http\Controllers\EventMatchController@list');
         Route::get('/{id}', 'App\Http\Controllers\EventMatchController@retrieve');
-        // Route::post('/{id}', 'App\Http\Controllers\EventMatchController@result');
+        Route::post('/{id}', 'App\Http\Controllers\EventMatchController@result');
     });
 
     Route::prefix("partnersponsors")->group(function() {
@@ -327,6 +327,14 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         // Route::post('/', 'App\Http\Controllers\NewsController@store');
         // Route::post('/{id}', 'App\Http\Controllers\NewsController@update');
         // Route::delete('/{id}', 'App\Http\Controllers\NewsController@delete');
+    });
+
+    Route::prefix("teampositions")->group(function() {
+        Route::get('/', 'App\Http\Controllers\TeamPositionController@list');
+        Route::get('/{id}', 'App\Http\Controllers\TeamPositionController@retrieve');
+        Route::post('/', 'App\Http\Controllers\TeamPositionController@store');
+        Route::post('/update/', 'App\Http\Controllers\TeamPositionController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\TeamPositionController@delete');
     });
 
 });

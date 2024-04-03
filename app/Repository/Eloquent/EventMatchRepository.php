@@ -3,9 +3,11 @@
 namespace App\Repository\Eloquent;
 
 use App\Models\EventMatch;
+use App\Models\TeamPosition;
 use App\Modules\EventMatch\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
+use App\Modules\TeamPosition\TeamPositionServiceInterface;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\EventMatchRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
@@ -20,6 +22,14 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
      * @var StorageInterface $storageService
      */
     protected StorageInterface $storageService;
+
+    /**
+     * TeamPosition Module
+     *
+     * @var TeamPosition $teamPositionService
+     */
+    protected TeamPositionServiceInterface $teamPositionService;
+
 
     /**
      * Default filters for retrieving list of eventMatchs
@@ -54,10 +64,11 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         'max_eventMatch_per_page' => self::MAX_PAGE_EVENTMATCHES,
     ];
 
-    public function __construct(EventMatch $eventMatch, StorageInterface $storageService)
+    public function __construct(EventMatch $eventMatch, StorageInterface $storageService, TeamPositionServiceInterface $teamPositionService)
     {
         parent::__construct($eventMatch);
         $this->storageService = $storageService;
+        $this->teamPositionService = $teamPositionService;
     }
 
     public function listEventMatches(array $userFilters = []): Paginate
@@ -119,6 +130,9 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $eventMatch->team1 = $team1;
         $eventMatch->team2 = $team2;
 
+        $this->teamPositionService->createTeamPosition($event_id, $team1);
+        $this->teamPositionService->createTeamPosition($event_id, $team1);
+
         return DB::transaction(function() use($eventMatch) {
 
             return $eventMatch;
@@ -144,6 +158,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $eventMatch = $this->find($id);
         $team1 = $eventMatch->team1;
         $team2 = $eventMatch->team2;
+        $event_id = $eventMatch->event_id;
 
         list($winner, $losser, $isDraw) = $this->decision($team1, $team2, $team1_score, $team2_score);
 
@@ -152,6 +167,8 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $eventMatch->winner = $winner;
         $eventMatch->losser = $losser;
         $eventMatch->isDraw = $isDraw;
+
+        $this->teamPositionService->updateTeamPosition($event_id, $id);
 
         return DB::transaction(function() use($eventMatch) {
 
