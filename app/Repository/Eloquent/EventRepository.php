@@ -3,6 +3,7 @@
 namespace App\Repository\Eloquent;
 
 use App\Models\Event;
+use App\Models\EventMatch;
 use App\Modules\Event\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
@@ -12,10 +13,12 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use App\Modules\EventMatch\EventMatchServiceInterface;
 use DateTime;
 
 class EventRepository extends BaseRepository implements EventRepositoryInterface
 {
+    protected EventMatchServiceInterface $eventmatchService;
     /**
      * Storage Module
      *
@@ -34,6 +37,12 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
          * This filters the events with a keyword. When this value is null, this filter is skipped.
          */
         'q' => null,
+
+                /**
+         * Event Date keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'event_date' => null,
 
         /**
          * Sort
@@ -56,9 +65,10 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         'max_event_per_page' => self::MAX_PAGE_EVENTS,
     ];
 
-    public function __construct(Event $event, StorageInterface $storageService)
+    public function __construct(Event $event, StorageInterface $storageService, EventMatchServiceInterface $eventmatchService)
     {
         parent::__construct($event);
+        $this->eventmatchService = $eventmatchService;
         $this->storageService = $storageService;
     }
 
@@ -73,6 +83,14 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             $events = $events->where(function ($q) use($filters) {
                 $q
                     ->where('name', 'LIKE', '%' . $filters['q'] . '%');
+            });
+        }
+
+        // Event Date Filter
+        if (!is_null($filters['event_date'])) {
+            $events = $events->where(function ($q) use($filters) {
+                $q
+                    ->where('event_date', 'LIKE', '%' . $filters['event_date'] . '%');
             });
         }
 
@@ -100,32 +118,83 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         return $this->find($id);
     }
 
-    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id): Event
+    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id, int $manager_id, ?array $matches): Event
     {
         $event = new Event();
         $event->name = $name;
         $event->description = $description;
-        $event->datetime = $datetime;
+        $event->event_date = $datetime;
         $event->field_id = $field_id;
+        $event->manager_id = $manager_id;
 
-        return DB::transaction(function() use($event) {
+        return DB::transaction(function() use($event, $matches) {
             $event->save();
+
+            foreach ($matches as $index => $matchesData) {
+                // $match = new EventMatch();
+                // $match->event_id = $event->id;
+                // $match->match_time= $matchesData['time'];
+                // $match->team1 = $matchesData['team1'];
+                // $match->team2 = $matchesData['team2'];
+
+                // $event->eventmatch()->save($match);
+                $event_id = $event->id;
+                $match_time = $matchesData['time'];
+                $team1 = $matchesData['team1'];
+                $team2 = $matchesData['team2'];
+                $team1_score = 0;
+                $team2_score = 0;
+                $matches = $this->eventmatchService->createEventMatch($event_id, $match_time, $team1, $team2, $team1_score, $team2_score);
+                $event->eventmatch()->save($matches);
+            }
 
             return $event;
         });
     }
 
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id): bool
+    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id, $manager_id, ?array $matches): bool
     {
         $event = $this->find($id);
         $event->name = $name;
         $event->description = $description;
-        $event->datetime = $datetime;
+        $event->event_date = $datetime;
         $event->field_id = $field_id;
+        $event->manager_id = $manager_id;
 
-        return DB::transaction(function() use($event) {
+        return DB::transaction(function() use($event, $matches) {
 
-            return $event->save();
+            //return $event->save();
+
+            $existingSponsorIds = $event->eventmatch->pluck('id')->toArray();
+            $matchesToKeepIds = array_column($matches, 'id');
+            $matchesToDeleteIds = array_diff($existingSponsorIds, $matchesToKeepIds);
+
+            foreach ($matches as $index => $matchesData) {
+
+                $existingSponsor = EventMatch::find($matchesData['id']);
+
+                if ($existingSponsor) {
+                    $existingSponsor->update([
+                        'match_time' => $matchesData['time'],
+                        'team1' => $matchesData['team1'],
+                        'team2' => $matchesData['team2'],
+                    ]);
+
+                } else {
+                $match = new EventMatch();
+                $match->event_id = $event->id;
+                $match->match_time= $matchesData['time'];
+                $match->team1 = $matchesData['team1'];
+                $match->team2 = $matchesData['team2'];
+
+                $event->eventmatch()->save($match);
+                }
+            }
+
+            if (!empty($matchesToDeleteIds)) {
+                EventMatch::whereIn('id', $matchesToDeleteIds)->delete();
+            }
+        return $event->save();
         });
     }
 

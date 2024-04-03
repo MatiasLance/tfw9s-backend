@@ -53,6 +53,7 @@ class AuthController extends Controller
         $response = [
             'isLoggedIn' => false,
             'user' => null,
+            'roles' => [],
             'session' => (object)[
                 'lifetime' => intval(env('SESSION_LIFETIME', 120))
             ]
@@ -60,10 +61,26 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            $user = $request->user();
 
             $message->setTitle("User successfully logged in");
             $response['isLoggedIn'] = true;
             $response['user'] = $request->user()->only($exposedAttributes);
+
+            switch (true) {
+                case $user->hasRole('superadmin'):
+                    $response['roles'] = 'superadmin';
+                    break;
+                case $user->hasRole('admin'):
+                    $response['roles'] = 'admin';
+                    break;
+                case $user->hasRole('manager'):
+                    $response['roles'] = 'manager';
+                    break;
+    
+                default:
+                    break;
+                }
 
         }
 

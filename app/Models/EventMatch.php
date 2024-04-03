@@ -9,6 +9,19 @@ class EventMatch extends Model
 {
     use HasFactory;
 
+    
+    protected $hidden = [
+        'deleted_at',
+        'created_at',
+        'updated_at',
+    ];
+
+    protected $fillable = [
+        'match_time',
+        'team1',
+        'team2',
+    ];
+
     protected $with = [
         'team1',
         'team2',
@@ -16,7 +29,7 @@ class EventMatch extends Model
 
     public function event()
     {
-        return $this->belongsTo(Event::class);
+        return $this->belongsTo(Event::class, 'event_id');
     }
 
     public function team1()

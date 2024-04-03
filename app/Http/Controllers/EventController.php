@@ -23,12 +23,14 @@ class EventController extends Controller
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
         $maxEventsPerPage = $request->query('maxEventsPerPage', null);
+        $eventDate = $request->query('eventDate', null);
 
         $filter = [
             'q' => $query,
             'sort' => $sort,
             'page' => $page,
             'max_event_per_page' => $maxEventsPerPage,
+            'event_date' => $eventDate,
         ];
 
         $events = $this->eventService->listEvents($filter);
@@ -51,16 +53,18 @@ class EventController extends Controller
 
     public function store(Request $request, Message $message)
     {
-        $name = $request->input('name');
+        $name = $request->input('name') ?? '';
         $description = $request->input('description') ?? '';
 
         #submit datetime as string
         $datetimeString = $request->input('datetime');
         $field_id = $request->input('field_id');
+        $manager_id = $request->input('manager_id');
+        $matches = $request->input('matches') ?? [];
 
         $datetime = new DateTime($datetimeString);
 
-        $event = $this->eventService->createEvent($name, $description, $datetime, $field_id);
+        $event = $this->eventService->createEvent($name, $description, $datetime, $field_id, $manager_id, $matches);
 
         if ($event instanceof Event) {
             $message->setContent(201, 'Event created', '', [
@@ -75,16 +79,18 @@ class EventController extends Controller
 
     public function update(Request $request, Message $message, int $id)
     {
-        $name = $request->input('name');
+        $name = $request->input('name') ?? '';
         $description = $request->input('description') ?? '';
 
         #submit datetime as string
         $datetimeString = $request->input('datetime');
         $field_id = $request->input('field_id');
+        $manager_id = $request->input('manager_id');
+        $matches = $request->input('matches') ?? [];
 
         $datetime = new DateTime($datetimeString);
 
-        $isSuccess = $this->eventService->updateEvent($id, $name, $description, $datetime, $field_id);
+        $isSuccess = $this->eventService->updateEvent($id, $name, $description, $datetime, $field_id, $manager_id, $matches);
 
         if ($isSuccess) {
             $message->setContent(200, 'Event updated');
