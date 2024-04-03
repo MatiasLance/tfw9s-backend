@@ -41,6 +41,11 @@ class EventMatchService implements EventMatchServiceInterface
         return $this->eventMatchRepository->updateEventMatch($id, $event_id, $match_time, $team1, $team2);
     }
 
+    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool
+    {
+        return $this->eventMatchRepository->updateEventMatchScore($id, $team1_score, $team2_score);
+    }
+
     public function storeResult(int $id, int $team1_score, int $team2_score): bool
     {
         return $this->eventMatchRepository->storeResult($id, $team1_score, $team2_score);

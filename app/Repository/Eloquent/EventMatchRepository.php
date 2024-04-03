@@ -153,6 +153,18 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         });
     }
 
+    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool
+    {
+        $eventMatch = $this->find($id);
+        $eventMatch->team1_score = $team1_score;
+        $eventMatch->team2_score = $team2_score;
+
+        return DB::transaction(function() use($eventMatch) {
+
+            return $eventMatch->save();
+        });
+    }
+
     public function storeResult(int $id, int $team1_score, int $team2_score): bool
     {
         $eventMatch = $this->find($id);

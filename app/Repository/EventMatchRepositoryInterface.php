@@ -67,6 +67,17 @@ interface EventMatchRepositoryInterface
      */
     public function updateEventMatch(int $id, int $event_id, string $match_time, int $team1, int $team2): bool;
 
+        /**
+     * Update an existing eventMatch score
+     *
+     * @param int $id
+     * @param int $team1_score
+     * @param int $team2_score
+     *
+     * @return bool
+     */
+    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool;
+
     /**
      * Update an existing eventMatch instance
      *
