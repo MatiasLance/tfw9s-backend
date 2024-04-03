@@ -5,6 +5,7 @@ namespace App\Modules\Event;
 use App\Models\User;
 use App\Models\Event;
 use App\Modules\Utility\Pagination\Paginate;
+use DateTime;
 use App\Repository\EventRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -32,14 +33,14 @@ class EventService implements EventServiceInterface
         return $this->eventRepository->retrieveEvent($id);
     }
 
-    public function createEvent($name, $description, $datetime, $field_id): Event
+    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id , int$manager_id, ?array $matches): Event
     {
-        return $this->eventRepository->createEvent($name, $description, $datetime, $field_id);
+        return $this->eventRepository->createEvent($name, $description, $datetime, $field_id, $manager_id, $matches);
     }
 
-    public function updateEvent(int $id, string $name, string $description, $datetime, $field_id): bool
+    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id , int$manager_id, ?array $matches): bool
     {
-        return $this->eventRepository->updateEvent($id, $name, $description, $datetime, $field_id);
+        return $this->eventRepository->updateEvent($id, $name, $description, $datetime, $field_id, $manager_id, $matches);
     }
 
     public function deleteEvent(User $initiator, Event $event): bool

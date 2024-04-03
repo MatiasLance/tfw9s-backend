@@ -16,12 +16,15 @@ class EventsSeeder extends Seeder
         $faker = Faker::create();
         $fieldIds = Field::pluck('id')->toArray();
         $managerIds = Manager::pluck('id')->toArray();
+        $currentYear = date('Y');
+        $startDate = $currentYear . '-01-01';
+        $endDate = $currentYear . '-12-31';
 
-        foreach (range(1, 5) as $index) { // Adjust the range as needed
+        foreach (range(1, 10) as $index) { // Adjust the range as needed
             Event::create([
                 'name' => $faker->unique()->word,
                 'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'event_date' => $faker->date(),
+                'event_date' => $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d'),
                 'field_id' => $faker->randomElement($fieldIds),
                 'manager_id' => $faker->randomElement($managerIds),
             ]);

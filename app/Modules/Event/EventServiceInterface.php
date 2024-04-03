@@ -32,14 +32,17 @@ interface EventServiceInterface
     /**
      * Create a new Event
      *
+     * @param int $id
      * @param string $name
      * @param string $description
-     * @param DateTime $datetime
-     * @param field_id
+     * @param int DateTime $datetime
+     * @param int field_id
+     * @param int manager_id
+     * @param ?array matches
      *
      * @return Event
      */
-    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id): Event;
+    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id, int $manager_id, ?array $matches): Event;
 
     /**
      * Update an existing Event
@@ -47,12 +50,14 @@ interface EventServiceInterface
      * @param int $id
      * @param string $name
      * @param string $description
-     * @param DateTime $datetime
-     * @param field_id
+     * @param int DateTime $datetime
+     * @param int field_id
+     * @param int manager_id
+     * @param ?array matches
      *
      * @return bool
      */
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id): bool;
+    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id, int $manager_id, ?array $matches): bool;
 
     /**
      * Delete an existing Event

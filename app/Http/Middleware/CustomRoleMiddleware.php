@@ -52,3 +52,4 @@ class CustomRoleMiddleware
         return false;
     }
 }
+}

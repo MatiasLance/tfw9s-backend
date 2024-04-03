@@ -302,7 +302,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("events")->group(function() {
         Route::get('/', 'App\Http\Controllers\EventController@list');
         Route::get('/{id}', 'App\Http\Controllers\EventController@retrieve');
-        // Route::post('/', 'App\Http\Controllers\EventController@store');
+        Route::post('/', 'App\Http\Controllers\EventController@store');
         // Route::post('/{id}', 'App\Http\Controllers\EventController@update');
         // Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
     });
