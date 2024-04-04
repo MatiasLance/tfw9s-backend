@@ -74,10 +74,10 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
         $filters = array_merge($this->defaultTeamPositionListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
         // Search Filter
+        // Search Filter
         if (!is_null($filters['q'])) {
-            $teamPositions = $teamPositions->where(function ($q) use($filters) {
-                $q
-                    ->where('name', 'LIKE', '%' . $filters['q'] . '%');
+            $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
+                $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
             });
         }
 
