@@ -131,7 +131,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $eventMatch->team2 = $team2;
 
         $this->teamPositionService->createTeamPosition($event_id, $team1);
-        $this->teamPositionService->createTeamPosition($event_id, $team1);
+        $this->teamPositionService->createTeamPosition($event_id, $team2);
 
         return DB::transaction(function() use($eventMatch) {
 
@@ -156,6 +156,9 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
     public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool
     {
         $eventMatch = $this->find($id);
+        $eventMatch->team1_oldScore = $eventMatch->team1_score;
+        $eventMatch->team2_oldScore = $eventMatch->team2_score;
+
         $eventMatch->team1_score = $team1_score;
         $eventMatch->team2_score = $team2_score;
 
@@ -172,6 +175,14 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $team2 = $eventMatch->team2;
         $event_id = $eventMatch->event_id;
 
+        $existingResult = [
+            'team1_score' => $eventMatch->team1_oldScore,
+            'team2_score' => $eventMatch->team2_oldScore,
+            'winner' => $eventMatch->winner,
+            'losser' => $eventMatch->losser,
+            'isDraw' => $eventMatch->isDraw
+        ];
+
         list($winner, $losser, $isDraw) = $this->decision($team1, $team2, $team1_score, $team2_score);
 
         $eventMatch->team1_score = $team1_score;
@@ -180,11 +191,12 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $eventMatch->losser = $losser;
         $eventMatch->isDraw = $isDraw;
 
-        $this->teamPositionService->updateTeamPosition($event_id, $id);
+        return DB::transaction(function() use($eventMatch, $event_id, $id, $existingResult) {
+            $eventMatch->save();
 
-        return DB::transaction(function() use($eventMatch) {
+            $isSuccess = $this->teamPositionService->updateTeamPosition($event_id, $id, $existingResult);
 
-            return $eventMatch->save();
+            return $isSuccess;
         });
 
     }
@@ -199,12 +211,25 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         });
     }
 
+    public function addVideo(int $id, UploadedFile $video): bool
+    {
+        $eventMatch = $this->find($id);
+
+        return DB::transaction(function() use($eventMatch, $video) {
+
+            $fileType = $this->storageService->determineFileType($video);
+
+            $matchVideo = $this->storageService->storeVideo($video, $eventMatch, $fileType);
+            $eventMatch->video()->save($matchVideo);
+
+            return true;
+        });
+    }
+
     private function decision(int $team1, int $team2, int $team1_score, int $team2_score): array
     {
         $winner = null;
-        $losser = null;
-        $isDraw = false;
-
+        $losser = null; $isDraw = false;
         if ($team1_score > $team2_score) {
             $winner = $team1;
             $losser = $team2;

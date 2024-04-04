@@ -48,55 +48,6 @@ class TeamPositionController extends Controller
         return $message->render();
     }
 
-    public function store(Request $request, Message $message)
-    {
-        $event_id = $request->input('event_id');
-        $team_id = $request->input('team_id');
-
-        $teamPosition = $this->teamPositionService->createTeamPosition($event_id, $team_id);
-
-        if ($teamPosition instanceof TeamPosition) {
-            $message->setContent(201, 'TeamPosition created', '', [
-                'teamPosition' => $teamPosition
-            ]);
-        } else {
-            $message->setContent(400, 'TeamPosition not created');
-        }
-
-        return $message->render();
-    }
-
-    public function update(Request $request, Message $message)
-    {
-        $event_id = $request->input('event_id');
-        $eventMatch_id = $request->input('eventMatch_id');
-
-        $isSuccess = $this->teamPositionService->updateTeamPosition($event_id, $eventMatch_id);
-
-        if ($isSuccess) {
-            $message->setContent(200, 'TeamPosition updated');
-        } else {
-            $message->setContent(400, 'TeamPosition not updated');
-        }
-
-        return $message->render();
-    }
-
-    public function delete(Message $message, int $id)
-    {
-
-        $teamPosition = $this->teamPositionService->retrieveTeamPosition($id);
-
-        $isSuccess = $this->teamPositionService->deleteTeamPosition($$teamPosition);
-
-        if ($isSuccess) {
-            $message->setContent(200, 'TeamPosition deleted');
-        } else {
-            $message->setContent(400, 'TeamPosition not updated');
-        }
-
-        return $message->render();
-    }
 }
 
 

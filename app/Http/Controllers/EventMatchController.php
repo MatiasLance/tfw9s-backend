@@ -64,7 +64,7 @@ class EventMatchController extends Controller
         return $message->render();
     }
 
-    public function result(Request $request, Message $message, int $id)
+    public function storeResult(Request $request, Message $message, int $id)
     {
         $team1_score = $request->input('team1_score');
         $team2_score = $request->input('team2_score');
@@ -75,6 +75,21 @@ class EventMatchController extends Controller
             $message->setContent(200, 'Result updated');
         } else {
             $message->setContent(400, 'Result not updated');
+        }
+
+        return $message->render();
+    }
+
+    public function addVideo(Request $request, Message $message, int $id)
+    {
+        $video = $request->file('video');
+
+        $isSuccess = $this->eventMatchService->addVideo($id, $video);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Upload Successful');
+        } else {
+            $message->setContent(400, 'Upload Unsuccessful ');
         }
 
         return $message->render();

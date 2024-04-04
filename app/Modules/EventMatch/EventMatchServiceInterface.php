@@ -6,6 +6,7 @@ use App\Models\EventMatch;
 use App\Models\User;
 use App\Modules\Utility\Pagination\Paginate;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\UploadedFile;
 
 interface EventMatchServiceInterface
 {
@@ -83,5 +84,15 @@ interface EventMatchServiceInterface
      * @return bool
      */
     public function deleteEventMatch(User $initiator, EventMatch $eventMatch): bool;
+
+    /**
+     * Delete an existing EventMatch
+     *
+     * @param int $id
+     * @param UploadedFile $video
+     *
+     * @return bool
+     */
+    public function addVideo(int $id, UploadedFile $video): bool;
 
 }
