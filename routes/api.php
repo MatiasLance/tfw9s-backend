@@ -311,7 +311,8 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/', 'App\Http\Controllers\EventMatchController@list');
         Route::get('/{id}', 'App\Http\Controllers\EventMatchController@retrieve');
         Route::post('/update/{id}', 'App\Http\Controllers\EventMatchController@updatescore');
-        // Route::post('/{id}', 'App\Http\Controllers\EventMatchController@result');
+        Route::post('/{id}', 'App\Http\Controllers\EventMatchController@storeResult');
+        Route::post('/updateresult/{id}', 'App\Http\Controllers\EventMatchController@updatedResult');
     });
 
     Route::prefix("partnersponsors")->group(function() {

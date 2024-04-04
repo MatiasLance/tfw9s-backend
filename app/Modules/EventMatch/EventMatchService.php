@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\EventMatch;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\EventMatchRepositoryInterface;
+use Illuminate\Http\UploadedFile;
 
 class EventMatchService implements EventMatchServiceInterface
 {
@@ -16,10 +17,7 @@ class EventMatchService implements EventMatchServiceInterface
      */
     protected EventMatchRepositoryInterface $eventMatchRepository;
 
-    public function __construct(EventMatchRepositoryInterface $eventMatchRepository)
-    {
-        $this->eventMatchRepository = $eventMatchRepository;
-    }
+    public function __construct(EventMatchRepositoryInterface $eventMatchRepository) { $this->eventMatchRepository = $eventMatchRepository; }
 
     public function listEventMatches(array $filters = []): Paginate
     {
@@ -54,6 +52,11 @@ class EventMatchService implements EventMatchServiceInterface
     public function deleteEventMatch(User $initiator, EventMatch $eventMatch): bool
     {
         return $this->eventMatchRepository->deleteEventMatch($eventMatch->id);
+    }
+
+    public function addVideo(int $id, UploadedFile $video): bool
+    {
+        return $this->eventMatchRepository->addVideo($id, $video);
     }
 
 }

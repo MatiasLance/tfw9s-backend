@@ -20,7 +20,9 @@ return new class extends Migration
             $table->foreignId('team1');
             $table->foreignId('team2');
             $table->integer('team1_score')->default(0);
+            $table->integer('team1_oldScore')->default(0);
             $table->integer('team2_score')->default(0);
+            $table->integer('team2_oldScore')->default(0);
             $table->foreignId('winner')->nullable();
             $table->foreignId('losser')->nullable();
             $table->boolean('isDraw')->default(false);

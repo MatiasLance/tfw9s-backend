@@ -99,4 +99,14 @@ interface EventMatchRepositoryInterface
      */
     public function deleteEventMatch(int $id): bool;
 
+
+    /**
+     * Upload an EventMatch Video
+     *
+     * @param int $id
+     * @param UploadedFile $video
+     *
+     * @return bool
+     */
+    public function addVideo(int $id, UploadedFile $video): bool;
 }

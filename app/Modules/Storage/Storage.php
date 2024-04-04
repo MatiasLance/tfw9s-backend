@@ -2,7 +2,7 @@
 
 namespace App\Modules\Storage;
 
-use App\Models\Resume;
+use App\Models\Video;
 use App\Models\Media;
 use App\Modules\Media\Classes\MimeType;
 use App\Modules\Media\Exceptions\MediaNotAllowedException;
@@ -13,6 +13,7 @@ use App\Modules\Upload\UploadInterface;
 use Exception;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage as StorageFacade;
 use Symfony\Component\HttpFoundation\File\Exception\CannotWriteFileException;
 
@@ -23,13 +24,13 @@ class Storage implements StorageInterface
 
     /**
      * Upload Service
-     * 
+     *
      * @var UploadInterface $uploadService
      */
     protected UploadInterface $uploadService;
 
     /**
-     * The 
+     * The
      */
     protected string $secureDiskRootPath = './storage/app/media/secure';
 
@@ -45,9 +46,9 @@ class Storage implements StorageInterface
 
     /**
      * Retrieve a secure file's temporary url
-     * 
+     *
      * @param string $path
-     * 
+     *
      * @return string
      */
     public function retrieveSecure(string $path): string
@@ -61,18 +62,16 @@ class Storage implements StorageInterface
 
     /**
      * Store the file
-     * 
+     *
      * @param UploadedFile $file
-     * 
+     *
      * @return Media
      */
     public function store(UploadedFile $file): ?Media
     {
         $photo = new Media();
 
-        $isSuccess = DB::transaction(function () use ($photo, $file) {
-            $fileMetadata = $this->getFileMetadata($file);
-            $path = $this->uploadService->upload($file);
+        $isSuccess = DB::transaction(function () use ($photo, $file) { $fileMetadata = $this->getFileMetadata($file); $path = $this->uploadService->upload($file);
 
             $photo->hash = hash_file('sha256', $file);
             $photo->format = $fileMetadata['format'];
@@ -93,10 +92,43 @@ class Storage implements StorageInterface
     }
 
     /**
+     * Store the file
+     *
+     * @param UploadedFile $file
+     * @param Model $model
+     * @param string $fileType
+     *
+     * @return Video
+     */
+    public function storeVideo(UploadedFile $file, Model $model, string $fileType): ?Video
+    {
+        $video = new Video();
+
+        $isSuccess = DB::transaction(function () use ($video, $file, $model, $fileType) {
+            $fileMetadata = $this->getFileMetadata($file);
+            $path = $this->uploadService->upload($file, $model, $fileType);
+
+            $video->hash = hash_file('sha256', $file);
+            $video->format = $fileMetadata['format'];
+            $video->mime_type = $fileMetadata['mimeType'];
+            $video->size = $fileMetadata['size'];
+            $video->path = $path;
+
+            return gettype($path) === 'string';
+        });
+
+        if ($isSuccess) {
+            return $video;
+        } else {
+            throw new CannotWriteFileException('File was not saved.');
+        }
+    }
+
+    /**
      * Delete a media set
-     * 
+     *
      * @param Media $photo
-     * 
+     *
      * @return bool
      */
     public function delete(Media $photo): bool
@@ -106,11 +138,11 @@ class Storage implements StorageInterface
 
     /**
      * Store the file in a secure container
-     * 
+     *
      * @param UploadedFile $file
      * @param string $name
      * @param string $path
-     * 
+     *
      * @return bool
      */
     public function storeSecure(UploadedFile $file, string $name, string $path): bool
@@ -128,9 +160,9 @@ class Storage implements StorageInterface
 
     /**
      * Delete a secure file
-     * 
+     *
      * @param string $path
-     * 
+     *
      * @return bool
      */
     public function deleteSecure(string $path): bool
@@ -141,30 +173,22 @@ class Storage implements StorageInterface
     /**
      * Check the file if its either an image or a video. Throws exception
      * if the file given is neither an image or a video.
-     * 
+     *
      * @param UploadedFile $file
-     * 
+     *
      * @return string
-     * 
-     * @throws MediaNotAllowedException Thrown when the file given is neither
-     *                                  an image or a video.
+     *
      */
-    protected function determineFileType(UploadedFile $file): string
+    public function determineFileType(UploadedFile $file): string
     {
-        if ($this->isImage($file)) {
-            return 'image';
-        } else if ($this->isVideo($file)) {
-            return 'video';
-        } else {
-            throw new MediaNotAllowedException('File given is neither an image or a video.');
-        }
+        return MimeType::determineFileType($file->getMimeType());
     }
 
     /**
      * Checks if the file given is an Image
-     * 
+     *
      * @param mixed $file
-     * 
+     *
      * @return bool
      */
     protected function isImage($file): bool
@@ -174,9 +198,9 @@ class Storage implements StorageInterface
 
     /**
      * Checks if the files given is a Video
-     * 
+     *
      * @param mixed $file
-     * 
+     *
      * @return bool
      */
     protected function isVideo($file): bool

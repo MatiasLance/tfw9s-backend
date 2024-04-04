@@ -2,7 +2,6 @@
 
 namespace App\Modules\TeamPosition;
 
-use App\Models\User;
 use App\Models\TeamPosition;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\TeamPositionRepositoryInterface;
@@ -37,9 +36,9 @@ class TeamPositionService implements TeamPositionServiceInterface
         return $this->teamPositionRepository->createTeamPosition($event_id, $team_id);
     }
 
-    public function updateTeamPosition(int $event_id, int $eventMatch_id): bool
+    public function updateTeamPosition(int $event_id, int $eventMatch_id, array $existingResult): bool
     {
-        return $this->teamPositionRepository->updateTeamPosition($event_id, $eventMatch_id);
+        return $this->teamPositionRepository->updateTeamPosition($event_id, $eventMatch_id, $existingResult);
     }
 
     public function deleteTeamPosition(TeamPosition $teamPosition): bool

@@ -57,10 +57,11 @@ interface TeamPositionRepositoryInterface
      *
      * @param int $event_id
      * @param int $eventMatch_id
+     * @param array $existingResult
      *
      * @return bool
      */
-    public function updateTeamPosition(int $event_id, int $eventMatch_id): bool;
+    public function updateTeamPosition(int $event_id, int $eventMatch_id, array $existingResult): bool;
 
     /**
      * Delete an existing teamPosition instance
