@@ -74,7 +74,7 @@ class DatabaseSeeder extends Seeder
             ->create();
 
         Team::factory()
-            ->count(30)
+            ->count(15)
             ->create();
 
         AgeGroup::factory()
@@ -86,5 +86,7 @@ class DatabaseSeeder extends Seeder
             $this->call(EventsSeeder::class);
 
             $this->call(EventMatchesSeeder::class);
+
+            $this->call(TeamPositionSeeder::class);
     }
 }

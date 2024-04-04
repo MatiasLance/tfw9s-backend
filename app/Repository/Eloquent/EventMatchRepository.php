@@ -190,6 +190,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $eventMatch->winner = $winner;
         $eventMatch->losser = $losser;
         $eventMatch->isDraw = $isDraw;
+        $eventMatch->submitted = true;
 
         return DB::transaction(function() use($eventMatch, $event_id, $id, $existingResult) {
             $eventMatch->save();

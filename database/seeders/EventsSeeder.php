@@ -20,7 +20,7 @@ class EventsSeeder extends Seeder
         $startDate = $currentYear . '-01-01';
         $endDate = $currentYear . '-12-31';
 
-        foreach (range(1, 10) as $index) { // Adjust the range as needed
+        foreach (range(1, 3) as $index) { // Adjust the range as needed
             Event::create([
                 'name' => $faker->unique()->word,
                 'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),

@@ -26,6 +26,7 @@ return new class extends Migration
             $table->foreignId('winner')->nullable();
             $table->foreignId('losser')->nullable();
             $table->boolean('isDraw')->default(false);
+            $table->boolean('submitted')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });
