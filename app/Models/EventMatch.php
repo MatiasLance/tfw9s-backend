@@ -9,6 +9,10 @@ class EventMatch extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'match_time',
+    ];
+
     protected $with = [
         'team1',
         'team2',

@@ -22,12 +22,14 @@ class TeamPositionController extends Controller
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
         $maxTeamPositionsPerPage = $request->query('maxTeamPositionsPerPage', null);
+        $event = $request->query('event', null);
 
         $filter = [
             'q' => $query,
             'sort' => $sort,
             'page' => $page,
             'max_teamPosition_per_page' => $maxTeamPositionsPerPage,
+            'event' => $event,
         ];
 
         $teamPositions = $this->teamPositionService->listTeamPositions($filter);

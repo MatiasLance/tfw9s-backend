@@ -53,6 +53,12 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
          * Maximum number of teamPositions shown per page. When 0 or null is passed, will get every teamPosition
          */
         'max_teamPosition_per_page' => self::MAX_PAGE_TEAMPOSITIONS,
+
+                /**
+         * event keyword
+         * This filters the teamPositions with a keyword. When this value is null, this filter is skipped.
+         */
+        'event' => null,
     ];
 
     public function __construct(TeamPosition $teamPosition, StorageInterface $storageService)
@@ -68,20 +74,27 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
         $filters = array_merge($this->defaultTeamPositionListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
         // Search Filter
+        // Search Filter
         if (!is_null($filters['q'])) {
+            $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
+                $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
+            });
+        }
+
+        if (!is_null($filters['event'])) {
             $teamPositions = $teamPositions->where(function ($q) use($filters) {
                 $q
-                    ->where('name', 'LIKE', '%' . $filters['q'] . '%');
+                    ->where('event_id', 'LIKE', '%' . $filters['event'] . '%');
             });
         }
 
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
-                $teamPositions = $teamPositions->orderBy('name');
+                $teamPositions = $teamPositions->orderBy('position');
                 break;
 
             case Filter::SORT_Z_TO_A:
-                $teamPositions = $teamPositions->orderByDesc('name');
+                $teamPositions = $teamPositions->orderByDesc('position');
                 break;
 
             default:
@@ -89,7 +102,7 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_teamPosition_per_page']) ? $teamPositions->count() : $filters['max_field_per_page'];
+        $maxPerPage = is_null($userFilters['max_teamPosition_per_page']) ? $teamPositions->count() : $filters['max_teamPosition_per_page'];
 
         return new Paginate($teamPositions, $maxPerPage, $filters['page'], 'teamPositions');
     }
