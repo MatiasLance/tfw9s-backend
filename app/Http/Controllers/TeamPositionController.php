@@ -23,6 +23,7 @@ class TeamPositionController extends Controller
         $page = $request->query('page', null);
         $maxTeamPositionsPerPage = $request->query('maxTeamPositionsPerPage', null);
         $event = $request->query('event', null);
+        $year = $request->query('year', null);
 
         $filter = [
             'q' => $query,
@@ -30,6 +31,7 @@ class TeamPositionController extends Controller
             'page' => $page,
             'max_teamPosition_per_page' => $maxTeamPositionsPerPage,
             'event' => $event,
+            'year' => $year,
         ];
 
         $teamPositions = $this->teamPositionService->listTeamPositions($filter);

@@ -257,6 +257,8 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
 
     Route::prefix("regions")->group(function() {
         Route::get('/', 'App\Http\Controllers\RegionController@list');
+        Route::post('/', 'App\Http\Controllers\RegionController@store');
+        Route::post('/update/{id}', 'App\Http\Controllers\RegionController@update');
         Route::get('/{id}', 'App\Http\Controllers\RegionController@retrieve');
         // Route::post('/', 'App\Http\Controllers\RegionController@store');
         // Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
