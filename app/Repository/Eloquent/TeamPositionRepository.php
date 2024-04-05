@@ -54,11 +54,17 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
          */
         'max_teamPosition_per_page' => self::MAX_PAGE_TEAMPOSITIONS,
 
-                /**
+        /**
          * event keyword
          * This filters the teamPositions with a keyword. When this value is null, this filter is skipped.
          */
         'event' => null,
+
+        /**
+         * event keyword
+         * This filters the teamPositions with a keyword. When this value is null, this filter is skipped.
+         */
+        'year' => null,
     ];
 
     public function __construct(TeamPosition $teamPosition, StorageInterface $storageService)
@@ -74,10 +80,16 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
         $filters = array_merge($this->defaultTeamPositionListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
         // Search Filter
-        // Search Filter
         if (!is_null($filters['q'])) {
             $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
                 $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
+            });
+        }
+
+        // Year Filter
+        if (!is_null($filters['year'])) {
+            $teamPositions = $teamPositions->whereHas('event', function ($q) use ($filters) {
+                $q->where('event_date', 'LIKE', '%' . $filters['year'] . '%');
             });
         }
 
