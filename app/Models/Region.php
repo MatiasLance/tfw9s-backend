@@ -11,25 +11,34 @@ class Region extends Model
     use HasFactory, SoftDeletes;
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     protected $hidden = [
         'deleted_at',
 =======
+=======
+>>>>>>> Stashed changes
         /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>
      */
     protected $hidden = [
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         'created_at',
         'updated_at',
     ];
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     public function fields()
     {
         return $this->hasMany(Field::class);
     }
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 }
