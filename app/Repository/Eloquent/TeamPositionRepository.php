@@ -166,20 +166,20 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
 
         if ($existingResult['winner'] == $team1) {
             $team1Position->win -= 1;
-            $team1Position->points -= 4;
+            $team1Position->points -= 2;
 
             $team2Position->loss -= 1;
         } elseif ($existingResult['losser'] == $team2) {
             $team2Position->win -= 1;
-            $team2Position->points -= 4;
+            $team2Position->points -= 2;
 
             $team1Position->loss -= 1;
         } elseif ($existingResult['isDraw']) {
             $team1Position->draw -= 1;
-            $team1Position->points -= 2;
+            $team1Position->points -= 1;
 
             $team2Position->draw -= 1;
-            $team2Position->points -= 2;
+            $team2Position->points -= 1;
         }
 
         # set new
@@ -195,20 +195,20 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
 
         if ($eventMatch->winner == $team1) {
             $team1Position->win += 1;
-            $team1Position->points += 4;
+            $team1Position->points += 2;
 
             $team2Position->loss += 1;
         } elseif ($eventMatch->winner == $team2) {
             $team2Position->win += 1;
-            $team2Position->points += 4;
+            $team2Position->points += 2;
 
             $team1Position->loss += 1;
         } else {
             $team1Position->draw += 1;
-            $team1Position->points += 2;
+            $team1Position->points += 1;
 
             $team2Position->draw += 1;
-            $team2Position->points += 2;
+            $team2Position->points += 1;
         }
 
         return DB::transaction(function() use($team1Position, $team2Position, $event_id) {
