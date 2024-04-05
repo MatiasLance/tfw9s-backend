@@ -112,7 +112,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             break;
         }
 
-        $maxPerPage = is_null($userFilters['max_eventMatch_per_page']) ? $eventMatches->count() : $filters['max_field_per_page'];
+        $maxPerPage = is_null($userFilters['max_eventMatch_per_page']) ? $eventMatches->count() : $filters['max_eventMatch_per_page'];
 
         return new Paginate($eventMatches, $maxPerPage, $filters['page'], 'eventMatches');
     }
