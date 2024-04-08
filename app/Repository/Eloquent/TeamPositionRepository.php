@@ -93,6 +93,7 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
             });
         }
 
+        // Event Filter
         if (!is_null($filters['event'])) {
             $teamPositions = $teamPositions->where(function ($q) use($filters) {
                 $q

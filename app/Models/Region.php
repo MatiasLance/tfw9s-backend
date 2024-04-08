@@ -20,8 +20,4 @@ class Region extends Model
         'deleted_at',
     ];
 
-    public function fields()
-    {
-        return $this->hasMany(Field::class);
-    }
 }

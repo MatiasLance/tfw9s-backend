@@ -63,6 +63,18 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
          * Maximum number of events shown per page. When 0 or null is passed, will get every event
          */
         'max_event_per_page' => self::MAX_PAGE_EVENTS,
+
+        /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'event' => null,
+
+        /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'year' => null,
     ];
 
     public function __construct(Event $event, StorageInterface $storageService, EventMatchServiceInterface $eventmatchService)
@@ -91,6 +103,22 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             $events = $events->where(function ($q) use($filters) {
                 $q
                     ->where('event_date', 'LIKE', '%' . $filters['event_date'] . '%');
+            });
+        }
+
+        // Year Filter
+        if (!is_null($filters['year'])) {
+            $events = $events->where(function ($q) use($filters) {
+                $q
+                    ->where('event_date', 'LIKE', '%' . $filters['year'] . '%');
+            });
+        }
+
+        // Event Filter
+        if (!is_null($filters['event'])) {
+            $events = $events->where(function ($q) use($filters) {
+                $q
+                    ->where('id', 'LIKE', '%' . $filters['event'] . '%');
             });
         }
 
