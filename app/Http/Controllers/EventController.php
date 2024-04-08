@@ -24,6 +24,8 @@ class EventController extends Controller
         $page = $request->query('page', null);
         $maxEventsPerPage = $request->query('maxEventsPerPage', null);
         $eventDate = $request->query('eventDate', null);
+        $event = $request->query('event', null);
+        $year = $request->query('year', null);
 
         $filter = [
             'q' => $query,
@@ -31,6 +33,8 @@ class EventController extends Controller
             'page' => $page,
             'max_event_per_page' => $maxEventsPerPage,
             'event_date' => $eventDate,
+            'event' => $event,
+            'year' => $year,
         ];
 
         $events = $this->eventService->listEvents($filter);

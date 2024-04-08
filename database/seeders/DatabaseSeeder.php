@@ -77,9 +77,7 @@ class DatabaseSeeder extends Seeder
             ->count(15)
             ->create();
 
-        AgeGroup::factory()
-            ->count(7)
-            ->create();
+            $this->call(AgeGroupsSeeder::class);
 
             $this->call(ManagersSeeder::class);
 
