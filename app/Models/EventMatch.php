@@ -38,8 +38,4 @@ class EventMatch extends Model
         return $this->hasOne(EventMatchVideo::class);
     }
 
-    public function media()
-    {
-        return $this->morphOne('App\Media', 'imageable');
-    }
 }
