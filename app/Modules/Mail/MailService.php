@@ -15,20 +15,20 @@ class MailService implements MailServiceInterface
         $mail = new Invoice($order);
         $content = $mail->render();
 
-        $adminSubject = 'You have a new order on thedrumhq.com.au!';
-        $customerSubject = 'Here is the invoice for your recent order on thedrumhq.com.au';
+        $adminSubject = 'You have a new order on thefinalwhistle.com.au!';
+        $customerSubject = 'Here is the invoice for your recent order on thefinalwhistle.com.au';
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'hello@thedrumhq.com.au')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'hello@thefinalwhistle.com.au')], $adminSubject, $content);
         $this->send([$order->email], $customerSubject, $content);
     }
 
     public function sendContactForm(array $data)
     {
         $to = [
-            env('ADMIN_EMAIL_ADDRESS', 'hello@thedrumhq.com.au')
+            env('ADMIN_EMAIL_ADDRESS', 'hello@thefinalwhistle.com.au')
         ];
 
-        $subject = 'You have a new message from ' . $data['name'] . ' via thedrumhq.com.au';
+        $subject = 'You have a new message from ' . $data['name'] . ' via thefinalwhistle.com.au';
 
         $mail = new NewContactMessage($data['name'], $data['email'], $data['message']);
         $content = $mail->render();

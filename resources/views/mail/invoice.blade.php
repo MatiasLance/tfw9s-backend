@@ -29,11 +29,11 @@
                                         <tbody>
                                             <tr>
                                                 <td align="center">
-                                                    <a href="http://thedrumhq.com.au/">
+                                                    <a href="http://128.199.231.34/">
                                                         <img
-                                                            style="padding: 0.5rem;"
-                                                            src="https://i.imgur.com/fjx6udM.png"
-                                                            alt="Drum HQ Logo"
+                                                            style="padding: 5rem;"
+                                                            src="http://128.199.231.34/_nuxt/img/the-final-whistle-logo.556b9dd.png"
+                                                            alt="TFW Rugby League Logo"
                                                         />
                                                     </a>
                                                 </td>
@@ -54,7 +54,7 @@
                                                 </td>
                                                 <td width="40%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
                                                     <div>
-                                                        <b>Drum HQ</b>
+                                                        <b>TFW Rugby League</b>
                                                     </div>
                                                     <div></div>
                                                     <div></div>
@@ -65,7 +65,7 @@
                                                                 <b>Email:</b>
                                                             </span>
                                                             <span>
-                                                                {{ env('ADMIN_EMAIL_ADDRESS', 'tech1.sumomedia@gmail.com') }}
+                                                                {{ env('ADMIN_EMAIL_ADDRESS', 'tech18@sumomedia.co') }}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -84,7 +84,7 @@
                                 </td>
                             </tr>
                             <!-- End header Section -->
-                            
+
                             <!-- Start address Section -->
                             <tr>
                                 <td style="padding-top: 0;">
@@ -150,7 +150,7 @@
                                 </td>
                             </tr>
                             <!-- End address Section -->
-                            
+
                             <!-- Start product Section -->
 
                             @foreach($order->items as $lineItem)
@@ -160,7 +160,7 @@
                                         <tbody>
                                             <tr>
                                                 <td rowspan="5" style="padding-right: 10px; padding-bottom: 10px;">
-                                                    <img style="height: 80px;" src="{{ $lineItem->thumbnail }}" alt="Product Image" />
+                                                    <img style="height: 80px;" src={{ $lineItem->thumbnail }} alt="Product Image" />
                                                 </td>
                                                 <td colspan="2" style="font-size: 14px; font-weight: bold; color: #666666; padding-bottom: 11px;">
                                                     {{ $lineItem->item->name }}
@@ -191,7 +191,7 @@
                             </tr>
                             @endForeach
                             <!-- End product Section -->
-                            
+
                             <!-- Start calculation Section -->
                             <tr>
                                 <td style="padding-top: 0;">
@@ -241,7 +241,7 @@
                                 </td>
                             </tr>
                             <!-- End calculation Section -->
-                            
+
                             <!-- Start Remarks Section -->
                             <tr>
                                 <td style="padding: 0 10px;">
@@ -262,7 +262,7 @@
                                 </td>
                             </tr>
                             <!-- End Remarks Section -->
-                            
+
                             <!-- Start payment method Section -->
                             <tr>
                                 <td style="padding: 0 10px;">
@@ -279,7 +279,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with Drum HQ.
+                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with TFW Rugby League.
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -293,7 +293,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center;">
-                                                    <p>&copy; 2022-<?=date("Y");?> Drum HQ</p>
+                                                    <p>&copy; 2024-<?=date("Y");?> TFW Rugby League</p>
                                                 </td>
                                             </tr>
                                         </tbody>
