@@ -46,12 +46,12 @@ interface NewsRepositoryInterface
      * Create a new news instance
      *
      * @param string $headline
-     * @param string $lead
-     * @param string $body
+     * @param string $content
+     * @param array|null<UploadedFile> $image
      *
      * @return news
      */
-    public function createNews(string $headline, string $lead, string $body): News;
+    public function createNews(string $headline, string $content, array $image): News;
 
     /**
      * Update an existing news instance

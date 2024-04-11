@@ -27,7 +27,7 @@ class CategoryFactory extends Factory
         }
         return [
             'parent_id' => $parentId,
-            'name' => $this->faker->word(),
+            'name' => 'category ' . $this->faker->unique()->numberBetween(1, 1000),
         ];
     }
 }

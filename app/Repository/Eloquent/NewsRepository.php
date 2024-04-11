@@ -88,7 +88,7 @@ class NewsRepository extends BaseRepository implements NewsRepositoryInterface
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_news_per_page']) ? $news->count() : $filters['max_field_per_page'];
+        $maxPerPage = is_null($userFilters['max_news_per_page']) ? $news->count() : $filters['max_news_per_page'];
 
         return new Paginate($news, $maxPerPage, $filters['page'], 'news');
     }
@@ -98,15 +98,22 @@ class NewsRepository extends BaseRepository implements NewsRepositoryInterface
         return $this->find($id);
     }
 
-    public function createNews(string $headline, string $lead, string $body): News
+    public function createNews(string $headline, string $content, array $image): News
     {
         $news = new News();
         $news->headline = $headline;
-        $news->lead = $lead;
-        $news->body = $body;
+        $news->content = $content;
 
-        return DB::transaction(function() use($news) {
+        return DB::transaction(function() use($news, $image) {
             $news->save();
+
+            foreach ($image as $file) {
+              if (!is_null($file)) {
+
+                  $newsImage = $this->storageService->store($file);
+                  $news->images()->save($newsImage);
+              }
+            }
 
             return $news;
         });

@@ -52,10 +52,11 @@ class NewsController extends Controller
     public function store(Request $request, Message $message)
     {
         $headline = $request->input('headline');
-        $lead = $request->input('lead') ?? '';
-        $body = $request->input('body');
+        $lead = $request->input('content');
 
-        $news = $this->newsService->createNews($headline, $lead, $body);
+        $image = $request->file('photo') ?? [];
+
+        $news = $this->newsService->createNews($headline, $lead, $image);
 
         if ($news instanceof News) {
             $message->setContent(201, 'News created', '', [

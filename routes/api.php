@@ -328,9 +328,9 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("news")->group(function() {
         Route::get('/', 'App\Http\Controllers\NewsController@list');
         Route::get('/{id}', 'App\Http\Controllers\NewsController@retrieve');
-        // Route::post('/', 'App\Http\Controllers\NewsController@store');
-        // Route::post('/{id}', 'App\Http\Controllers\NewsController@update');
-        // Route::delete('/{id}', 'App\Http\Controllers\NewsController@delete');
+        Route::post('/', 'App\Http\Controllers\NewsController@store');
+        Route::post('/{id}', 'App\Http\Controllers\NewsController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\NewsController@delete');
     });
 
     Route::prefix("teampositions")->group(function() {

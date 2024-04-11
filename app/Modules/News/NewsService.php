@@ -33,9 +33,9 @@ class NewsService implements NewsServiceInterface
         return $this->newsRepository->retrieveNews($id);
     }
 
-    public function createNews(string $headline, string $lead, string $body): News
+    public function createNews(string $headline, string $content, array $image): News
     {
-        return $this->newsRepository->createNews($headline, $lead, $body);
+        return $this->newsRepository->createNews($headline, $content, $image);
     }
 
     public function updateNews(int $id, string $headline, string $lead, string $body): bool

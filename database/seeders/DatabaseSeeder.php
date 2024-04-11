@@ -11,6 +11,7 @@ use App\Models\Media;
 use App\Models\Tag;
 use App\Models\Region;
 use App\Models\Event;
+use App\Models\News;
 use App\Models\Team;
 use App\Models\Field;
 use App\Models\AgeGroup;
@@ -30,7 +31,7 @@ class DatabaseSeeder extends Seeder
 
         User::factory(10)->create()->each(function ($user) {
             $role = Role::find(3); // Fetch role with ID 3
-        
+
             if ($role) {
                 $user->assignRole($role);
             }
@@ -74,6 +75,10 @@ class DatabaseSeeder extends Seeder
             ->create();
 
         Team::factory()
+            ->count(15)
+            ->create();
+
+        News::factory()
             ->count(15)
             ->create();
 
