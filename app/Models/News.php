@@ -9,4 +9,13 @@ class News extends Model
 {
     use HasFactory;
 
+    protected $with = [
+        'images'
+    ];
+
+    public function images()
+    {
+        return $this->morphOne('App\Models\Image', 'imageable');
+    }
+
 }

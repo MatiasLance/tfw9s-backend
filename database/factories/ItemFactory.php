@@ -17,11 +17,13 @@ class ItemFactory extends Factory
     public function definition()
     {
         $price = $this->faker->numberBetween(1, 15) * 10;
-        $onSale = fake()->boolean();
+        $onSale = $this->faker->boolean();
 
         return [
-            'name' => $this->faker->word(),
-            'description' => '<p>' . $this->faker->paragraph() . '</p>',
+            'name' => 'item ' . $this->faker->unique()->numberBetween(1, 100),
+            'description' => '<p>' . 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            Curabitur commodo est in quam feugiat tristique nec id urna. Duis eu neque tempor, aliquam nisl eget, dignissim dolor.
+            Aenean finibus imperdiet porttitor.' . '</p>',
             'price' => $price,
             'saleprice' => $this->faker->randomFloat(2, 100, $price),
             'show_rrp' => $onSale, // Add show_rrp
@@ -31,3 +33,4 @@ class ItemFactory extends Factory
         ];
     }
 }
+
