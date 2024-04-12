@@ -13,6 +13,7 @@ class Media extends Model
         'id',
         'format',
         'item_id',
+        'team_id',
         'mime_type',
         'size',
         'created_at',

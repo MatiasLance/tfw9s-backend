@@ -19,6 +19,7 @@ class Event extends Model
     protected $with = [
         'field',
         'manager',
+        'agegroup',
         'eventmatch'
 
     ];
@@ -31,9 +32,13 @@ class Event extends Model
     {
         return $this->belongsTo(Manager::class);
     }
-
+    public function agegroup()
+    {
+        return $this->belongsTo(AgeGroup::class);
+    }
     public function eventmatch()
     {
         return $this->hasMany(EventMatch::class);
     }
+
 }

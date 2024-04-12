@@ -70,19 +70,17 @@ class DatabaseSeeder extends Seeder
             )
             ->create();
 
-        Region::factory()
-            ->count(5)
-            ->create();
+            $this->call(RegionsSeeder::class);
 
-        Team::factory()
-            ->count(15)
-            ->create();
+            $this->call(FieldsSeeder::class);
 
         News::factory()
             ->count(15)
             ->create();
 
             $this->call(AgeGroupsSeeder::class);
+
+            $this->call(TeamsSeeder::class);
 
             $this->call(ManagersSeeder::class);
 

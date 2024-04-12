@@ -98,26 +98,39 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         return $this->find($id);
     }
 
-    public function createTeam(string $name, string $description, int $field_id): Team
+    public function createTeam(string $name, string $description, int $field_id, int $agegroup_id, array $coach, array $manager, ?array $media): Team
     {
         $team = new Team();
         $team->name = $name;
         $team->description = $description;
         $team->field_id = $field_id;
+        $team->agegroup_id = $agegroup_id;
 
-        return DB::transaction(function() use($team) {
+        return DB::transaction(function() use($team,$media) {
             $team->save();
+
+            // foreach ($media as $file) {
+            //     if (!is_null($file)) {
+            //       $fileType = $this->storageService->determineFileType($file);
+
+            //       if ($fileType === 'image') {
+            //         $teamMedia = $this->storageService->store($file, $team, $fileType);
+            //         $team->media()->save($teamMedia);
+            //       }
+            //     }
+            //   }
 
             return $team;
         });
     }
 
-    public function updateTeam(int $id, string $name, string $description, int $field_id): bool
+    public function updateTeam(int $id, string $name, string $description, int $field_id, int $agegroup_id, array $coach, array $manager, ?array $media): bool
     {
         $team = $this->find($id);
         $team->name = $name;
         $team->description = $description;
         $team->field_id = $field_id;
+        $team->agegroup_id = $agegroup_id;
 
         return DB::transaction(function() use($team) {
 

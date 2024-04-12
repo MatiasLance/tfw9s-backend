@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->date('event_date');
-            $table->foreignId('field_id');
-            $table->foreignId('manager_id');
+            $table->foreignId('field_id')->nullable();
+            $table->foreignId('manager_id')->nullable();
+            $table->foreignId('agegroup_id')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

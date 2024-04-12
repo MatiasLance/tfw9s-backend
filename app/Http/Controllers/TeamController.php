@@ -53,8 +53,30 @@ class TeamController extends Controller
         $name = $request->input('name');
         $description = $request->input('description') ?? '';
         $field_id = $request->input('field_id');
+        $agegroup_id = $request->input('agegroup_id');
+        $media = $request->file('photo') ?? [];
 
-        $team = $this->teamService->createTeam($name, $description, $field_id);
+        $coach_name = $request->input('coach_name');
+        $coach_mobile = $request->input('coach_mobile');
+        $coach_email = $request->input('coach_email');
+
+        $manager_name = $request->input('manager_name');
+        $manager_mobile = $request->input('manager_mobile');
+        $manager_email = $request->input('manager_email');
+
+        $coach = [
+            'name' => $coach_name,
+            'mobile' => $coach_mobile,
+            'email' => $coach_email,
+        ];
+
+        $manager = [
+            'name' => $manager_name,
+            'mobile' => $manager_mobile,
+            'email' => $manager_email,
+        ];
+
+        $team = $this->teamService->createTeam($name, $description, $field_id, $agegroup_id, $coach, $manager, $media);
 
         if ($team instanceof Team) {
             $message->setContent(201, 'Team created', '', [
@@ -72,8 +94,30 @@ class TeamController extends Controller
         $name = $request->input('name');
         $description = $request->input('description') ?? '';
         $field_id = $request->input('field_id');
+        $agegroup_id = $request->input('agegroup_id');
+        $media = $request->file('photo') ?? [];
+        
+        $coach_name = $request->input('coach_name');
+        $coach_mobile = $request->input('coach_mobile');
+        $coach_email = $request->input('coach_email');
 
-        $isSuccess = $this->teamService->updateTeam($id, $name, $description, $field_id);
+        $manager_name = $request->input('manager_name');
+        $manager_mobile = $request->input('manager_mobile');
+        $manager_email = $request->input('manager_email');
+
+        $coach = [
+            'name' => $coach_name,
+            'mobile' => $coach_mobile,
+            'email' => $coach_email,
+        ];
+
+        $manager = [
+            'name' => $manager_name,
+            'mobile' => $manager_mobile,
+            'email' => $manager_email,
+        ];
+
+        $isSuccess = $this->teamService->updateTeam($id, $name, $description, $field_id, $agegroup_id, $coach, $manager, $media);
 
         if ($isSuccess) {
             $message->setContent(200, 'Team updated');
