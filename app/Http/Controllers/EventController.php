@@ -64,11 +64,12 @@ class EventController extends Controller
         $datetimeString = $request->input('datetime');
         $field_id = $request->input('field_id');
         $manager_id = $request->input('manager_id');
+        $agegroup_id = $request->input('agegroup_id');
         $matches = $request->input('matches') ?? [];
 
         $datetime = new DateTime($datetimeString);
 
-        $event = $this->eventService->createEvent($name, $description, $datetime, $field_id, $manager_id, $matches);
+        $event = $this->eventService->createEvent($name, $description, $datetime, $field_id, $manager_id, $agegroup_id, $matches);
 
         if ($event instanceof Event) {
             $message->setContent(201, 'Event created', '', [
@@ -90,11 +91,12 @@ class EventController extends Controller
         $datetimeString = $request->input('datetime');
         $field_id = $request->input('field_id');
         $manager_id = $request->input('manager_id');
+        $agegroup_id = $request->input('agegroup_id');
         $matches = $request->input('matches') ?? [];
 
         $datetime = new DateTime($datetimeString);
 
-        $isSuccess = $this->eventService->updateEvent($id, $name, $description, $datetime, $field_id, $manager_id, $matches);
+        $isSuccess = $this->eventService->updateEvent($id, $name, $description, $datetime, $field_id, $manager_id, $agegroup_id, $matches);
 
         if ($isSuccess) {
             $message->setContent(200, 'Event updated');

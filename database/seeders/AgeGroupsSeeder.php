@@ -17,13 +17,13 @@ class AgeGroupsSeeder extends Seeder
     public function run()
     {
         $ageGroups = [
-            ['name' => 'U6', 'min_age' => 5, 'max_age' => 6],
-            ['name' => 'U7', 'min_age' => 6, 'max_age' => 7],
-            ['name' => 'U8', 'min_age' => 7, 'max_age' => 8],
-            ['name' => 'U9', 'min_age' => 8, 'max_age' => 9],
-            ['name' => 'U10', 'min_age' => 9, 'max_age' => 10],
-            ['name' => 'U11', 'min_age' => 10, 'max_age' => 11],
-            ['name' => 'U12', 'min_age' => 11, 'max_age' => 12],
+            ['name' => 'Under 6', 'min_age' => 5, 'max_age' => 6],
+            ['name' => 'Under 7', 'min_age' => 6, 'max_age' => 7],
+            ['name' => 'Under 8', 'min_age' => 7, 'max_age' => 8],
+            ['name' => 'Under 9', 'min_age' => 8, 'max_age' => 9],
+            ['name' => 'Under 10', 'min_age' => 9, 'max_age' => 10],
+            ['name' => 'Under 11', 'min_age' => 10, 'max_age' => 11],
+            ['name' => 'Under 12', 'min_age' => 11, 'max_age' => 12],
         ];
 
         foreach ($ageGroups as $ageGroup) {

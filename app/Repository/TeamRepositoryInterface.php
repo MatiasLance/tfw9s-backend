@@ -48,10 +48,14 @@ interface TeamRepositoryInterface
      * @param string $name
      * @param string $description
      * @param int $field_id
+     * @param int $agegroup_id
+     * @param array $coach
+     * @param array $manager
+     * @param ?array $media
      *
      * @return team
      */
-    public function createTeam(string $name, string $description, int $field_id): Team;
+    public function createTeam(string $name, string $description, int $field_id, int $agegroup_id, array $coach, array $manager, ?array $media): Team;
 
     /**
      * Update an existing team instance
@@ -60,10 +64,14 @@ interface TeamRepositoryInterface
      * @param string $name
      * @param string $description
      * @param int $field_id
+     * @param int $agegroup_id
+     * @param array $coach
+     * @param array $manager
+     * @param ?array $media
      *
      * @return bool
      */
-    public function updateTeam(int $id, string $name, string $description, int $field_id): bool;
+    public function updateTeam(int $id, string $name, string $description, int $field_id, int $agegroup_id, array $coach, array $manager, ?array $media): bool;
 
     /**
      * Delete an existing team instance

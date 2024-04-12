@@ -14,19 +14,20 @@ class EventMatchesSeeder extends Seeder
     public function run()
     {
         $faker = Faker::create();
-        $teamIds = Team::pluck('id')->toArray();
         $Events = Event::all();
 
         foreach ($Events as $event) {
+            $teams = Team::where('agegroup_id', $event->agegroup_id)->pluck('id')->toArray();
+            $teamsCount = count($teams);
             
-        // Shuffle teamIds randomly
-        shuffle($teamIds);
-        
-        // Take the first 3 teamIds
-        $team1 = $teamIds[0];
-        $team2 = $teamIds[1];
-        $team3 = $teamIds[2];
-        
+            // Shuffle teamIds randomly
+            shuffle($teams);
+            
+            // Take the first 3 teamIds
+            $team1 = $teams[0];
+            $team2 = $teams[1];
+            $team3 = $teams[2];
+            
             DB::table('event_matches')->insert([
                 'event_id' => $event->id,
                 'match_time' => $faker->time,
@@ -53,7 +54,6 @@ class EventMatchesSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-
-    }
+        }
     }
 }

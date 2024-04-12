@@ -18,6 +18,8 @@ class Team extends Model
 
     protected $with = [
         'field',
+        'media',
+        'agegroup',
     ];
 
     public function field()
@@ -28,6 +30,16 @@ class Team extends Model
     public function eventMatches()
     {
         return $this->hasMany(EventMatch::class);
+    }
+
+    public function media()
+    {
+        return $this->hasMany(Media::class);
+    }
+
+    public function agegroup()
+    {
+        return $this->belongsTo(AgeGroup::class);
     }
 
 }

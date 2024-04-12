@@ -150,7 +150,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         return $this->find($id);
     }
 
-    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id, int $manager_id, ?array $matches): Event
+    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id, int $manager_id, int $agegroup_id, ?array $matches): Event
     {
         $event = new Event();
         $event->name = $name;
@@ -158,6 +158,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         $event->event_date = $datetime;
         $event->field_id = $field_id;
         $event->manager_id = $manager_id;
+        $event->agegroup_id = $agegroup_id;
 
         return DB::transaction(function() use($event, $matches) {
             $event->save();
@@ -184,7 +185,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         });
     }
 
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id, $manager_id, ?array $matches): bool
+    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id, $manager_id, int $agegroup_id, ?array $matches): bool
     {
         $event = $this->find($id);
         $event->name = $name;
@@ -192,6 +193,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         $event->event_date = $datetime;
         $event->field_id = $field_id;
         $event->manager_id = $manager_id;
+        $event->agegroup_id = $agegroup_id;
 
         return DB::transaction(function() use($event, $matches) {
 
