@@ -34,7 +34,7 @@ class Team extends Model
 
     public function media()
     {
-        return $this->hasMany(Media::class);
+        return $this->morphMany('App\Models\Media', 'imageable');
     }
 
     public function agegroup()

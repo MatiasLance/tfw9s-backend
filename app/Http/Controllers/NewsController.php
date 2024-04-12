@@ -54,9 +54,9 @@ class NewsController extends Controller
         $headline = $request->input('headline');
         $lead = $request->input('content');
 
-        $image = $request->file('photo') ?? [];
+        $media = $request->file('photo') ?? [];
 
-        $news = $this->newsService->createNews($headline, $lead, $image);
+        $news = $this->newsService->createNews($headline, $lead, $media);
 
         if ($news instanceof News) {
             $message->setContent(201, 'News created', '', [
@@ -72,10 +72,29 @@ class NewsController extends Controller
     public function update(Request $request, Message $message, int $id)
     {
         $headline = $request->input('headline');
-        $lead = $request->input('lead') ?? '';
-        $body = $request->input('body');
+        $content = $request->input('content');
 
-        $isSuccess = $this->newsService->updateNews($id, $headline, $lead, $body);
+        $newPhoto = $request->file('photo') ?? [];
+        $existingPhoto = $request->input('photo') ?? [];
+        $newPhotoCount = count($newPhoto);
+        $existingPhotoCount = count($existingPhoto);
+
+        if (
+            $request->has('photo') &&
+            (
+                $newPhotoCount > 0 ||
+                $existingPhotoCount > 0
+            )
+        ) {
+            foreach ($existingPhoto as $existingPhotoHash) {
+                array_push($newPhoto, $existingPhotoHash);
+            }
+            $media = $newPhoto;
+        } else {
+            $media = null;
+        }
+
+        $isSuccess = $this->newsService->updateNews($id, $headline, $content, $media);
 
         if ($isSuccess) {
             $message->setContent(200, 'News updated');

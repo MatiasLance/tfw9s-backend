@@ -47,23 +47,23 @@ interface NewsRepositoryInterface
      *
      * @param string $headline
      * @param string $content
-     * @param array|null<UploadedFile> $image
+     * @param array|null<UploadedFile> $media
      *
      * @return news
      */
-    public function createNews(string $headline, string $content, array $image): News;
+    public function createNews(string $headline, string $content, ?array $media): News;
 
     /**
      * Update an existing news instance
      *
      * @param int $id
      * @param string $headline
-     * @param string $lead
-     * @param string $body
+     * @param strinf $content
+     * @param array|null<UploadedFile> $media
      *
      * @return bool
      */
-    public function updateNews(int $id, string $headline, string $lead, string $body): bool;
+    public function updateNews(int $id, string $headline, string $content, ?array $media): bool;
 
     /**
      * Delete an existing news instance

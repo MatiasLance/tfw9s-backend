@@ -98,20 +98,20 @@ class NewsRepository extends BaseRepository implements NewsRepositoryInterface
         return $this->find($id);
     }
 
-    public function createNews(string $headline, string $content, array $image): News
+    public function createNews(string $headline, string $content, ?array $media): News
     {
         $news = new News();
         $news->headline = $headline;
         $news->content = $content;
 
-        return DB::transaction(function() use($news, $image) {
+        return DB::transaction(function() use($news, $media) {
             $news->save();
 
-            foreach ($image as $file) {
+            foreach ($media as $file) {
               if (!is_null($file)) {
 
                   $newsImage = $this->storageService->store($file);
-                  $news->images()->save($newsImage);
+                  $news->media()->save($newsImage);
               }
             }
 
@@ -119,14 +119,39 @@ class NewsRepository extends BaseRepository implements NewsRepositoryInterface
         });
     }
 
-    public function updateNews(int $id, string $headline, string $lead, string $body): bool
+    public function updateNews(int $id, string $headline, string $content, ?array $media): bool
     {
         $news = $this->find($id);
         $news->headline = $headline;
-        $news->lead = $lead;
-        $news->body = $body;
+        $news->content = $content;
 
-        return DB::transaction(function() use($news) {
+        return DB::transaction(function() use($news, $media) {
+
+            if (!is_null($media)) {
+                $newMedia = array_filter($media, function ($file) {
+                    return $file instanceof UploadedFile;
+                });
+
+                $oldMedia = array_filter($media, function ($file) {
+                    return !$file instanceof UploadedFile;
+                });
+
+                foreach ($news->media as $existingMedia) {
+                    if (
+                        $existingMedia->path !== 'media/default/' . self::PLACEHOLDER_IMAGE &&
+                        !in_array($existingMedia->hash, $oldMedia)
+                    ) {
+                        $this->storageService->delete($existingMedia);
+                        $existingMedia->delete();
+                    }
+                }
+
+                foreach ($newMedia as $newFile) {
+
+                    $newsImage = $this->storageService->store($newFile);
+                    $news->media()->save($newsImage);
+                }
+            }
 
             return $news->save();
         });

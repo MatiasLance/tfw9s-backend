@@ -10,12 +10,12 @@ class News extends Model
     use HasFactory;
 
     protected $with = [
-        'images'
+        'media'
     ];
 
-    public function images()
+    public function media()
     {
-        return $this->morphOne('App\Models\Image', 'imageable');
+        return $this->morphMany('App\Models\Media', 'imageable');
     }
 
 }
