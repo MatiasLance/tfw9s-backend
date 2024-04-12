@@ -32,22 +32,20 @@ interface NewsServiceInterface
      *
      * @param string $headline
      * @param string $content
-     * @param array|null<UploadedFile> $image
+     * @param array|null<UploadedFile> $media
      *
      * @return News
      */
-    public function createNews(string $headline, string $content, array $image): News;
+    public function createNews(string $headline, string $content, ?array $media): News;
 
     /**
      * Update an existing News
      *
      * @param string $headline
-     * @param string $lead
-     * @param string $body
-     *
-     * @return bool
+     * @param string $content
+     * @param array|null<UploadedFile> $media
      */
-    public function updateNews(int $id, string $headline, string $lead, string $body): bool;
+    public function updateNews(int $id, string $headline, string $content, ?array $media): bool;
 
     /**
      * Delete an existing News

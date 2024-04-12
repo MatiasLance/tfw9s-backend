@@ -12,17 +12,15 @@ class Media extends Model
     protected $hidden = [
         'id',
         'format',
-        'item_id',
-        'team_id',
         'mime_type',
         'size',
         'created_at',
         'updated_at',
     ];
 
-    public function item()
+    public function imageable()
     {
-        return $this->belongsTo(Item::class);
+        return $this->morphTo();
     }
 
 }

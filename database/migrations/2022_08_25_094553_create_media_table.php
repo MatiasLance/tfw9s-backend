@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('item_id')->nullable();
-            $table->foreignId('team_id')->nullable();
+            $table->unsignedBigInteger('imageable_id');
+            $table->string('imageable_type');
             $table->string('hash');
             $table->string('path');
             $table->string('format');
