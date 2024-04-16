@@ -52,6 +52,24 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
          * Maximum number of teams shown per page. When 0 or null is passed, will get every team
          */
         'max_team_per_page' => self::MAX_PAGE_TEAMS,
+
+        /**
+         * Name keyword
+         * When this value is null, this filter is skipped.
+         */
+        'name' => null,
+
+        /**
+         * Mobile keyword
+         * When this value is null, this filter is skipped.
+         */
+        'mobile' => null,
+
+        /**
+         * Email keyword
+         * When this value is null, this filter is skipped.
+         */
+        'email' => null,
     ];
 
     public function __construct(Team $team, StorageInterface $storageService)
@@ -105,20 +123,23 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->description = $description;
         $team->field_id = $field_id;
         $team->agegroup_id = $agegroup_id;
+        $team->coach_name = $coach['name'];
+        $team->coach_mobile = $coach['mobile'];
+        $team->coach_email = $coach['email'];
+        $team->manager_name = $manager['name'];
+        $team->manager_mobile = $manager['mobile'];
+        $team->manager_email = $manager['email'];
 
         return DB::transaction(function() use($team,$media) {
             $team->save();
 
-            // foreach ($media as $file) {
-            //     if (!is_null($file)) {
-            //       $fileType = $this->storageService->determineFileType($file);
-
-            //       if ($fileType === 'image') {
-            //         $teamMedia = $this->storageService->store($file, $team, $fileType);
-            //         $team->media()->save($teamMedia);
-            //       }
-            //     }
-            //   }
+            foreach ($media as $file) {
+                if (!is_null($file)) {
+  
+                    $teamImage = $this->storageService->store($file);
+                    $team->media()->save($teamImage);
+                }
+              }
 
             return $team;
         });
@@ -131,8 +152,40 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->description = $description;
         $team->field_id = $field_id;
         $team->agegroup_id = $agegroup_id;
+        $team->coach_name = $coach['name'];
+        $team->coach_mobile = $coach['mobile'];
+        $team->coach_email = $coach['email'];
+        $team->manager_name = $manager['name'];
+        $team->manager_mobile = $manager['mobile'];
+        $team->manager_email = $manager['email'];
 
-        return DB::transaction(function() use($team) {
+        return DB::transaction(function() use($team, $media) {
+
+            if (!is_null($media)) {
+                $newMedia = array_filter($media, function ($file) {
+                    return $file instanceof UploadedFile;
+                });
+
+                $oldMedia = array_filter($media, function ($file) {
+                    return !$file instanceof UploadedFile;
+                });
+
+                foreach ($team->media as $existingMedia) {
+                    if (
+                        $existingMedia->path !== 'media/default/' . self::PLACEHOLDER_IMAGE &&
+                        !in_array($existingMedia->hash, $oldMedia)
+                    ) {
+                        $this->storageService->delete($existingMedia);
+                        $existingMedia->delete();
+                    }
+                }
+
+                foreach ($newMedia as $newFile) {
+
+                    $teamImage = $this->storageService->store($newFile);
+                    $team->media()->save($teamImage);
+                }
+            }
 
             return $team->save();
         });

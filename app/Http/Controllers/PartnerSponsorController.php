@@ -54,8 +54,9 @@ class PartnerSponsorController extends Controller
         $first_name = $request->input('first_name');
         $last_name = $request->input('last_name');
         $description = $request->input('description') ?? '';
+        $media = $request->file('photo') ?? [];
 
-        $partnerSponsor = $this->partnerSponsorService->createPartnerSponsor($company_name, $first_name, $last_name, $description);
+        $partnerSponsor = $this->partnerSponsorService->createPartnerSponsor($company_name, $first_name, $last_name, $description, $media);
 
         if ($partnerSponsor instanceof PartnerSponsor) {
             $message->setContent(201, 'PartnerSponsor created', '', [
@@ -75,7 +76,27 @@ class PartnerSponsorController extends Controller
         $last_name = $request->input('last_name');
         $description = $request->input('description') ?? '';
 
-        $isSuccess = $this->partnerSponsorService->updatePartnerSponsor($id, $company_name, $first_name, $last_name, $description);
+        $newPhoto = $request->file('photo') ?? [];
+        $existingPhoto = $request->input('photo') ?? [];
+        $newPhotoCount = count($newPhoto);
+        $existingPhotoCount = count($existingPhoto);
+
+        if (
+            $request->has('photo') &&
+            (
+                $newPhotoCount > 0 ||
+                $existingPhotoCount > 0
+            )
+        ) {
+            foreach ($existingPhoto as $existingPhotoHash) {
+                array_push($newPhoto, $existingPhotoHash);
+            }
+            $media = $newPhoto;
+        } else {
+            $media = null;
+        }
+
+        $isSuccess = $this->partnerSponsorService->updatePartnerSponsor($id, $company_name, $first_name, $last_name, $description, $media);
 
         if ($isSuccess) {
             $message->setContent(200, 'PartnerSponsor updated');

@@ -15,6 +15,8 @@ use App\Models\News;
 use App\Models\Team;
 use App\Models\Field;
 use App\Models\AgeGroup;
+use App\Models\PartnerSponsor;
+use App\Models\Guideline;
 use App\Repository\ItemRepositoryInterface;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -76,6 +78,14 @@ class DatabaseSeeder extends Seeder
 
         News::factory()
             ->count(15)
+            ->create();
+
+        Guideline::factory()
+            ->count(15)
+            ->create();
+
+        PartnerSponsor::factory()
+            ->count(5)
             ->create();
 
             $this->call(AgeGroupsSeeder::class);

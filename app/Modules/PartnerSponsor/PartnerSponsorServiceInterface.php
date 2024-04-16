@@ -34,10 +34,11 @@ interface PartnerSponsorServiceInterface
      * @param string $first_name
      * @param string $last_name
      * @param string $description
+     * @param ?array $media
      *
      * @return PartnerSponsor
      */
-    public function createPartnerSponsor(string $company_name, string $first_name, string $last_name, string $description): PartnerSponsor;
+    public function createPartnerSponsor(string $company_name, string $first_name, string $last_name, string $description, ?array $media): PartnerSponsor;
 
     /**
      * Update an existing PartnerSponsor
@@ -47,10 +48,11 @@ interface PartnerSponsorServiceInterface
      * @param string $first_name
      * @param string $last_name
      * @param string $description
+     * @param ?array $media
      *
      * @return bool
      */
-    public function updatePartnerSponsor(int $id, string $company_name, string $first_name, string $last_name, string $description): bool;
+    public function updatePartnerSponsor(int $id, string $company_name, string $first_name, string $last_name, string $description, ?array $media): bool;
 
     /**
      * Delete an existing PartnerSponsor

@@ -18,12 +18,14 @@ class ManagerController extends Controller
 
     public function list(Request $request, Message $message)
     {
+        $user = $request->query('user', null);
         $query = $request->query('q', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
         $maxManagersPerPage = $request->query('maxManagersPerPage', null);
 
         $filter = [
+            'user' => $user,
             'q' => $query,
             'sort' => $sort,
             'page' => $page,

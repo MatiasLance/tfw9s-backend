@@ -75,6 +75,12 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
          * This filters the events with a keyword. When this value is null, this filter is skipped.
          */
         'year' => null,
+
+        /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'manager' => null,
     ];
 
     public function __construct(Event $event, StorageInterface $storageService, EventMatchServiceInterface $eventmatchService)
@@ -119,6 +125,14 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             $events = $events->where(function ($q) use($filters) {
                 $q
                     ->where('id', 'LIKE', '%' . $filters['event'] . '%');
+            });
+        }
+
+        // Event Filter
+        if (!is_null($filters['manager'])) {
+            $events = $events->where(function ($q) use($filters) {
+                $q
+                    ->where('manager_id', '=', $filters['manager']);
             });
         }
 

@@ -341,5 +341,14 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::delete('/{id}', 'App\Http\Controllers\TeamPositionController@delete');
     });
 
+    Route::prefix("guidelines")->group(function() {
+        Route::get('/', 'App\Http\Controllers\GuidelineController@list');
+        Route::get('/{id}', 'App\Http\Controllers\GuidelineController@retrieve');
+        Route::post('/', 'App\Http\Controllers\GuidelineController@store');
+        Route::post('/{id}', 'App\Http\Controllers\GuidelineController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\GuidelineController@delete');
+
+    });
+
 });
 

@@ -95,7 +95,26 @@ class TeamController extends Controller
         $description = $request->input('description') ?? '';
         $field_id = $request->input('field_id');
         $agegroup_id = $request->input('agegroup_id');
-        $media = $request->file('photo') ?? [];
+
+        $newPhoto = $request->file('photo') ?? [];
+        $existingPhoto = $request->input('photo') ?? [];
+        $newPhotoCount = count($newPhoto);
+        $existingPhotoCount = count($existingPhoto);
+
+        if (
+            $request->has('photo') &&
+            (
+                $newPhotoCount > 0 ||
+                $existingPhotoCount > 0
+            )
+        ) {
+            foreach ($existingPhoto as $existingPhotoHash) {
+                array_push($newPhoto, $existingPhotoHash);
+            }
+            $media = $newPhoto;
+        } else {
+            $media = null;
+        }
         
         $coach_name = $request->input('coach_name');
         $coach_mobile = $request->input('coach_mobile');

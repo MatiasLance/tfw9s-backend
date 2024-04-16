@@ -59,6 +59,12 @@ class TeamsSeeder extends Seeder
                     'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'field_id' => $faker->randomElement($fieldIds),
                     'agegroup_id' => $agegroupId,
+                    'coach_name' => $faker->name,
+                    'coach_mobile' => $faker->unique()->phoneNumber,
+                    'coach_email' => $faker->unique()->safeEmail,
+                    'manager_name' => $faker->name,
+                    'manager_mobile' => $faker->unique()->phoneNumber,
+                    'manager_email' => $faker->unique()->safeEmail,
                 ]);
             }
         }
