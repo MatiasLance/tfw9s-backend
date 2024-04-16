@@ -100,7 +100,7 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
         return $this->find($id);
     }
 
-    public function createPartnerSponsor(string $company_name, string $first_name, string $last_name, string $description): partnerSponsor
+    public function createPartnerSponsor(string $company_name, string $first_name, string $last_name, string $description, ?array $media): partnerSponsor
     {
         $partnerSponsor = new PartnerSponsor();
         $partnerSponsor->company_name = $company_name;
@@ -108,14 +108,22 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
         $partnerSponsor->last_name = $last_name;
         $partnerSponsor->description = $description;
 
-        return DB::transaction(function() use($partnerSponsor) {
+        return DB::transaction(function() use($partnerSponsor, $media) {
             $partnerSponsor->save();
+
+            foreach ($media as $file) {
+                if (!is_null($file)) {
+  
+                    $Image = $this->storageService->store($file);
+                    $partnerSponsor->media()->save($Image);
+                }
+              }
 
             return $partnerSponsor;
         });
     }
 
-    public function updatePartnerSponsor(int $id, string $company_name, string $first_name, string $last_name, string $description): bool
+    public function updatePartnerSponsor(int $id, string $company_name, string $first_name, string $last_name, string $description, ?array $media): bool
     {
         $partnerSponsor = $this->find($id);
         $partnerSponsor->company_name = $company_name;
@@ -123,7 +131,33 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
         $partnerSponsor->last_name = $last_name;
         $partnerSponsor->description = $description;
 
-        return DB::transaction(function() use($partnerSponsor) {
+        return DB::transaction(function() use($partnerSponsor, $media) {
+
+            if (!is_null($media)) {
+                $newMedia = array_filter($media, function ($file) {
+                    return $file instanceof UploadedFile;
+                });
+
+                $oldMedia = array_filter($media, function ($file) {
+                    return !$file instanceof UploadedFile;
+                });
+
+                foreach ($partnerSponsor->media as $existingMedia) {
+                    if (
+                        $existingMedia->path !== 'media/default/' . self::PLACEHOLDER_IMAGE &&
+                        !in_array($existingMedia->hash, $oldMedia)
+                    ) {
+                        $this->storageService->delete($existingMedia);
+                        $existingMedia->delete();
+                    }
+                }
+
+                foreach ($newMedia as $newFile) {
+
+                    $Image = $this->storageService->store($newFile);
+                    $partnerSponsor->media()->save($Image);
+                }
+            }
 
             return $partnerSponsor->save();
         });

@@ -26,6 +26,7 @@ class EventController extends Controller
         $eventDate = $request->query('eventDate', null);
         $event = $request->query('event', null);
         $year = $request->query('year', null);
+        $manager = $request->query('manager', null);
 
         $filter = [
             'q' => $query,
@@ -35,6 +36,7 @@ class EventController extends Controller
             'event_date' => $eventDate,
             'event' => $event,
             'year' => $year,
+            'manager' => $manager,
         ];
 
         $events = $this->eventService->listEvents($filter);

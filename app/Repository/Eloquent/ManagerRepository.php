@@ -31,6 +31,12 @@ class ManagerRepository extends BaseRepository implements ManagerRepositoryInter
          * Search keyword
          * This filters the managers with a keyword. When this value is null, this filter is skipped.
          */
+        'user' => null,
+
+        /**
+         * Search keyword
+         * This filters the managers with a keyword. When this value is null, this filter is skipped.
+         */
         'q' => null,
 
         /**
@@ -71,6 +77,12 @@ class ManagerRepository extends BaseRepository implements ManagerRepositoryInter
             $managers = $managers->whereHas('user', function ($q) use ($filters) {
                 $q->where('first_name', 'LIKE', '%' . $filters['q'] . '%')
                   ->orWhere('last_name', 'LIKE', '%' . $filters['q'] . '%');
+            });
+        }
+
+        if (!is_null($filters['user'])) {
+            $managers = $managers->whereHas('user', function ($q) use ($filters) {
+                $q->where('id', '=', $filters['user']);
             });
         }
 

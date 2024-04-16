@@ -19,6 +19,12 @@ return new class extends Migration
             $table->text('description');
             $table->foreignId('field_id')->nullable();
             $table->foreignId('agegroup_id')->nullable();
+            $table->string('coach_name')->nullable();
+            $table->string('coach_mobile')->nullable();
+            $table->string('coach_email')->unique()->nullable();
+            $table->string('manager_name')->nullable();
+            $table->string('manager_mobile')->nullable();
+            $table->string('manager_email')->unique()->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

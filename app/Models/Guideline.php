@@ -5,22 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PartnerSponsor extends Model
+class Guideline extends Model
 {
     use HasFactory;
-
+    
     protected $hidden = [
         'deleted_at',
         'created_at',
         'updated_at',
     ];
-
-    protected $with = [
-        'media',
-    ];
-
-    public function media()
-    {
-        return $this->morphMany('App\Models\Media', 'imageable');
-    }
 }
