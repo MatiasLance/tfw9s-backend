@@ -52,12 +52,13 @@ class ManagerController extends Controller
 
     public function store(Request $request, Message $message)
     {
-        $user_id = $request->input('user_id');
-        $date_of_birth = $request->input('date_of_birth');
-        $address = $request->input('address');
-        $age = $request->input('age');
+        $first_name = $request->input('firstname');
+        $last_name= $request->input('lastname');
+        $mobile = $request->input('mobile');
+        $email = $request->input('email');
+        $description = $request->input('description');
 
-        $manager = $this->managerService->createManager($user_id, $date_of_birth, $address, $age);
+        $manager = $this->managerService->createManager($first_name, $last_name, $mobile, $email, $description);
 
         if ($manager instanceof Manager) {
             $message->setContent(201, 'Manager created', '', [
@@ -72,12 +73,13 @@ class ManagerController extends Controller
 
     public function update(Request $request, Message $message, int $id)
     {
-        $user_id = $request->input('user_id');
-        $date_of_birth = $request->input('date_of_birth');
-        $address = $request->input('address');
-        $age = $request->input('age');
+        $first_name = $request->input('firstname');
+        $last_name= $request->input('lastname');
+        $mobile = $request->input('mobile');
+        $email = $request->input('email');
+        $description = $request->input('description');
 
-        $isSuccess = $this->managerService->updateManager($id, $user_id, $date_of_birth, $address, $age);
+        $isSuccess = $this->managerService->updateManager($id, $first_name, $last_name, $mobile, $email, $description);
 
         if ($isSuccess) {
             $message->setContent(200, 'Manager updated');

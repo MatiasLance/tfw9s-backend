@@ -17,12 +17,14 @@ class ManagersSeeder extends Seeder
             $query->where('roles.id', 3);
         })->get();
 
+        $managerUsers = $managerUsers->reject(function ($user) {
+            return $user->email === 'manager@thefinalwhistle.com';
+        });
+
         foreach ($managerUsers as $user) {
                 DB::table('managers')->insert([
                     'user_id' => $user->id,
-                    'date_of_birth' => $faker->date,
-                    'address' => $faker->address,
-                    'age' => $faker->numberBetween(18, 40),
+                    'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

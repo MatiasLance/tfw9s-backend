@@ -11,9 +11,11 @@ use App\Repository\ManagerRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use App\Modules\User\UserServiceInterface;
 
 class ManagerRepository extends BaseRepository implements ManagerRepositoryInterface
 {
+    protected UserServiceInterface $userService;
     /**
      * Storage Module
      *
@@ -60,9 +62,10 @@ class ManagerRepository extends BaseRepository implements ManagerRepositoryInter
         'max_manager_per_page' => self::MAX_PAGE_MANAGERS,
     ];
 
-    public function __construct(Manager $manager, StorageInterface $storageService)
+    public function __construct(Manager $manager, StorageInterface $storageService, UserServiceInterface $userService)
     {
         parent::__construct($manager);
+        $this->userService = $userService;
         $this->storageService = $storageService;
     }
 
@@ -110,28 +113,33 @@ class ManagerRepository extends BaseRepository implements ManagerRepositoryInter
         return $this->find($id);
     }
 
-    public function createManager(int $user_id, string $date_of_birth, string $address, int $age): manager
+    public function createManager(string $first_name, string $last_name, string $mobile, string $email, string $description): manager
     {
-        $manager = new Manager();
-        $manager->user_id = $name;
-        $manager->date_of_birth = $date_of_birth;
-        $manager->address= $address;
-        $manager->age= $age;
 
-        return DB::transaction(function() use($manager) {
+        $password = bcrypt('thefinalwhistle123');
+        $user = $this->userService->create($email, $first_name, $last_name, $mobile, $password);
+        $user->assignRole('manager');
+
+        $manager = new Manager();
+        $manager->description = $description;
+
+        return DB::transaction(function() use($manager, $user) {
+            $user->save();
+
+            $manager->user_id = $user->id;
             $manager->save();
 
             return $manager;
         });
     }
 
-    public function updateManager(int $id, int $user_id, string $date_of_birth, string $address, int $age): bool
+    public function updateManager(int $id, string $first_name, string $last_name, string $mobile, string $email, string $description): bool
     {
         $manager = $this->find($id);
-        $manager->user_id = $name;
-        $manager->date_of_birth = $date_of_birth;
-        $manager->address= $address;
-        $manager->age= $age;
+        $user = $manager->user;
+        $manager->description = $description;
+
+        $user = $this->userService->update($user, $first_name, $last_name, $email, $mobile);
 
         return DB::transaction(function() use($manager) {
 
@@ -144,6 +152,12 @@ class ManagerRepository extends BaseRepository implements ManagerRepositoryInter
         $manager = $this->find($id);
 
         return DB::transaction(function() use($manager) {
+
+            $user = $manager->user;
+
+            if ($user) {
+                $user->delete();
+            }
 
             return $manager->delete();
         });

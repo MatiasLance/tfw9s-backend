@@ -30,27 +30,29 @@ interface ManagerServiceInterface
     /**
      * Create a new Manager
      *
-     * @param int $user_id
-     * @param string $date_of_birth
-     * @param string $address
-     * @param int $age
+     * @param int $first_name
+     * @param string $last_name
+     * @param string $mobile
+     * @param int $email
+     * @param int $description
      *
      * @return Manager
      */
-    public function createManager(int $user_id, string $date_of_birth, string $address, int $age): Manager;
+    public function createManager(string $first_name, string $last_name, string $mobile, string $email, string $description): Manager;
 
     /**
      * Update an existing Manager
      *
      * @param int $id
-     * @param int $user_id
-     * @param string $date_of_birth
-     * @param string $address
-     * @param int $age
+     * @param int $first_name
+     * @param string $last_name
+     * @param string $mobile
+     * @param int $email
+     * @param int $description
      *
      * @return bool
      */
-    public function updateManager(int $id, int $user_id, string $date_of_birth, string $address, int $age): bool;
+    public function updateManager(int $id, string $first_name, string $last_name, string $mobile, string $email, string $description): bool;
 
     /**
      * Delete an existing Manager

@@ -32,14 +32,14 @@ class ManagerService implements ManagerServiceInterface
         return $this->managerRepository->retrieveManager($id);
     }
 
-    public function createManager($user_id, $date_of_birth, $address, $age): Manager
+    public function createManager($first_name, $last_name, $mobile, $email, $description): Manager
     {
-        return $this->managerRepository->createManager($user_id, $date_of_birth, $address, $age);
+        return $this->managerRepository->createManager($first_name, $last_name, $mobile, $email, $description);
     }
 
-    public function updateManager(int $id, int $user_id, string $date_of_birth, string $address, int $age): bool
+    public function updateManager(int $id, string $first_name, string $last_name, string $mobile, string $email, string $description): bool
     {
-        return $this->managerRepository->updateManager($id, $user_id, $date_of_birth, $address, $age);
+        return $this->managerRepository->updateManager($id, $first_name, $last_name, $mobile, $email, $description);
     }
 
     public function deleteManager(User $initiator, Manager $manager): bool

@@ -16,9 +16,8 @@ return new class extends Migration
         Schema::create('managers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id');
-            $table->date('date_of_birth');
-            $table->text('address');
-            $table->integer('age');
+            $table->text('description');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
