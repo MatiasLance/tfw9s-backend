@@ -26,19 +26,19 @@ class Event extends Model
 
     public function field()
     {
-        return $this->belongsTo(Field::class);
+        return $this->belongsTo(Field::class)->withTrashed();
     }
     public function manager()
     {
-        return $this->belongsTo(Manager::class);
+        return $this->belongsTo(Manager::class)->withTrashed();
     }
     public function agegroup()
     {
-        return $this->belongsTo(AgeGroup::class);
+        return $this->belongsTo(AgeGroup::class)->withTrashed();
     }
     public function eventmatch()
     {
-        return $this->hasMany(EventMatch::class);
+        return $this->hasMany(EventMatch::class)->withTrashed();
     }
 
 }

@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EventMatch extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'match_time',
@@ -18,19 +19,14 @@ class EventMatch extends Model
         'team2',
     ];
 
-    public function event()
-    {
-        return $this->belongsTo(Event::class);
-    }
-
     public function team1()
     {
-        return $this->belongsTo(Team::class, 'team1');
+        return $this->belongsTo(Team::class, 'team1')->withTrashed();
     }
 
     public function team2()
     {
-        return $this->belongsTo(Team::class, 'team2');
+        return $this->belongsTo(Team::class, 'team2')->withTrashed();
     }
 
     public function event_match_video()

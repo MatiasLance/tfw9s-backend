@@ -108,7 +108,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         $user->email = $email;
         $user->first_name = $firstName;
         $user->last_name = $lastName;
-        $user->mobile = $phone;
+        $user->phone = $phone;
 
         $isSuccess = DB::transaction(function() use($user) {
             $isUserUpdated = $user->save();

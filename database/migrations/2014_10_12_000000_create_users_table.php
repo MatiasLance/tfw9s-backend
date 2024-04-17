@@ -29,6 +29,7 @@ return new class extends Migration
             //1 = subscribed, 0 = not subscribed
             $table->enum('subscription_status', ['1', '0'])->default('0');
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 
