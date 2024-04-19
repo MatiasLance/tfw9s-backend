@@ -76,7 +76,7 @@ class ItemController extends Controller
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
-        $tags = $request->input('tags');
+        $tags = $request->input('tags') ?? [];
         $isFeatured = $request->boolean('isFeatured');
         $isRRP = $request->boolean('isRRP');
         $isOnSale = $request->boolean('isOnSale');
@@ -91,7 +91,6 @@ class ItemController extends Controller
 
         // TODO: add saleprice, isRRP, isOnSale
         $item = $this->itemService->createItem($name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
-        dd($item);
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
@@ -266,9 +265,9 @@ class ItemController extends Controller
         $isSuccess = $this->itemService->deleteItem($user, $item);
 
         if ($isSuccess) {
-            $message->setContent(200, 'Item updated');
+            $message->setContent(200, 'Item deleted');
         } else {
-            $message->setContent(400, 'Item not updated');
+            $message->setContent(400, 'Item not deleted');
         }
 
         return $message->render();
