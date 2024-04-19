@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
 
-        User::factory(10)->create()->each(function ($user) {
+        User::factory(11)->create()->each(function ($user) {
             $role = Role::find(3); // Fetch role with ID 3
 
             if ($role) {

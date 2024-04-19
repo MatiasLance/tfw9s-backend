@@ -38,7 +38,7 @@ class Event extends Model
     }
     public function eventmatch()
     {
-        return $this->hasMany(EventMatch::class)->withTrashed();
+        return $this->hasMany(EventMatch::class);
     }
 
 }

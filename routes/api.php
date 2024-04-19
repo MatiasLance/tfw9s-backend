@@ -160,6 +160,8 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix('items')->group(function () { // Item API Endpoints
         Route::get('/', 'App\Http\Controllers\ItemController@list');
         Route::get('/{itemId}', 'App\Http\Controllers\ItemController@retrieve');
+        Route::post('/{id}', 'App\Http\Controllers\ItemController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\ItemController@delete');
     });
 
     Route::prefix('categories')->group(function () { // Category API Endpoints
