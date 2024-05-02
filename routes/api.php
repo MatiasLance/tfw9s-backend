@@ -348,6 +348,8 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/{id}', 'App\Http\Controllers\GuidelineController@retrieve');
         Route::post('/', 'App\Http\Controllers\GuidelineController@store');
         Route::post('/{id}', 'App\Http\Controllers\GuidelineController@update');
+        Route::post('/active/{id}', 'App\Http\Controllers\GuidelineController@setActive');
+        Route::post('/deactivate/{id}', 'App\Http\Controllers\GuidelineController@deactivate');
         Route::delete('/{id}', 'App\Http\Controllers\GuidelineController@delete');
 
     });

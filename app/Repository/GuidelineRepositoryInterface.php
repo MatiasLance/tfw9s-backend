@@ -68,6 +68,24 @@ interface GuidelineRepositoryInterface
     public function updateGuideline(int $id, string $type, string $content): bool;
 
     /**
+     * Update an existing Guideline instance
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function setActive(int $id): bool;
+
+    /**
+     * Update an existing Guideline instance
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function deactivate(int $id): bool;
+
+    /**
      * Delete an existing Guideline instance
      *
      * @param int $id

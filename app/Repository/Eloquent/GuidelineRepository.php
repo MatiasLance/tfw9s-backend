@@ -29,10 +29,16 @@ class GuidelineRepository extends BaseRepository implements GuidelineRepositoryI
     protected array $defaultGuidelineListFilters = [
 
         /**
-         * Type keyword
-         * This filters the guidelines with a keyword. When this value is null, this filter is skipped.
+         * type keyword
+         * this filters the guidelines with a keyword. when this value is null, this filter is skipped.
          */
         'type' => null,
+
+        /**
+         * isActive keyword
+         * this filters the guidelines with a keyword. when this value is null, this filter is skipped.
+         */
+        'isActive' => null,
 
         /**
          * Search keyword
@@ -72,6 +78,10 @@ class GuidelineRepository extends BaseRepository implements GuidelineRepositoryI
         $guidelines = $this->model->query();
 
         $filters = array_merge($this->defaultGuidelineListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+        if (!is_null($filters['isActive'])) {
+            $guidelines = $guidelines->where('isActive', true);
+        }
 
         // Type Filter
         if (!is_null($filters['type'])) {
@@ -133,6 +143,33 @@ class GuidelineRepository extends BaseRepository implements GuidelineRepositoryI
         $guideline->content = $content;
         return DB::transaction(function() use($guideline) {
 
+            return $guideline->save();
+        });
+    }
+
+    public function setActive(int $id): bool
+    {
+        $activeGuideline = Guideline::where('isActive', true)->first();
+
+        if ($activeGuideline) {
+            $activeGuideline->isActive = false;
+            $activeGuideline->save();
+        }
+
+        $guideline = $this->find($id);
+        $guideline->isActive = true;
+
+        return DB::transaction(function() use($guideline) {
+            return $guideline->save();
+        });
+    }
+
+    public function deactivate(int $id): bool
+    {
+        $guideline = $this->find($id);
+        $guideline->isActive = false;
+
+        return DB::transaction(function() use($guideline) {
             return $guideline->save();
         });
     }
