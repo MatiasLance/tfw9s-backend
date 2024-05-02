@@ -42,6 +42,16 @@ class GuidelineService implements GuidelineServiceInterface
         return $this->guidelineRepository->updateGuideline($id, $type, $content);
     }
 
+    public function setActive(int $id): bool
+    {
+        return $this->guidelineRepository->setActive($id);
+    }
+
+    public function deactivate(int $id): bool
+    {
+        return $this->guidelineRepository->deactivate($id);
+    }
+
     public function deleteGuideline(User $initiator, Guideline $guideline): bool
     {
         return $this->guidelineRepository->deleteGuideline($guideline->id);

@@ -19,6 +19,7 @@ class GuidelineController extends Controller
     public function list(Request $request, Message $message)
     {
         $type = $request->query('type', null);
+        $isActive = $request->query('isActive', null);
         $query = $request->query('q', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
@@ -26,6 +27,7 @@ class GuidelineController extends Controller
 
         $filter = [
             'type' => $type,
+            'isActive' => $isActive,
             'q' => $query,
             'sort' => $sort,
             'page' => $page,
@@ -74,6 +76,34 @@ class GuidelineController extends Controller
         $content = $request->input('content');
 
         $isSuccess = $this->guidelineService->updateGuideline($id, $type, $content);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Guideline updated');
+        } else {
+            $message->setContent(400, 'Guideline not updated');
+        }
+
+        return $message->render();
+    }
+
+    public function setActive(Message $message, int $id)
+    {
+
+        $isSuccess = $this->guidelineService->setActive($id);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Guideline updated');
+        } else {
+            $message->setContent(400, 'Guideline not updated');
+        }
+
+        return $message->render();
+    }
+
+    public function deactivate(Message $message, int $id)
+    {
+
+        $isSuccess = $this->guidelineService->deactivate($id);
 
         if ($isSuccess) {
             $message->setContent(200, 'Guideline updated');
