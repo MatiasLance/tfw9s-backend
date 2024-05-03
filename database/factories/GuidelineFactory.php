@@ -18,7 +18,7 @@ class GuidelineFactory extends Factory
     {
         return [
             'type' => $this->faker->randomElement(['Code_of_conduct', 'Rules', 'Insurance']),
-            'content' => $this->faker->realText($maxNbChars = 200, $indexSize = 2),
+            'content' => '<p>' . $this->faker->realText($maxNbChars = 200, $indexSize = 2) . '</p>',
         ];
     }
 }

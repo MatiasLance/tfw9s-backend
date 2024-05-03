@@ -58,4 +58,13 @@ interface RegionServiceInterface
      */
     public function deleteRegion(User $initiator, Region $region): bool;
 
+    /**
+     * Retrieve all regions
+     *
+     * @param $filters List of filters available to be applied'
+     *
+     * @return Paginate<Region>
+     */
+    public function allRegions(array $filters = []): Paginate;
+
 }

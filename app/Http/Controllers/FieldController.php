@@ -100,6 +100,27 @@ class FieldController extends Controller
 
         return $message->render();
     }
+
+    public function all(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $maxFieldsPerPage = $request->query('maxFieldsPerPage', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'max_field_per_page' => $maxFieldsPerPage,
+        ];
+
+        $fields = $this->fieldService->allFields($filter);
+
+        $message->setContent(200, 'Fields retrieved', '', $fields->toArray());
+
+        return $message->render();
+    }
 }
 
 

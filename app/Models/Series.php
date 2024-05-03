@@ -4,9 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use PHPUnit\Framework\MockObject\ReturnValueNotConfiguredException;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Field extends Model
+class Series extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -16,14 +17,8 @@ class Field extends Model
         'updated_at',
     ];
 
-    public function region()
-    {
-        return $this->belongsTo(Region::class)->withTrashed();
-    }
-
     public function event()
     {
         return $this->hasMany(Event::class);
     }
-
 }

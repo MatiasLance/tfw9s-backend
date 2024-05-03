@@ -18,9 +18,7 @@ class Team extends Model
     ];
 
     protected $with = [
-        'field',
         'media',
-        'agegroup',
     ];
 
     public function field()

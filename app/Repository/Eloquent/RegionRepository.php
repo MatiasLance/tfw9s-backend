@@ -136,4 +136,14 @@ class RegionRepository extends BaseRepository implements RegionRepositoryInterfa
             return $region->delete();
         });
     }
+    public function allRegions(array $userFilters = []): Paginate
+    {
+        $regions = $this->model->query()->select('id','name')->orderBy('name');
+
+        $filters = array_merge($this->defaultRegionListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+        $maxPerPage = is_null($userFilters['max_region_per_page']) ? $regions->count() : $filters['max_region_per_page'];
+
+        return new Paginate($regions, $maxPerPage, $filters['page'], 'regions');
+    }
 }

@@ -60,4 +60,13 @@ interface FieldServiceInterface
      */
     public function deleteField(User $initiator, Field $field): bool;
 
+    /**
+     * Retrieve a list of fields
+     *
+     * @param $filters List of filters available to be applied'
+     *
+     * @return Paginate<Field>
+     */
+    public function allFields(array $filters = []): Paginate;
+
 }

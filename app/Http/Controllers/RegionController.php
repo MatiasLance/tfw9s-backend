@@ -98,5 +98,26 @@ class RegionController extends Controller
 
         return $message->render();
     }
+
+    public function all(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $maxRegionsPerPage = $request->query('maxRegionsPerPage', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'max_region_per_page' => $maxRegionsPerPage,
+        ];
+
+        $regions = $this->regionService->allRegions($filter);
+
+        $message->setContent(200, 'Regions retrieved', '', $regions->toArray());
+
+        return $message->render();
+    }
 }
 

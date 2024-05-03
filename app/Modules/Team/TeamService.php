@@ -46,4 +46,9 @@ class TeamService implements TeamServiceInterface
     {
         return $this->teamRepository->deleteTeam($team->id);
     }
+
+    public function allTeams(array $filters = []): Paginate
+    {
+        return $this->teamRepository->allTeams($filters);
+    }
 }

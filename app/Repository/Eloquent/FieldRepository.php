@@ -62,7 +62,7 @@ class FieldRepository extends BaseRepository implements FieldRepositoryInterface
 
     public function listFields(array $userFilters = []): Paginate
     {
-        $fields = $this->model->query();
+        $fields = $this->model->query()->with('region');
 
         $filters = array_merge($this->defaultFieldListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -95,7 +95,7 @@ class FieldRepository extends BaseRepository implements FieldRepositoryInterface
 
     public function retrieveField(int $id): field
     {
-        return $this->find($id);
+        return field::with('region')->find($id);
     }
 
     public function createField(string $name, string $description, int $region_id): field
@@ -133,5 +133,16 @@ class FieldRepository extends BaseRepository implements FieldRepositoryInterface
 
             return $field->delete();
         });
+    }
+
+    public function allFields(array $userFilters = []): Paginate
+    {
+        $fields = $this->model->query()->select('id', 'name', 'region_id')->orderBy('name');
+
+        $filters = array_merge($this->defaultFieldListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+        $maxPerPage = is_null($userFilters['max_field_per_page']) ? $fields->count() : $filters['max_field_per_page'];
+
+        return new Paginate($fields, $maxPerPage, $filters['page'], 'fields');
     }
 }

@@ -149,14 +149,16 @@ class GuidelineRepository extends BaseRepository implements GuidelineRepositoryI
 
     public function setActive(int $id): bool
     {
-        $activeGuideline = Guideline::where('isActive', true)->first();
+        $guideline = $this->find($id);
+
+        $type = $guideline->type;
+        $activeGuideline = Guideline::where('isActive', true)->where('type', $type)->first();
 
         if ($activeGuideline) {
             $activeGuideline->isActive = false;
             $activeGuideline->save();
         }
 
-        $guideline = $this->find($id);
         $guideline->isActive = true;
 
         return DB::transaction(function() use($guideline) {

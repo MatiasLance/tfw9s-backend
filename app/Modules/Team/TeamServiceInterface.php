@@ -67,5 +67,14 @@ interface TeamServiceInterface
      * @return bool
      */
     public function deleteTeam(User $initiator, Team $team): bool;
+    
+    /**
+     * Retrieve a list of teams
+     *
+     * @param $filters List of filters available to be applied'
+     *
+     * @return Paginate<Team>
+     */
+    public function allTeams(array $filters = []): Paginate;
 
 }

@@ -46,4 +46,8 @@ class FieldService implements FieldServiceInterface
     {
         return $this->fieldRepository->deleteField($field->id);
     }
+    public function allFields(array $filters = []): Paginate
+    {
+        return $this->fieldRepository->allFields($filters);
+    }
 }

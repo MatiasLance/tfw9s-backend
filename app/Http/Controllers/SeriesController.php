@@ -1,0 +1,120 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Modules\Http\Message;
+use App\Modules\Series\SeriesServiceInterface;
+use Illuminate\Http\Request;
+use App\Models\Series;
+use DateTime;
+
+class SeriesController extends Controller
+{
+    protected SeriesServiceInterface $seriesService;
+
+    public function __construct(SeriesServiceInterface $seriesService)
+    {
+        $this->seriesService = $seriesService;
+    }
+
+    public function list(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $type = $request->query('type', null);
+        $maxSeriesPerPage = $request->query('maxSeriesPerPage', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'type' => $type,
+            'max_series_per_page' => $maxSeriesPerPage,
+        ];
+
+        $series = $this->seriesService->listSeries($filter);
+
+        $message->setContent(200, 'Series retrieved', '', $series->toArray());
+
+        return $message->render();
+    }
+
+    public function retrieve(Message $message, int $id)
+    {
+        $series = $this->seriesService->retrieveSeries($id);
+
+        $message->setContent(200, 'Series retrieved', '', [
+            'series' => $series
+        ]);
+
+        return $message->render();
+    }
+
+    public function store(Request $request, Message $message)
+    {
+        $name = $request->input('name');
+        $description = $request->input('description') ?? '';
+        $type = $request->input('type');
+        $address = $request->input('address') ?? '';
+        $startdatestring = $request->input('start');
+        $enddatestring = $request->input('end');
+
+        $start = new DateTime($startdatestring);
+        $end = new DateTime($enddatestring);
+
+        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end);
+
+        if ($series instanceof Series) {
+            $message->setContent(201, 'Series created', '', [
+                'series' => $series
+            ]);
+        } else {
+            $message->setContent(400, 'Series not created');
+        }
+
+        return $message->render();
+    }
+
+    public function update(Request $request, Message $message, int $id)
+    {
+        $name = $request->input('name');
+        $description = $request->input('description') ?? '';
+        $type = $request->input('type');
+        $address = $request->input('address') ?? '';
+        $startdatestring = $request->input('start');
+        $enddatestring = $request->input('end');
+
+        $start = new DateTime($startdatestring);
+        $end = new DateTime($enddatestring);
+
+        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Series updated');
+        } else {
+            $message->setContent(400, 'Series not updated');
+        }
+
+        return $message->render();
+    }
+
+    public function delete(Request $request, Message $message, int $id)
+    {
+
+        $user = $request->user();
+        $series = $this->seriesService->retrieveSeries($id);
+
+        $isSuccess = $this->seriesService->deleteSeries($user, $series);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Series deleted');
+        } else {
+            $message->setContent(400, 'Series not updated');
+        }
+
+        return $message->render();
+    }
+}
+
+

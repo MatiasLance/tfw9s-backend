@@ -27,6 +27,8 @@ class EventController extends Controller
         $event = $request->query('event', null);
         $year = $request->query('year', null);
         $manager = $request->query('manager', null);
+        $region = $request->query('region', null);
+        $agegroup = $request->query('agegroup', null);
 
         $filter = [
             'q' => $query,
@@ -37,6 +39,8 @@ class EventController extends Controller
             'event' => $event,
             'year' => $year,
             'manager' => $manager,
+            'region' => $region,
+            'agegroup' => $agegroup,
         ];
 
         $events = $this->eventService->listEvents($filter);
@@ -64,14 +68,16 @@ class EventController extends Controller
 
         #submit datetime as string
         $datetimeString = $request->input('datetime');
-        $field_id = $request->input('field_id');
+        $region_id = $request->input('region_id');
         $manager_id = $request->input('manager_id');
         $agegroup_id = $request->input('agegroup_id');
+        $series = $request->input('series');
+        $teamcount = $request->input('teamcount');
         $matches = $request->input('matches') ?? [];
 
         $datetime = new DateTime($datetimeString);
 
-        $event = $this->eventService->createEvent($name, $description, $datetime, $field_id, $manager_id, $agegroup_id, $matches);
+        $event = $this->eventService->createEvent($name, $description, $datetime, $region_id, $manager_id, $agegroup_id, $series, $teamcount, $matches);
 
         if ($event instanceof Event) {
             $message->setContent(201, 'Event created', '', [
@@ -91,14 +97,16 @@ class EventController extends Controller
 
         #submit datetime as string
         $datetimeString = $request->input('datetime');
-        $field_id = $request->input('field_id');
+        $region_id = $request->input('region_id');
         $manager_id = $request->input('manager_id');
         $agegroup_id = $request->input('agegroup_id');
+        $series = $request->input('series');
+        $teamcount = $request->input('teamcount');
         $matches = $request->input('matches') ?? [];
 
         $datetime = new DateTime($datetimeString);
 
-        $isSuccess = $this->eventService->updateEvent($id, $name, $description, $datetime, $field_id, $manager_id, $agegroup_id, $matches);
+        $isSuccess = $this->eventService->updateEvent($id, $name, $description, $datetime, $region_id, $manager_id, $agegroup_id, $series, $teamcount, $matches);
 
         if ($isSuccess) {
             $message->setContent(200, 'Event updated');
@@ -122,6 +130,27 @@ class EventController extends Controller
         } else {
             $message->setContent(400, 'Event not updated');
         }
+
+        return $message->render();
+    }
+
+    public function all(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $maxEventsPerPage = $request->query('maxEventsPerPage', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'max_event_per_page' => $maxEventsPerPage,
+        ];
+
+        $events = $this->eventService->allEvents($filter);
+
+        $message->setContent(200, 'Events retrieved', '', $events->toArray());
 
         return $message->render();
     }

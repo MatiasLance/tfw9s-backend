@@ -163,6 +163,27 @@ class TeamController extends Controller
 
         return $message->render();
     }
+
+    public function all(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $maxTeamsPerPage = $request->query('maxTeamsPerPage', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'max_team_per_page' => $maxTeamsPerPage,
+        ];
+
+        $teams = $this->teamService->allTeams($filter);
+
+        $message->setContent(200, 'Teams retrieved', '', $teams->toArray());
+
+        return $message->render();
+    }
 }
 
 

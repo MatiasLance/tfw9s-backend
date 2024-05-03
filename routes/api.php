@@ -259,6 +259,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
 
     Route::prefix("regions")->group(function() {
         Route::get('/', 'App\Http\Controllers\RegionController@list');
+        Route::get('/all', 'App\Http\Controllers\RegionController@all');
         Route::post('/', 'App\Http\Controllers\RegionController@store');
         Route::post('/update/{id}', 'App\Http\Controllers\RegionController@update');
         Route::get('/{id}', 'App\Http\Controllers\RegionController@retrieve');
@@ -270,6 +271,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
 
     Route::prefix("fields")->group(function() {
         Route::get('/', 'App\Http\Controllers\FieldController@list');
+        Route::get('/all', 'App\Http\Controllers\FieldController@all');
         Route::get('/{id}', 'App\Http\Controllers\FieldController@retrieve');
         // Route::post('/', 'App\Http\Controllers\FieldController@store');
         // Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
@@ -296,6 +298,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
 
     Route::prefix("teams")->group(function() {
         Route::get('/', 'App\Http\Controllers\TeamController@list');
+        Route::get('/all', 'App\Http\Controllers\TeamController@all');
         Route::get('/{id}', 'App\Http\Controllers\TeamController@retrieve');
         // Route::post('/', 'App\Http\Controllers\TeamController@store');
         // Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
@@ -305,6 +308,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
 
     Route::prefix("events")->group(function() {
         Route::get('/', 'App\Http\Controllers\EventController@list');
+        Route::get('/all', 'App\Http\Controllers\EventController@all');
         Route::get('/{id}', 'App\Http\Controllers\EventController@retrieve');
         Route::post('/', 'App\Http\Controllers\EventController@store');
         // Route::post('/{id}', 'App\Http\Controllers\EventController@update');
@@ -351,6 +355,15 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/active/{id}', 'App\Http\Controllers\GuidelineController@setActive');
         Route::post('/deactivate/{id}', 'App\Http\Controllers\GuidelineController@deactivate');
         Route::delete('/{id}', 'App\Http\Controllers\GuidelineController@delete');
+
+    });
+
+    Route::prefix("series")->group(function() {
+        Route::get('/', 'App\Http\Controllers\SeriesController@list');
+        Route::get('/{id}', 'App\Http\Controllers\SeriesController@retrieve');
+        Route::post('/', 'App\Http\Controllers\SeriesController@store');
+        Route::post('/{id}', 'App\Http\Controllers\SeriesController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\SeriesController@delete');
 
     });
 

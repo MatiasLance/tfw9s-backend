@@ -81,6 +81,18 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
          * This filters the events with a keyword. When this value is null, this filter is skipped.
          */
         'manager' => null,
+        
+        /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'region' => null,
+                
+        /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'agegroup' => null,
     ];
 
     public function __construct(Event $event, StorageInterface $storageService, EventMatchServiceInterface $eventmatchService)
@@ -92,7 +104,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
     public function listEvents(array $userFilters = []): Paginate
     {
-        $events = $this->model->query();
+        $events = $this->model->query()->with('region', 'manager', 'agegroup', 'series', 'eventmatch');
 
         $filters = array_merge($this->defaultEventListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -136,6 +148,21 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             });
         }
 
+        // Region Filter
+        if (!is_null($filters['region'])) {
+            $events = $events->where(function ($q) use($filters) {
+                $q
+                    ->where('region_id', '=', $filters['region']);
+            });
+        }
+
+        if (!is_null($filters['agegroup'])) {
+            $events = $events->where(function ($q) use($filters) {
+                $q
+                    ->where('agegroup_id', '=', $filters['agegroup']);
+            });
+        }
+
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
                 $events = $events->orderBy('name');
@@ -161,18 +188,20 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
     public function retrieveEvent(int $id): Event
     {
-        return $this->find($id);
+        return Event::with('region', 'manager', 'agegroup', 'series', 'eventmatch')->find($id);
     }
 
-    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id, int $manager_id, int $agegroup_id, ?array $matches): Event
+    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): Event
     {
         $event = new Event();
         $event->name = $name;
         $event->description = $description;
         $event->event_date = $datetime;
-        $event->field_id = $field_id;
+        $event->region_id = $region_id;
         $event->manager_id = $manager_id;
         $event->agegroup_id = $agegroup_id;
+        $event->series_id = $series;
+        $event->teamcount = $teamcount;
 
         return DB::transaction(function() use($event, $matches) {
             $event->save();
@@ -186,12 +215,13 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
                 // $event->eventmatch()->save($match);
                 $event_id = $event->id;
+                $field_id = $matchesData['field_id'];
                 $match_time = $matchesData['time'];
                 $team1 = $matchesData['team1'];
                 $team2 = $matchesData['team2'];
                 $team1_score = 0;
                 $team2_score = 0;
-                $matches = $this->eventmatchService->createEventMatch($event_id, $match_time, $team1, $team2, $team1_score, $team2_score);
+                $matches = $this->eventmatchService->createEventMatch($event_id, $field_id, $match_time, $team1, $team2, $team1_score, $team2_score);
                 $event->eventmatch()->save($matches);
             }
 
@@ -199,15 +229,17 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         });
     }
 
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id, $manager_id, int $agegroup_id, ?array $matches): bool
+    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $region_id, $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): bool
     {
         $event = $this->find($id);
         $event->name = $name;
         $event->description = $description;
         $event->event_date = $datetime;
-        $event->field_id = $field_id;
+        $event->region_id = $region_id;
         $event->manager_id = $manager_id;
         $event->agegroup_id = $agegroup_id;
+        $event->series_id = $series;
+        $event->teamcount = $teamcount;
 
         return DB::transaction(function() use($event, $matches) {
 
@@ -224,6 +256,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 if ($existingSponsor) {
                     $existingSponsor->update([
                         'match_time' => $matchesData['time'],
+                        'field_id' => $matchesData['field_id'],
                         'team1' => $matchesData['team1'],
                         'team2' => $matchesData['team2'],
                     ]);
@@ -231,6 +264,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 } else {
                 $match = new EventMatch();
                 $match->event_id = $event->id;
+                $match->field_id = $matchesData['field_id'];
                 $match->match_time= $matchesData['time'];
                 $match->team1 = $matchesData['team1'];
                 $match->team2 = $matchesData['team2'];
@@ -254,5 +288,16 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
             return $event->delete();
         });
+    }
+
+    public function allEvents(array $userFilters = []): Paginate
+    {
+        $events = $this->model->query()->select('id', 'name', 'agegroup_id', 'event_date')->with('eventmatch')->orderBy('name');
+
+        $filters = array_merge($this->defaultEventListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+        $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
+
+        return new Paginate($events, $maxPerPage, $filters['page'], 'events');
     }
 }

@@ -46,4 +46,9 @@ class RegionService implements RegionServiceInterface
     {
         return $this->regionRepository->deleteRegion($region->id);
     }
+
+    public function allRegions(array $filters = []): Paginate
+    {
+        return $this->regionRepository->allRegions($filters);
+    }
 }
