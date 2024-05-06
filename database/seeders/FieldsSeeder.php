@@ -18,8 +18,33 @@ class FieldsSeeder extends Seeder
     public function run()
     {
         $faker = Faker::create();
-        $regionIds = Region::pluck('id')->toArray();
+        $regions = Region::all();
+        $fieldsPerRegion = 3; // Number of fields to assign per region
 
+        foreach ($regions as $region) {
+            // Get a subset of field names for this region
+            $regionFields = $this->getRegionFields($fieldsPerRegion);
+
+            // Create fields for this region
+            foreach ($regionFields as $fieldName) {
+                Field::create([
+                    'name' => $fieldName,
+                    'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
+                    'region_id' => $region->id,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Get a subset of field names for a region.
+     *
+     * @param int $count
+     * @return array
+     */
+    private function getRegionFields($count)
+    {
+        // Array of all field names
         $fields = [
             'Rugby Park',
             'Scrum Grounds',
@@ -36,14 +61,10 @@ class FieldsSeeder extends Seeder
             'Passing Arena',
             'Tighthead Field',
             'Loosehead Grounds'
-        ];        
+        ];
 
-        foreach ($fields as $field) {
-            Field::create([
-                'name' => $field,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'region_id' => $faker->randomElement($regionIds),
-            ]);
-        }
+        // Shuffle the field names and take a subset of $count
+        shuffle($fields);
+        return array_slice($fields, 0, $count);
     }
 }

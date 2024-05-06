@@ -72,4 +72,13 @@ interface RegionRepositoryInterface
      */
     public function deleteRegion(int $id): bool;
 
+    /**
+     * Retrieve all regions.
+     *
+     * @param array $userFilters
+     *
+     * @return Paginate<Region>
+     */
+    public function allRegions(array $userFilters = []): Paginate;
+
 }

@@ -16,17 +16,9 @@ class Event extends Model
         'updated_at',
     ];
 
-    protected $with = [
-        'field',
-        'manager',
-        'agegroup',
-        'eventmatch'
-
-    ];
-
-    public function field()
+    public function region()
     {
-        return $this->belongsTo(Field::class)->withTrashed();
+        return $this->belongsTo(Region::class)->withTrashed();
     }
     public function manager()
     {
@@ -35,6 +27,10 @@ class Event extends Model
     public function agegroup()
     {
         return $this->belongsTo(AgeGroup::class)->withTrashed();
+    }
+    public function series()
+    {
+        return $this->belongsTo(Series::class)->withTrashed();
     }
     public function eventmatch()
     {

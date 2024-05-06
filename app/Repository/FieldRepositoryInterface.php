@@ -74,4 +74,13 @@ interface FieldRepositoryInterface
      */
     public function deletefield(int $id): bool;
 
+    /**
+     * Retrieve all fields.
+     *
+     * @param array $userFilters
+     *
+     * @return Paginate<field>
+     */
+    public function allfields(array $userFilters = []): Paginate;
+
 }

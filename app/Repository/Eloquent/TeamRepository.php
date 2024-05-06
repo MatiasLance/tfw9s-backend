@@ -80,7 +80,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
     public function listTeams(array $userFilters = []): Paginate
     {
-        $teams = $this->model->query();
+        $teams = $this->model->query()->with('field', 'agegroup');
 
         $filters = array_merge($this->defaultTeamListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -113,7 +113,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
     public function retrieveTeam(int $id): Team
     {
-        return $this->find($id);
+        return Team::with('field', 'agegroup')->find($id);
     }
 
     public function createTeam(string $name, string $description, int $field_id, int $agegroup_id, array $coach, array $manager, ?array $media): Team
@@ -199,5 +199,16 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
             return $team->delete();
         });
+    }
+
+    public function allTeams(array $userFilters = []): Paginate
+    {
+        $teams = $this->model->query()->select('id', 'name', 'agegroup_id')->orderBy('name');
+
+        $filters = array_merge($this->defaultTeamListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+        $maxPerPage = is_null($userFilters['max_team_per_page']) ? $teams->count() : $filters['max_team_per_page'];
+
+        return new Paginate($teams, $maxPerPage, $filters['page'], 'teams');
     }
 }

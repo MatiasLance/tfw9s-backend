@@ -12,11 +12,15 @@ class EventMatch extends Model
 
     protected $fillable = [
         'match_time',
+        'field_id',
+        'team1',
+        'team2',
     ];
 
     protected $with = [
         'team1',
         'team2',
+        'field',
     ];
 
     public function team1()
@@ -27,6 +31,11 @@ class EventMatch extends Model
     public function team2()
     {
         return $this->belongsTo(Team::class, 'team2')->withTrashed();
+    }
+
+    public function field()
+    {
+        return $this->belongsTo(Field::class)->withTrashed();
     }
 
     public function event_match_video()

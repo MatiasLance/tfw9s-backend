@@ -36,14 +36,14 @@ interface EventServiceInterface
      * @param string $name
      * @param string $description
      * @param int DateTime $datetime
-     * @param int field_id
+     * @param int region_id
      * @param int manager_id
      * @param int agegroup_id
      * @param ?array matches
      *
      * @return Event
      */
-    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id, int $manager_id, int $agegroup_id, ?array $matches): Event;
+    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): Event;
 
     /**
      * Update an existing Event
@@ -52,14 +52,14 @@ interface EventServiceInterface
      * @param string $name
      * @param string $description
      * @param int DateTime $datetime
-     * @param int field_id
+     * @param int region_id
      * @param int manager_id
      * @param int agegroup_id
      * @param ?array matches
      *
      * @return bool
      */
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id, int $manager_id, int $agegroup_id, ?array $matches): bool;
+    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): bool;
 
     /**
      * Delete an existing Event
@@ -71,4 +71,12 @@ interface EventServiceInterface
      */
     public function deleteEvent(User $initiator, Event $event): bool;
 
+    /**
+     * Retrieve a list of events
+     *
+     * @param $filters List of filters available to be applied'
+     *
+     * @return Paginate<Event>
+     */
+    public function allEvents(array $filters = []): Paginate;
 }

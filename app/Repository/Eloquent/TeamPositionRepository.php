@@ -110,6 +110,10 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
                 $teamPositions = $teamPositions->orderByDesc('position');
                 break;
 
+            case Filter::SORT_POINTS:
+                $teamPositions = $teamPositions->orderByDesc('points')->orderByDesc('difference');
+                break;
+
             default:
                 $teamPositions = $teamPositions->orderBy('created_at');
                 break;

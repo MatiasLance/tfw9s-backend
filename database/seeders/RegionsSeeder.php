@@ -19,19 +19,9 @@ class RegionsSeeder extends Seeder
         $faker = Faker::create();
 
         $regions = [
-            'New Zealand',
             'Australia',
             'South Africa',
-            'Scotland',
-            'Ireland',
-            'France',
-            'Argentina',
-            'Japan',
-            'Italy',
-            'Samoa',
-            'Canada',
             'United States',
-            'Uruguay',
             'Spain',
             'Romania'
         ];

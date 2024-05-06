@@ -18,14 +18,14 @@ class MailService implements MailServiceInterface
         $adminSubject = 'You have a new order on thefinalwhistle.com.au!';
         $customerSubject = 'Here is the invoice for your recent order on thefinalwhistle.com.au';
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'hello@thefinalwhistle.com.au')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
         $this->send([$order->email], $customerSubject, $content);
     }
 
     public function sendContactForm(array $data)
     {
         $to = [
-            env('ADMIN_EMAIL_ADDRESS', 'hello@thefinalwhistle.com.au')
+            env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')
         ];
 
         $subject = 'You have a new message from ' . $data['name'] . ' via thefinalwhistle.com.au';
@@ -61,7 +61,7 @@ class MailService implements MailServiceInterface
 
         $response = $guzzle->request('POST', 'http://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
             'form_params' => [
-                'from' => 'noreply@thedrumhq.com.au',
+                'from' => 'noreply@tfw9s.com.au',
                 'recipients' => $to,
                 'cc' => [],
                 'bcc' => [],

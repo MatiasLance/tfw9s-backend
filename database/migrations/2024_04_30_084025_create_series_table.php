@@ -13,16 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('events', function (Blueprint $table) {
+        Schema::create('series', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('type');
             $table->text('description');
-            $table->date('event_date');
-            $table->integer('teamcount')->default(0);
-            $table->foreignId('series_id')->nullable();
-            $table->foreignId('region_id')->nullable();
-            $table->foreignId('manager_id')->nullable();
-            $table->foreignId('agegroup_id')->nullable();
+            $table->text('address')->nullable();
+            $table->date('start')->nullable();
+            $table->date('end')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -35,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('events');
+        Schema::dropIfExists('series');
     }
 };

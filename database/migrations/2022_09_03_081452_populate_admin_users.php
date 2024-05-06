@@ -41,7 +41,7 @@ return new class extends Migration
             'email' =>  'manager@thefinalwhistle.com',
             'password' => bcrypt('superuser1'),
             'first_name' => 'Test',
-            'last_name' => 'Manager',
+            'last_name' => 'Staff',
             'phone' => '',
             'subscription_status' => '0' // not subscribe by default
         ]);

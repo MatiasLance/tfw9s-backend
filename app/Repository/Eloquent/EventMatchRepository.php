@@ -122,10 +122,11 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         return $this->find($id);
     }
 
-    public function createEventMatch(int $event_id, string $match_time, int $team1, int $team2): EventMatch
+    public function createEventMatch(int $event_id, int $field_id, string $match_time, int $team1, int $team2): EventMatch
     {
         $eventMatch = new EventMatch();
         $eventMatch->event_id = $event_id;
+        $eventMatch->field_id = $field_id;
         $eventMatch->match_time = $match_time;
         $eventMatch->team1 = $team1;
         $eventMatch->team2 = $team2;
@@ -139,10 +140,11 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         });
     }
 
-    public function updateEventMatch(int $id, int $event_id, string $match_time, int $team1, int $team2): bool
+    public function updateEventMatch(int $id, int $event_id, int $field_id, string $match_time, int $team1, int $team2): bool
     {
         $eventMatch = $this->find($id);
         $eventMatch->event_id = $event_id;
+        $eventMatch->field_id = $field_id;
         $eventMatch->match_time = $match_time;
         $eventMatch->team1 = $team1;
         $eventMatch->team2 = $team2;

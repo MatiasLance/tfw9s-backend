@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('event_matches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id');
+            $table->foreignId('field_id')->nullable();
             $table->time('match_time');
             $table->foreignId('team1');
             $table->foreignId('team2');

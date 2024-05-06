@@ -82,4 +82,13 @@ interface TeamRepositoryInterface
      */
     public function deleteTeam(int $id): bool;
 
+    /**
+     * Retrieve a list of teams.
+     *
+     * @param array $userFilters
+     *
+     * @return Paginate<team>
+     */
+    public function allTeams(array $userFilters = []): Paginate;
+
 }

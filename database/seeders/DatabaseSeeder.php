@@ -62,14 +62,6 @@ class DatabaseSeeder extends Seeder
             ->has(
                 Category::factory()
             )
-            ->has(
-                Media::factory()
-                    ->state(function (array $attributes) {
-                        return [
-                            'path' => 'media/default/' . ItemRepositoryInterface::PLACEHOLDER_IMAGE
-                        ];
-                    })
-            )
             ->create();
 
             $this->call(RegionsSeeder::class);
@@ -93,6 +85,8 @@ class DatabaseSeeder extends Seeder
             $this->call(TeamsSeeder::class);
 
             $this->call(ManagersSeeder::class);
+
+            $this->call(SeriesSeeder::class);
 
             $this->call(EventsSeeder::class);
 

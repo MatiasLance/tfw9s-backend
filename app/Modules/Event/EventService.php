@@ -33,18 +33,23 @@ class EventService implements EventServiceInterface
         return $this->eventRepository->retrieveEvent($id);
     }
 
-    public function createEvent(string $name, string $description, DateTime $datetime, int $field_id , int $manager_id, int $agegroup_id, ?array $matches): Event
+    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id , int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): Event
     {
-        return $this->eventRepository->createEvent($name, $description, $datetime, $field_id, $manager_id, $agegroup_id, $matches);
+        return $this->eventRepository->createEvent($name, $description, $datetime, $region_id, $manager_id, $agegroup_id, $series, $teamcount, $matches);
     }
 
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $field_id , int $manager_id, int $agegroup_id, ?array $matches): bool
+    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $region_id , int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): bool
     {
-        return $this->eventRepository->updateEvent($id, $name, $description, $datetime, $field_id, $manager_id, $agegroup_id, $matches);
+        return $this->eventRepository->updateEvent($id, $name, $description, $datetime, $region_id, $manager_id, $agegroup_id, $series, $teamcount, $matches);
     }
 
     public function deleteEvent(User $initiator, Event $event): bool
     {
         return $this->eventRepository->deleteEvent($event->id);
+    }
+
+    public function allEvents(array $filters = []): Paginate
+    {
+        return $this->eventRepository->allEvents($filters);
     }
 }
