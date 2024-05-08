@@ -19,7 +19,14 @@ class Team extends Model
 
     protected $with = [
         'media',
+        'field',
+        'agegroup'
     ];
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
 
     public function field()
     {

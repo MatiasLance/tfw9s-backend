@@ -160,7 +160,7 @@
                                         <tbody>
                                             <tr>
                                                 <td rowspan="5" style="padding-right: 10px; padding-bottom: 10px;">
-                                                    <img style="height: 80px;" src={{ $lineItem->thumbnail }} alt="Product Image" />
+                                                    <img style="height: 80px;" src="{{ $lineItem->thumbnail }}" alt="Product Image" />
                                                 </td>
                                                 <td colspan="2" style="font-size: 14px; font-weight: bold; color: #666666; padding-bottom: 11px;">
                                                     {{ $lineItem->item->name }}

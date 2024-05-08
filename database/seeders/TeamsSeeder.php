@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
 use App\Models\Team;
 use App\Models\Field;
-use App\Models\AgeGroup;
+use App\Models\Event;
 
 class TeamsSeeder extends Seeder
 {
@@ -20,7 +20,7 @@ class TeamsSeeder extends Seeder
     {
         $faker = Faker::create();
         $fieldIds = Field::pluck('id')->toArray();
-        $agegroupIds = AgeGroup::pluck('id')->toArray();
+        $eventIds = Event::pluck('id')->toArray();
 
         $teams = [
             'Bulldogs',
@@ -47,18 +47,18 @@ class TeamsSeeder extends Seeder
         ];
         
 
-        $teamsPerAgeGroup = ceil(count($teams) / count($agegroupIds));
+        $teamsPerEvent = ceil(count($teams) / count($eventIds));
         
-        foreach ($agegroupIds as $index => $agegroupId) {
-            $startIndex = $index * $teamsPerAgeGroup;
-            $selectedTeams = array_slice($teams, $startIndex, $teamsPerAgeGroup);
+        foreach ($eventIds as $index => $id) {
+            $startIndex = $index * $teamsPerEvent;
+            $selectedTeams = array_slice($teams, $startIndex, $teamsPerEvent);
             
             foreach ($selectedTeams as $selectedTeam) {
                 Team::create([
                     'name' => $selectedTeam,
                     'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
                     'field_id' => $faker->randomElement($fieldIds),
-                    'agegroup_id' => $agegroupId,
+                    'event_id' => $id,
                     'coach_name' => $faker->name,
                     'coach_mobile' => $faker->unique()->phoneNumber,
                     'coach_email' => $faker->unique()->safeEmail,

@@ -27,4 +27,11 @@ class Filter
      * @var string SORT_Z_TO_A
      */
     public const SORT_Z_TO_A = 'z_to_a';
+
+    /**
+     * Sort option that sorts teams by start date.
+     *
+     * @var string SORT_Z_TO_A
+     */
+    public const SORT_START_DATE = 'start_date';
 }

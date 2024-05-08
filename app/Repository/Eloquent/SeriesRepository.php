@@ -75,7 +75,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
     public function listSeries(array $userFilters = []): Paginate
     {
-        $series = $this->model->query();
+        $series = $this->model->query()->with('event');
 
         $filters = array_merge($this->defaultSeriesListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -103,6 +103,10 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                 $series = $series->orderByDesc('name');
                 break;
 
+                case Filter::SORT_START_DATE:
+                    $series = $series->orderBy('start');
+                    break;
+
             default:
                 $series = $series->orderBy('created_at');
                 break;
@@ -115,10 +119,10 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
     public function retrieveSeries(int $id): Series
     {
-        return $this->find($id);
+        return Series::with('event')->find($id);
     }
 
-    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end): Series
+    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, ?array $media): Series
     {
         $series = new Series();
         $series->name = $name;
@@ -128,14 +132,22 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->start = $start;
         $series->end = $end;
 
-        return DB::transaction(function() use($series) {
+        return DB::transaction(function() use($series, $media) {
             $series->save();
+
+            foreach ($media as $file) {
+                if (!is_null($file)) {
+  
+                    $Image = $this->storageService->store($file);
+                    $series->media()->save($Image);
+                }
+              }
 
             return $series;
         });
     }
 
-    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end): bool
+    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, ?array $media): bool
     {
         $series = $this->find($id);
         $series->name = $name;
@@ -145,7 +157,33 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->start = $start;
         $series->end = $end;
 
-        return DB::transaction(function() use($series) {
+        return DB::transaction(function() use($series, $media) {
+
+            if (!is_null($media)) {
+                $newMedia = array_filter($media, function ($file) {
+                    return $file instanceof UploadedFile;
+                });
+
+                $oldMedia = array_filter($media, function ($file) {
+                    return !$file instanceof UploadedFile;
+                });
+
+                foreach ($series->media as $existingMedia) {
+                    if (
+                        $existingMedia->path !== 'media/default/' . self::PLACEHOLDER_IMAGE &&
+                        !in_array($existingMedia->hash, $oldMedia)
+                    ) {
+                        $this->storageService->delete($existingMedia);
+                        $existingMedia->delete();
+                    }
+                }
+
+                foreach ($newMedia as $newFile) {
+
+                    $Image = $this->storageService->store($newFile);
+                    $series->media()->save($Image);
+                }
+            }
 
             return $series->save();
         });

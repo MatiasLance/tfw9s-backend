@@ -24,7 +24,7 @@ class ItemFactory extends Factory
             'description' => '<p>' . 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             Curabitur commodo est in quam feugiat tristique nec id urna. Duis eu neque tempor, aliquam nisl eget, dignissim dolor.
             Aenean finibus imperdiet porttitor.' . '</p>',
-            'price' => $this->faker->randomFloat(2, 100, $price),
+            'price' => $price + (int)($this->faker->randomFloat(0, 1, 10) * 10),
             'saleprice' => $price,
             'show_rrp' => $onSale, // Add show_rrp
             'is_on_sale' => $onSale, // Add is_on_sale

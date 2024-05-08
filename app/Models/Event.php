@@ -16,6 +16,15 @@ class Event extends Model
         'updated_at',
     ];
 
+    protected $with = [
+        'region',
+        'manager',
+        'agegroup',
+        'series',
+        'eventmatch',
+        'team',
+    ];
+
     public function region()
     {
         return $this->belongsTo(Region::class)->withTrashed();
@@ -35,6 +44,10 @@ class Event extends Model
     public function eventmatch()
     {
         return $this->hasMany(EventMatch::class);
+    }
+    public function team()
+    {
+        return $this->hasMany(Team::class);
     }
 
 }

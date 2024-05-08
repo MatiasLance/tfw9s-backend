@@ -18,18 +18,21 @@ class EventsSeeder extends Seeder
         $faker = Faker::create();
         $regionIds = Region::pluck('id')->toArray();
         $managerIds = Manager::pluck('id')->toArray();
-        $agegroupIds = AgeGroup::pluck('id')->toArray();
-        $seriesData = Series::all()->toArray();
+        $agegroups = AgeGroup::all();
+        $seriesData = Series::join(
+            \DB::raw('(SELECT MIN(id) AS id FROM series GROUP BY type) t'),
+            function ($join) {
+                $join->on('series.id', '=', 't.id');
+            }
+        )->get()->toArray();
         $currentYear = date('Y');
         $currentMonth = date('m');
         $startDate = $currentYear . '-'.$currentMonth.'-01';
         $endDate = $currentYear . '-'.$currentMonth.'-31';
 
-        foreach ($agegroupIds as $agegroupId) {
-            $eventType = $faker->randomElement(['Cup', 'League', 'Tournament', 'Championship']);
+        foreach ($agegroups as $agegroup) {
             $series = $faker->randomElement($seriesData);
-            $eventName = $faker->unique()->state() ;
-            $eventTitle = $eventName . ' ' . $eventType;
+            $eventTitle = $series['name'];
             Event::create([
                 'name' => $eventTitle,
                 'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
@@ -38,7 +41,7 @@ class EventsSeeder extends Seeder
                 'series_id' => $series['id'],
                 'region_id' => $faker->randomElement($regionIds),
                 'manager_id' => $faker->randomElement($managerIds),
-                'agegroup_id' => $agegroupId,
+                'agegroup_id' => $agegroup->id,
             ]);
         }
     }

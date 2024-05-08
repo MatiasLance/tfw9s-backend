@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->date('event_date');
+            $table->integer('price')->default(0);
             $table->integer('teamcount')->default(0);
             $table->foreignId('series_id')->nullable();
             $table->foreignId('region_id')->nullable();

@@ -73,11 +73,10 @@ class EventController extends Controller
         $agegroup_id = $request->input('agegroup_id');
         $series = $request->input('series');
         $teamcount = $request->input('teamcount');
-        $matches = $request->input('matches') ?? [];
 
         $datetime = new DateTime($datetimeString);
 
-        $event = $this->eventService->createEvent($name, $description, $datetime, $region_id, $manager_id, $agegroup_id, $series, $teamcount, $matches);
+        $event = $this->eventService->createEvent($name, $description, $datetime, $region_id, $manager_id, $agegroup_id, $series, $teamcount);
 
         if ($event instanceof Event) {
             $message->setContent(201, 'Event created', '', [

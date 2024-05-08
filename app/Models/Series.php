@@ -17,8 +17,17 @@ class Series extends Model
         'updated_at',
     ];
 
+    protected $with = [
+        'media',
+    ];
+
     public function event()
     {
         return $this->hasMany(Event::class);
+    }
+
+    public function media()
+    {
+        return $this->morphMany('App\Models\Media', 'imageable');
     }
 }

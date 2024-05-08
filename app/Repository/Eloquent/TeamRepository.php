@@ -80,7 +80,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
     public function listTeams(array $userFilters = []): Paginate
     {
-        $teams = $this->model->query()->with('field', 'agegroup');
+        $teams = $this->model->query()->with('event');
 
         $filters = array_merge($this->defaultTeamListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -113,16 +113,16 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
     public function retrieveTeam(int $id): Team
     {
-        return Team::with('field', 'agegroup')->find($id);
+        return Team::with('event')->find($id);
     }
 
-    public function createTeam(string $name, string $description, int $field_id, int $agegroup_id, array $coach, array $manager, ?array $media): Team
+    public function createTeam(string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): Team
     {
         $team = new Team();
         $team->name = $name;
         $team->description = $description;
         $team->field_id = $field_id;
-        $team->agegroup_id = $agegroup_id;
+        $team->event_id = $event_id;
         $team->coach_name = $coach['name'];
         $team->coach_mobile = $coach['mobile'];
         $team->coach_email = $coach['email'];
@@ -145,13 +145,13 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         });
     }
 
-    public function updateTeam(int $id, string $name, string $description, int $field_id, int $agegroup_id, array $coach, array $manager, ?array $media): bool
+    public function updateTeam(int $id, string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): bool
     {
         $team = $this->find($id);
         $team->name = $name;
         $team->description = $description;
         $team->field_id = $field_id;
-        $team->agegroup_id = $agegroup_id;
+        $team->event_id = $event_id;
         $team->coach_name = $coach['name'];
         $team->coach_mobile = $coach['mobile'];
         $team->coach_email = $coach['email'];
@@ -203,7 +203,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
     public function allTeams(array $userFilters = []): Paginate
     {
-        $teams = $this->model->query()->select('id', 'name', 'agegroup_id')->orderBy('name');
+        $teams = $this->model->query()->select('id', 'name', 'event_id')->orderBy('name');
 
         $filters = array_merge($this->defaultTeamListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
