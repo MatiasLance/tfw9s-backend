@@ -82,13 +82,13 @@ class DatabaseSeeder extends Seeder
 
             $this->call(AgeGroupsSeeder::class);
 
-            $this->call(TeamsSeeder::class);
-
             $this->call(ManagersSeeder::class);
 
             $this->call(SeriesSeeder::class);
 
             $this->call(EventsSeeder::class);
+
+            $this->call(TeamsSeeder::class);
 
             $this->call(EventMatchesSeeder::class);
 

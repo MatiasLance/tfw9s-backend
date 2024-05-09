@@ -53,7 +53,7 @@ class TeamController extends Controller
         $name = $request->input('name');
         $description = $request->input('description') ?? '';
         $field_id = $request->input('field_id');
-        $agegroup_id = $request->input('agegroup_id');
+        $event_id = $request->input('event_id');
         $media = $request->file('photo') ?? [];
 
         $coach_name = $request->input('coach_name');
@@ -76,7 +76,7 @@ class TeamController extends Controller
             'email' => $manager_email,
         ];
 
-        $team = $this->teamService->createTeam($name, $description, $field_id, $agegroup_id, $coach, $manager, $media);
+        $team = $this->teamService->createTeam($name, $description, $field_id, $event_id, $coach, $manager, $media);
 
         if ($team instanceof Team) {
             $message->setContent(201, 'Team created', '', [
@@ -94,7 +94,7 @@ class TeamController extends Controller
         $name = $request->input('name');
         $description = $request->input('description') ?? '';
         $field_id = $request->input('field_id');
-        $agegroup_id = $request->input('agegroup_id');
+        $event_id = $request->input('event_id');
 
         $newPhoto = $request->file('photo') ?? [];
         $existingPhoto = $request->input('photo') ?? [];
@@ -136,7 +136,7 @@ class TeamController extends Controller
             'email' => $manager_email,
         ];
 
-        $isSuccess = $this->teamService->updateTeam($id, $name, $description, $field_id, $agegroup_id, $coach, $manager, $media);
+        $isSuccess = $this->teamService->updateTeam($id, $name, $description, $field_id, $event_id, $coach, $manager, $media);
 
         if ($isSuccess) {
             $message->setContent(200, 'Team updated');

@@ -18,7 +18,7 @@ class EventMatchesSeeder extends Seeder
         $Events = Event::all();
 
         foreach ($Events as $event) {
-            $teams = Team::where('agegroup_id', $event->agegroup_id)->pluck('id')->toArray();
+            $teams = Team::where('event_id', $event->id)->pluck('id')->toArray();
             $fields = Field::where('region_id', $event->region_id)->pluck('id')->toArray();
             $teamsCount = count($teams);
             

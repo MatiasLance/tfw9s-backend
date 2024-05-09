@@ -55,7 +55,7 @@ interface SeriesRepositoryInterface
      *
      * @return series
      */
-    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end): Series;
+    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, ?array $media): Series;
 
     /**
      * Update an existing series instance
@@ -70,7 +70,7 @@ interface SeriesRepositoryInterface
      *
      * @return bool
      */
-    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end): bool;
+    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, ?array $media): bool;
 
     /**
      * Delete an existing series instance

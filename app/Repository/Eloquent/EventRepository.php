@@ -104,7 +104,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
     public function listEvents(array $userFilters = []): Paginate
     {
-        $events = $this->model->query()->with('region', 'manager', 'agegroup', 'series', 'eventmatch');
+        $events = $this->model->query();
 
         $filters = array_merge($this->defaultEventListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -188,10 +188,10 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
     public function retrieveEvent(int $id): Event
     {
-        return Event::with('region', 'manager', 'agegroup', 'series', 'eventmatch')->find($id);
+        return $this->find($id);
     }
 
-    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): Event
+    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount): Event
     {
         $event = new Event();
         $event->name = $name;
@@ -203,27 +203,8 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         $event->series_id = $series;
         $event->teamcount = $teamcount;
 
-        return DB::transaction(function() use($event, $matches) {
+        return DB::transaction(function() use($event) {
             $event->save();
-
-            foreach ($matches as $index => $matchesData) {
-                // $match = new EventMatch();
-                // $match->event_id = $event->id;
-                // $match->match_time= $matchesData['time'];
-                // $match->team1 = $matchesData['team1'];
-                // $match->team2 = $matchesData['team2'];
-
-                // $event->eventmatch()->save($match);
-                $event_id = $event->id;
-                $field_id = $matchesData['field_id'];
-                $match_time = $matchesData['time'];
-                $team1 = $matchesData['team1'];
-                $team2 = $matchesData['team2'];
-                $team1_score = 0;
-                $team2_score = 0;
-                $matches = $this->eventmatchService->createEventMatch($event_id, $field_id, $match_time, $team1, $team2, $team1_score, $team2_score);
-                $event->eventmatch()->save($matches);
-            }
 
             return $event;
         });

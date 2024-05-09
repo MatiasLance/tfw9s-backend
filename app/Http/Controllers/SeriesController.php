@@ -62,8 +62,9 @@ class SeriesController extends Controller
 
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
+        $media = $request->file('photo') ?? [];
 
-        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end);
+        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end, $media);
 
         if ($series instanceof Series) {
             $message->setContent(201, 'Series created', '', [
@@ -88,7 +89,28 @@ class SeriesController extends Controller
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
 
-        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end);
+        $newPhoto = $request->file('photo') ?? [];
+        $existingPhoto = $request->input('photo') ?? [];
+        $newPhotoCount = count($newPhoto);
+        $existingPhotoCount = count($existingPhoto);
+
+        if (
+            $request->has('photo') &&
+            (
+                $newPhotoCount > 0 ||
+                $existingPhotoCount > 0
+            )
+        ) {
+            foreach ($existingPhoto as $existingPhotoHash) {
+                array_push($newPhoto, $existingPhotoHash);
+            }
+            $media = $newPhoto;
+        } else {
+            $media = null;
+        }
+        
+
+        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end, $media);
 
         if ($isSuccess) {
             $message->setContent(200, 'Series updated');

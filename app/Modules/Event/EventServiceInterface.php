@@ -43,7 +43,7 @@ interface EventServiceInterface
      *
      * @return Event
      */
-    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): Event;
+    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount): Event;
 
     /**
      * Update an existing Event
