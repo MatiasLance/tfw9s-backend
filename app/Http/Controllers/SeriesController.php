@@ -23,6 +23,7 @@ class SeriesController extends Controller
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
         $type = $request->query('type', null);
+        $withFixing = $request->query('withFixing', null);
         $maxSeriesPerPage = $request->query('maxSeriesPerPage', null);
 
         $filter = [
@@ -30,6 +31,7 @@ class SeriesController extends Controller
             'sort' => $sort,
             'page' => $page,
             'type' => $type,
+            'withFixing' => $withFixing,
             'max_series_per_page' => $maxSeriesPerPage,
         ];
 
@@ -108,7 +110,6 @@ class SeriesController extends Controller
         } else {
             $media = null;
         }
-        
 
         $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end, $media);
 

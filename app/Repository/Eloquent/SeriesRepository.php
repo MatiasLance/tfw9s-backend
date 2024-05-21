@@ -41,6 +41,12 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         'type' => null,
 
         /**
+         * withFixing filter
+         * This filters the series by type. When this value is null, this filter is skipped.
+         */
+        'withFixing' => null,
+
+        /**
          * Sort
          * Sorts the series according to this value. By default, will sort the series by their creation date.
          * For the available sort values, check App\Modules\Series\Filter
@@ -78,6 +84,10 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series = $this->model->query()->with('event');
 
         $filters = array_merge($this->defaultSeriesListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+        // if (!is_null($filters['withFixing'])) {
+        //    $series = $series->has('event');
+        // }
 
         // Search Filter
         if (!is_null($filters['q'])) {
@@ -137,7 +147,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
             foreach ($media as $file) {
                 if (!is_null($file)) {
-  
+
                     $Image = $this->storageService->store($file);
                     $series->media()->save($Image);
                 }
