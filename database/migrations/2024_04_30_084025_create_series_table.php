@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->date('start')->nullable();
             $table->date('end')->nullable();
+            $table->float('price');
             $table->softDeletes();
             $table->timestamps();
         });

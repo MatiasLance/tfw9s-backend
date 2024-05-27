@@ -132,7 +132,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         return Series::with('event')->find($id);
     }
 
-    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, ?array $media): Series
+    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): Series
     {
         $series = new Series();
         $series->name = $name;
@@ -141,6 +141,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->address = $address;
         $series->start = $start;
         $series->end = $end;
+        $series->price = $price;
 
         return DB::transaction(function() use($series, $media) {
             $series->save();
@@ -157,7 +158,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         });
     }
 
-    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, ?array $media): bool
+    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): bool
     {
         $series = $this->find($id);
         $series->name = $name;
@@ -166,6 +167,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->address = $address;
         $series->start = $start;
         $series->end = $end;
+        $series->price = $price;
 
         return DB::transaction(function() use($series, $media) {
 
