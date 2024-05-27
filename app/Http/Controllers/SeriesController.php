@@ -61,12 +61,13 @@ class SeriesController extends Controller
         $address = $request->input('address') ?? '';
         $startdatestring = $request->input('start');
         $enddatestring = $request->input('end');
+        $price = $request->input('price');
 
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
         $media = $request->file('photo') ?? [];
 
-        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end, $media);
+        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end, $price, $media);
 
         if ($series instanceof Series) {
             $message->setContent(201, 'Series created', '', [
@@ -87,6 +88,7 @@ class SeriesController extends Controller
         $address = $request->input('address') ?? '';
         $startdatestring = $request->input('start');
         $enddatestring = $request->input('end');
+        $price = $request->input('price');
 
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
@@ -111,7 +113,7 @@ class SeriesController extends Controller
             $media = null;
         }
 
-        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end, $media);
+        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end, $price, $media);
 
         if ($isSuccess) {
             $message->setContent(200, 'Series updated');
