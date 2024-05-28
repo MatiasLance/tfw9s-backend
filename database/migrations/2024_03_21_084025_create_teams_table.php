@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description');
+            $table->foreignId('registration_id');
             $table->foreignId('field_id')->nullable();
             $table->foreignId('agegroup_id')->nullable();
             $table->foreignId('event_id')->nullable();
