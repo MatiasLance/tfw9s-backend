@@ -17,15 +17,6 @@ return new class extends Migration
             $table->id();
             $table->string('transaction_id');
             $table->string('payment_gateway');
-            $table->string('contact_firstname');
-            $table->string('contact_lastname');
-            $table->string('phone_number');
-            $table->string('email');
-            $table->string('player_firstname');
-            $table->string('player_lastname');
-            $table->string('team_name');
-            $table->string('dob');
-            $table->string('agegroup');
             $table->integer('price');
             $table->boolean('is_verified')->default(0);
             $table->timestamps();

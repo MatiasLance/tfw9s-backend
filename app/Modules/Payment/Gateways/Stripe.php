@@ -26,35 +26,35 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 {
     /**
      * Stripe Client
-     * 
+     *
      * @var \Stripe\StripeClient $stripe
      */
     protected StripeClient $stripe;
 
     /**
      * Mail Service
-     * 
+     *
      * @var MailServiceInterface $mailService
      */
     protected MailServiceInterface $mailService;
 
     /**
      * Order Service
-     * 
+     *
      * @var OrderServiceInterface $orderService
      */
     protected OrderServiceInterface $orderService;
 
     /**
      * Item Service
-     * 
+     *
      * @var ItemServiceInterface $itemService
      */
     protected ItemServiceInterface $itemService;
 
     /**
      * Payment gateway code
-     * 
+     *
      * @var PaymentGateway GATEWAY
      */
     public const GATEWAY = PaymentGateway::STRIPE;
@@ -72,11 +72,11 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
     /**
      * Create a new payment intent for custom payment flow
-     * 
+     *
      * @param array $items List of items and item quantity
      * @param array $metadata Metadata to associate with the Payment Intent
      * @param string $currency (Optional) If null, will use default currency
-     * 
+     *
      * @return string
      */
     public function createOrder($discountcode, array $items, array $metadata = [])
@@ -87,7 +87,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 !isset($metadata['address']) ||
                 empty($metadata['address']) ||
                 !isset($metadata['postCode']) ||
-                empty($metadata['postCode']) || 
+                empty($metadata['postCode']) ||
                 !isset($metadata['shippingChoiceCalc']) ||
                 empty($metadata['shippingChoiceCalc'])
             ) {
@@ -126,7 +126,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         $shippingchoicecalc = $metadata['shippingChoiceCalc'];
 
         $totalshipping = $this->calculateTotal($discountcode, $items, $shippingchoicecalc);
-    
+
         $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
 
         $total = $itemSubtotal;
@@ -153,7 +153,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         ];
 
         return response()->json($responseValues);
-        
+
         // return $paymentIntent->client_secret;
     }
 
@@ -193,7 +193,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                         report($e);
                     }
                 }
-                
+
                 $this->mailService->sendInvoice($order);
             }
         }
@@ -209,7 +209,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 !isset($metadata['address']) ||
                 empty($metadata['address']) ||
                 !isset($metadata['postCode']) ||
-                empty($metadata['postCode']) || 
+                empty($metadata['postCode']) ||
                 !isset($metadata['shippingChoiceCalc']) ||
                 empty($metadata['shippingChoiceCalc'])
             ) {
@@ -244,11 +244,10 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             array_push($lineItems, $lineItem);
         }
 
-
         $shippingchoicecalc = $metadata['shippingChoiceCalc'];
 
         $totalshipping = $this->calculateTotal($discountcode, $items, $shippingchoicecalc);
-    
+
         $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
 
         $total = $itemSubtotal;
@@ -275,16 +274,16 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         ];
 
         return response()->json($responseValues);
-        
+
         // return $paymentIntent->client_secret;
     }
 
 
     /**
      * Retrieve a payment intent
-     * 
+     *
      * @param string $paymentIntentId
-     * 
+     *
      * @return PaymentIntent
      */
     protected function retrievePaymentIntent(string $paymentIntentId): PaymentIntent
@@ -294,9 +293,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
     /**
      * Calculate the total price
-     * 
+     *
      * @param array $items
-     * 
+     *
      * @return int
      */
     protected function calculateTotal($discountcode, array $items, $shippingchoicecalc): array
@@ -312,9 +311,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                     $rv = $data->registered_value;
                     $ev = $data->express_value;
                     $tot += intval($sv) + intval($iv) + intval($rv) + intval($ev);
-    
+
                     $total += $this->calculateItemTotal($discountcode, $item['id'], $item['quantity']);
-    
+
                 }elseif($shippingchoicecalc == "Own State"){
                     $data = StateShipping::latest()->first();
                     $sv = $data->shipping_value;
@@ -369,10 +368,10 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
     /**
      * Calculate total item price with quantity taken into consideration
-     * 
+     *
      * @param int $itemId ID of the item
      * @param int $quantity
-     * 
+     *
      * @return float
      */
     protected function calculateItemTotal($discountcode, int $itemId, int $quantity): float
@@ -401,9 +400,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
     /**
      * Match status enum from Stripe to App\Modules\Payment\PaymentStatus enums
-     * 
+     *
      * @param string $status Status from Stripe
-     * 
+     *
      * @return PaymentStatus
      */
     protected function matchStatus(string $status): PaymentStatus
