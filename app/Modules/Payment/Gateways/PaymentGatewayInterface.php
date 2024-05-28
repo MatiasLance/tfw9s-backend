@@ -20,4 +20,14 @@ interface PaymentGatewayInterface
      * @param string $transactionId
      */
     public function verify(string $transactionId): PaymentStatus;
+
+    /**
+     * Create a new order request
+     * 
+     * @param array $items List of items and their quantities
+     * @param array $metadata Metadata regarding the order
+     */
+    public function createIndividualRegistration($discountcode, array $items, array $metadata = []);
+
+
 }

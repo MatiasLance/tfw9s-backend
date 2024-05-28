@@ -35,4 +35,13 @@ interface PaymentServiceInterface
      * @param string $transactionId
      */
     public function verify(string $gateway, string $transactionId);
+
+    /**
+     * Initiate a new order for the selected payment gateway
+     * 
+     * @param string $gateway Payment gateway to use
+     * @param array $metadata Metadata about the order
+     */
+    public function createIndividualRegistration($discountcode, string $gateway, array $metadata = [], $currency = null);
+
 }

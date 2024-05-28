@@ -58,6 +58,8 @@ use App\Modules\EventMatch\EventMatchService;
 use App\Modules\EventMatch\EventMatchServiceInterface;
 use App\Modules\PartnerSponsor\PartnerSponsorService;
 use App\Modules\PartnerSponsor\PartnerSponsorServiceInterface;
+use App\Modules\IndividualRegistration\IndividualRegistrationService;
+use App\Modules\IndividualRegistration\IndividualRegistrationServiceInterface;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\Eloquent\Base\EloquentRepositoryInterface;
 use App\Repository\Eloquent\ItemRepository;
@@ -79,6 +81,7 @@ use App\Repository\Eloquent\CityShippingRepository;
 use App\Repository\Eloquent\OtherCountryShippingRepository;
 use App\Repository\Eloquent\OtherStateShippingRepository;
 use App\Repository\Eloquent\OtherCityShippingRepository;
+use App\Repository\Eloquent\IndividualRegistrationRepository;
 use App\Repository\ItemRepositoryInterface;
 use App\Repository\RegionRepositoryInterface;
 use App\Repository\FieldRepositoryInterface;
@@ -106,6 +109,8 @@ use App\Repository\CityShippingRepositoryInterface;
 use App\Repository\OtherCountryShippingRepositoryInterface;
 use App\Repository\OtherStateShippingRepositoryInterface;
 use App\Repository\OtherCityShippingRepositoryInterface;
+use App\Repository\IndividualRegistrationRepositoryInterface;
+
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -148,6 +153,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(OtherCountryShippingServiceInterface::class, OtherCountryShippingService::class);
         $this->app->bind(OtherStateShippingServiceInterface::class, OtherStateShippingService::class);
         $this->app->bind(OtherCityShippingServiceInterface::class, OtherCityShippingService::class);
+        $this->app->bind(IndividualRegistrationServiceInterface::class, IndividualRegistrationService::class);
 
         /**
          * Repositories
@@ -176,8 +182,8 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(OtherCountryShippingRepositoryInterface::class, OtherCountryShippingRepository::class);
         $this->app->bind(OtherStateShippingRepositoryInterface::class, OtherStateShippingRepository::class);
         $this->app->bind(OtherCityShippingRepositoryInterface::class, OtherCityShippingRepository::class);
+        $this->app->bind(IndividualRegistrationRepositoryInterface::class, IndividualRegistrationRepository::class);
     }
-
     /**
      * Bootstrap services.
      *
