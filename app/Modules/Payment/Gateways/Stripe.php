@@ -201,6 +201,85 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         return $this->matchStatus($paymentIntent->status);
     }
 
+    public function createIndividualRegistration($discountcode, array $items, array $metadata = [])
+    {
+        // @todo remove !empty() and reevaluate code block
+        if (!empty($metadata) && $metadata['shippingType'] === ShippingType::DELIVERY) {
+            if (
+                !isset($metadata['address']) ||
+                empty($metadata['address']) ||
+                !isset($metadata['postCode']) ||
+                empty($metadata['postCode']) || 
+                !isset($metadata['shippingChoiceCalc']) ||
+                empty($metadata['shippingChoiceCalc'])
+            ) {
+                throw new AddressCannotBeEmptyException('Attempted to create a payment intent for delivery order without address');
+            }
+        }
+        $res = DiscountCode::where('code', $discountcode)->first();
+
+        $lineItems = [];
+
+        foreach ($items as $item) {
+            $currentItem = Item::find($item['id']);
+            $onSale = $currentItem->isOnSale();
+            $hasDiscount = !empty($res);
+            $salePrice = $currentItem->centSalePrice();
+            $regularPrice = $currentItem->centPrice();
+
+            if ($onSale && $hasDiscount) {
+                $price = $salePrice * (1 - $res->rate);
+            } elseif ($onSale && !$hasDiscount) {
+                $price = $salePrice;
+            } elseif (!$onSale && $hasDiscount) {
+                $price = $regularPrice * (1 - $res->rate);
+            } else {
+                $price = $regularPrice;
+            }
+            $lineItem = [
+                'item_id' => $currentItem->id,
+                'price' => $price,
+                'quantity' => $item['quantity'],
+            ];
+            array_push($lineItems, $lineItem);
+        }
+
+
+        $shippingchoicecalc = $metadata['shippingChoiceCalc'];
+
+        $totalshipping = $this->calculateTotal($discountcode, $items, $shippingchoicecalc);
+    
+        $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
+
+        $total = $itemSubtotal;
+
+        $metadata['line_items'] = json_encode($lineItems);
+
+        unset($metadata['shippingOptions']);
+
+        $productValue = [
+            'amount' => $total,
+            'currency' => $this->currency,
+            'automatic_payment_methods' => [
+                'enabled' => true,
+            ],
+            'metadata' => $metadata,
+        ];
+
+        $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+
+        $responseValues = [
+            'totalProduct' => $totalshipping['totalProduct'],
+            'totalShipping' => $totalshipping['totalShipping'],
+            'stripeToken' => $paymentIntent->client_secret
+        ];
+
+        return response()->json($responseValues);
+        
+        // return $paymentIntent->client_secret;
+    }
+
+
     /**
      * Retrieve a payment intent
      * 

@@ -9,7 +9,7 @@ use Psy\Exception\TypeErrorException;
 
 class PaymentService implements PaymentServiceInterface
 {
-    public function createOrder($discountcode, string $gateway, array $items, array $metadata = [], $currency = null)
+    public function createOrder($discountcode, string $gateway, array $items , array $metadata = [], $currency = null)
     {
         $config = [
             'currency' => $currency
@@ -23,6 +23,16 @@ class PaymentService implements PaymentServiceInterface
     {
         $paymentGateway = $this->getGateway($gateway);
         return $paymentGateway->verify($transactionId);
+    }
+
+    public function createIndividualRegistration($discountcode, string $gateway, array $metadata = [], $currency = null)
+    {
+        $config = [
+            'currency' => $currency
+        ];
+
+        $paymentGateway = $this->getGateway($gateway, $config);
+        return $paymentGateway->createIndividualRegistration($discountcode, $metadata);
     }
 
     /**

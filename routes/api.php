@@ -186,6 +186,11 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         });
     });
 
+    Route::prefix('tournament')->group(function () { // Order API Endpoints
+        Route::post('/checkout', 'App\Http\Controllers\IndividualRegistrationController@checkout');
+        Route::post('/verify', 'App\Http\Controllers\IndividualRegistrationController@verify');
+    });
+
     Route::prefix('shipping')->group(function (){ // Shipping API Endpoints
         Route::prefix('country')->group(function () { // Country Shipping API Endpoints
             Route::post('/', 'App\Http\Controllers\ShippingController@store');
