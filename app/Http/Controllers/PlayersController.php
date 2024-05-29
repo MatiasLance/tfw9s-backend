@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Modules\Http\Message;
+use App\Modules\Players\PlayersServiceInterface;
+use Illuminate\Http\Request;
+use App\Models\Players;
+
+class PlayersController extends Controller
+{
+    protected PlayersServiceInterface $playersService;
+
+    public function __construct(PlayersServiceInterface $playersService)
+    {
+        $this->playersService = $playersService;
+    }
+
+    public function list(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $type = $request->query('type', null);
+        $withPlayers = $request->query('withPlayers', null);
+        $maxPlayersPerPage = $request->query('maxPlayersPerPage', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'type' => $type,
+            'withPlayers' => $withPlayers,
+            'max_players_per_page' => $maxPlayersPerPage,
+        ];
+
+        $players = $this->playersService->listPlayers($filter);
+
+        $message->setContent(200, 'Players retrieved', '', $players->toArray());
+
+        return $message->render();
+    }
+
+    public function store(Request $request, Message $message)
+    {
+
+        $contact_firstname = $request->input('contact_firstname');
+        $contact_lastname = $request->input('contact_lastname');
+        $phone_number = $request->input('phone_number');
+        $email = $request->input('email');
+        $player_firstname = $request->input('player_firstname');
+        $player_lastname = $request->input('player_lastname');
+        $team_name = $request->input('team_name');
+        $dob = $request->input('dob');
+        $agegroup = $request->input('agegroup');
+        $description = $request->input('description');
+
+        $players = $this->playersService->createPlayers(
+            $contact_firstname,
+            $contact_lastname,
+            $phone_number,
+            $email,
+            $player_firstname,
+            $player_lastname,
+            $team_name,
+            $dob,
+            $agegroup,
+            $description,
+        );
+
+        if ($players instanceof Players) {
+            $message->setContent(201, 'Player created', '', [
+                'players' => $players
+            ]);
+        } else {
+            $message->setContent(400, 'Player not created');
+        }
+
+        return $message->render();
+    }
+
+    public function update(Request $request, Message $message, int $id)
+    {
+        $contact_firstname = $request->input('contact_firstname');
+        $contact_lastname = $request->input('contact_lastname');
+        $phone_number = $request->input('phone_number');
+        $email = $request->input('email');
+        $player_firstname = $request->input('player_firstname');
+        $player_lastname = $request->input('player_lastname');
+        $team_name = $request->input('team_name');
+        $dob = $request->input('dob');
+        $agegroup = $request->input('agegroup');
+        $description = $request->input('description');
+
+        $isSuccess = $this->playersService->updatePlayers(
+            $id,
+            $contact_firstname,
+            $contact_lastname,
+            $phone_number,
+            $email,
+            $player_firstname,
+            $player_lastname,
+            $team_name,
+            $dob,
+            $agegroup,
+            $description,
+        );
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Players updated');
+        } else {
+            $message->setContent(400, 'Players not updated');
+        }
+
+        return $message->render();
+    }
+    
+    public function retrieve(Message $message, int $id)
+    {
+        $players = $this->playersService->retrievePlayers($id);
+
+        $message->setContent(200, 'Players retrieved', '', [
+            'players' => $players
+        ]);
+
+        return $message->render();
+    }
+
+    public function delete(Request $request, Message $message, int $id)
+    {
+
+        $user = $request->user();
+        $players = $this->playersService->retrievePlayers($id);
+
+        $isSuccess = $this->playersService->deletePlayers($user, $players);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Players deleted');
+        } else {
+            $message->setContent(400, 'Players not updated');
+        }
+
+        return $message->render();
+    }
+
+
+}
