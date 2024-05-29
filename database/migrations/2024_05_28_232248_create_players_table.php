@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('registration_id');
+            $table->foreignId('registration_id')->nullable();
             $table->string('contact_firstname');
             $table->string('contact_lastname');
             $table->string('phone_number');
@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('team_name');
             $table->string('dob');
             $table->string('agegroup');
+            $table->string('description');
             $table->timestamps();
         });
     }
