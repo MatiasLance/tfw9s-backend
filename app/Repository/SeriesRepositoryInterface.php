@@ -83,4 +83,22 @@ interface SeriesRepositoryInterface
      */
     public function deleteSeries(int $id): bool;
 
+     /**
+     * Update an existing Series instance
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function resumeSeries(int $id): bool;
+
+    /**
+     * Update an existing Series instance
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function pauseSeries(int $id): bool;
+
 }

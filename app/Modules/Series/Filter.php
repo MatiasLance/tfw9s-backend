@@ -34,4 +34,11 @@ class Filter
      * @var string SORT_Z_TO_A
      */
     public const SORT_START_DATE = 'start_date';
+
+    /**
+     * Sort option that sorts teams by paused.
+     *
+     * @var bool SORT_IS_PAUSED
+     */
+    public const SORT_IS_PAUSED = 'is_paused';
 }

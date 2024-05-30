@@ -47,4 +47,14 @@ class SeriesService implements SeriesServiceInterface
     {
         return $this->seriesRepository->deleteSeries($series->id);
     }
+
+    public function resumeSeries(int $id): bool
+    {
+        return $this->seriesRepository->resumeSeries($id);
+    }
+
+    public function pauseSeries(int $id): bool
+    {
+        return $this->seriesRepository->pauseSeries($id);
+    }
 }

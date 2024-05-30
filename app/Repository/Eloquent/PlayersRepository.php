@@ -88,16 +88,14 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         // }
 
         // Search Filter
+
+
         if (!is_null($filters['q'])) {
-            $players = $players->where(function ($q) use ($filters) {
-                $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
-            });
+            $players = $players->where('contact_firstname', $filters['q']);
         }
 
         if (!is_null($filters['type'])) {
-            $players = $players->where(function ($q) use ($filters) {
-                $q->where('type', 'LIKE', '%' . $filters['type'] . '%');
-            });
+            $players = $players->where('agegroup', $filters['type']);
         }
 
         switch ($filters['sort']) {
