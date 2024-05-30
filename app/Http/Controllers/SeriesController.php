@@ -25,6 +25,7 @@ class SeriesController extends Controller
         $type = $request->query('type', null);
         $withFixing = $request->query('withFixing', null);
         $maxSeriesPerPage = $request->query('maxSeriesPerPage', null);
+        $isPaused = $request->query('isPaused', null);
 
         $filter = [
             'q' => $query,
@@ -33,6 +34,7 @@ class SeriesController extends Controller
             'type' => $type,
             'withFixing' => $withFixing,
             'max_series_per_page' => $maxSeriesPerPage,
+            'is_paused' => $isPaused,
         ];
 
         $series = $this->seriesService->listSeries($filter);
@@ -134,6 +136,34 @@ class SeriesController extends Controller
 
         if ($isSuccess) {
             $message->setContent(200, 'Series deleted');
+        } else {
+            $message->setContent(400, 'Series not updated');
+        }
+
+        return $message->render();
+    }
+
+    public function resumeSeries(Message $message, int $id)
+    {
+
+        $isSuccess = $this->seriesService->resumeSeries($id);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Series updated');
+        } else {
+            $message->setContent(400, 'Series not updated');
+        }
+
+        return $message->render();
+    }
+
+    public function pauseSeries(Message $message, int $id)
+    {
+
+        $isSuccess = $this->seriesService->pauseSeries($id);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Series updated');
         } else {
             $message->setContent(400, 'Series not updated');
         }

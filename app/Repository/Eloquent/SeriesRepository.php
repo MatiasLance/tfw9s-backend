@@ -71,6 +71,12 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
          * When this value is null, this filter is skipped.
          */
         'name' => null,
+
+        /**
+         * is_paused filter
+         * This filters the series by type. When this value is null, this filter is skipped.
+         */
+        'is_paused' => null,
     ];
 
     public function __construct(Series $series, StorageInterface $storageService)
@@ -92,31 +98,33 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         // Search Filter
         if (!is_null($filters['q'])) {
             $series = $series->where(function ($q) use($filters) {
-                $q
-                    ->where('name', 'LIKE', '%' . $filters['q'] . '%');
+                $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
             });
         }
 
         if (!is_null($filters['type'])) {
             $series = $series->where(function ($q) use($filters) {
-                $q
-                    ->where('type', 'LIKE', '%' . $filters['type'] . '%');
+                $q->where('type', 'LIKE', '%' . $filters['type'] . '%');
             });
         }
 
+        if (!is_null($filters['is_paused'])) {
+            $series = $series->where('is_paused', $filters['is_paused']);
+        }
+
         switch ($filters['sort']) {
+            case Filter::SORT_IS_PAUSED:
+                $series = $series->orderBy('is_paused');
+                break;
             case Filter::SORT_A_TO_Z:
                 $series = $series->orderBy('name');
                 break;
-
             case Filter::SORT_Z_TO_A:
                 $series = $series->orderByDesc('name');
                 break;
-
-                case Filter::SORT_START_DATE:
-                    $series = $series->orderBy('start');
-                    break;
-
+            case Filter::SORT_START_DATE:
+                $series = $series->orderBy('start');
+                break;
             default:
                 $series = $series->orderBy('created_at');
                 break;
@@ -208,6 +216,26 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         return DB::transaction(function() use($series) {
 
             return $series->delete();
+        });
+    }
+
+    public function resumeSeries(int $id): bool
+    {
+        $series = $this->find($id);
+        $series->is_paused = false;
+
+        return DB::transaction(function() use($series) {
+            return $series->save();
+        });
+    }
+
+    public function pauseSeries(int $id): bool
+    {
+        $series = $this->find($id);
+        $series->is_paused = true;
+
+        return DB::transaction(function() use($series) {
+            return $series->save();
         });
     }
 }

@@ -369,6 +369,8 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/', 'App\Http\Controllers\SeriesController@store');
         Route::post('/{id}', 'App\Http\Controllers\SeriesController@update');
         Route::delete('/{id}', 'App\Http\Controllers\SeriesController@delete');
+        Route::post('/resume/{id}', 'App\Http\Controllers\SeriesController@resumeSeries');
+        Route::post('/pause/{id}', 'App\Http\Controllers\SeriesController@pauseSeries');
 
     });
 

@@ -69,4 +69,22 @@ interface SeriesServiceInterface
      */
     public function deleteSeries(User $initiator, Series $series): bool;
 
+    /**
+     * Update an existing Series
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function resumeSeries(int $id): bool;
+
+    /**
+     * Update an existing Series
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function pauseSeries(int $id): bool;
+
 }

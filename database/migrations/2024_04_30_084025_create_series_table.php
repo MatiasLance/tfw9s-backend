@@ -22,6 +22,7 @@ return new class extends Migration
             $table->date('start')->nullable();
             $table->date('end')->nullable();
             $table->float('price');
+            $table->boolean('is_paused')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });
