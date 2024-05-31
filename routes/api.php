@@ -187,8 +187,12 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     });
 
     Route::prefix('tournament')->group(function () { // Order API Endpoints
-        Route::post('/checkout', 'App\Http\Controllers\IndividualRegistrationController@checkout');
-        Route::post('/verify', 'App\Http\Controllers\IndividualRegistrationController@verify');
+        Route::post('/indiv/checkout', 'App\Http\Controllers\IndividualRegistrationController@checkout');
+        Route::post('/team/checkout', 'App\Http\Controllers\TeamRegistrationController@checkout');
+        Route::post('/indiv/verify', 'App\Http\Controllers\IndividualRegistrationController@verify');
+        Route::post('/team/verify', 'App\Http\Controllers\TeamRegistrationController@verify');
+        Route::post('/indiv/calculation', 'App\Http\Controllers\IndividualRegistrationController@calculation');
+        Route::post('/team/calculation', 'App\Http\Controllers\TeamRegistrationController@calculation');
     });
 
     Route::prefix('shipping')->group(function (){ // Shipping API Endpoints

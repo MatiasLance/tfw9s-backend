@@ -43,4 +43,8 @@ class Team extends Model
         return $this->belongsTo(AgeGroup::class)->withTrashed();
     }
 
+    public function registration()
+    {
+        return $this->belongsTo(TeamRegistration::class);
+    }
 }
