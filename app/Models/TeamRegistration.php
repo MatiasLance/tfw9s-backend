@@ -9,15 +9,7 @@ class TeamRegistration extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'coach_name',
-        'coach_email',
-        'coach_number',
-        'team_name',
-        'manager_name',
-        'manager_email',
-        'manager_number',
-        'age_group'
-    ];
+    public function teams() {
+        return $this->hasMany(Team::class);
+    }
 }

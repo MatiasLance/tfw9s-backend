@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->foreignId('registration_id')->nullable();
             $table->foreignId('field_id')->nullable();
             $table->foreignId('agegroup_id')->nullable();

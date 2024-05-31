@@ -30,4 +30,9 @@ class Series extends Model
     {
         return $this->morphMany('App\Models\Media', 'imageable');
     }
+
+    public function centPrice()
+    {
+        return $this->getAttributes()['price'];
+    }
 }

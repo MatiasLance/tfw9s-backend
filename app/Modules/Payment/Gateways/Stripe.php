@@ -2,7 +2,10 @@
 
 namespace App\Modules\Payment\Gateways;
 
+use App\Models\Series;
 use App\Models\Item;
+use App\Models\Tax;
+use App\Models\ToggleTaxControl;
 use App\Models\DiscountCode;
 use App\Models\NewShipping;
 use App\Models\StateShipping;
@@ -16,6 +19,8 @@ use App\Modules\Mail\MailServiceInterface;
 use App\Modules\Order\Exceptions\AddressCannotBeEmptyException;
 use App\Modules\Order\OrderServiceInterface;
 use App\Modules\Order\ShippingType;
+use App\Modules\IndividualRegistration\IndividualRegistrationServiceInterface;
+use App\Modules\TeamRegistration\TeamRegistrationServiceInterface;
 use App\Modules\Payment\Exceptions\UnknownPaymentStatusException;
 use App\Modules\Payment\PaymentGateway;
 use App\Modules\Payment\PaymentStatus;
@@ -46,6 +51,20 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     protected OrderServiceInterface $orderService;
 
     /**
+     * Individual Registration Service
+     *
+     * @var IndividualRegistrationServiceInterface $individualRegistrationService
+     */
+    protected IndividualRegistrationServiceInterface $individualRegistrationService;
+
+    /**
+     * Team Registration Service
+     *
+     * @var TeamRegistrationServiceInterface $teamRegistrationService
+     */
+    protected TeamRegistrationServiceInterface $teamRegistrationService;
+
+    /**
      * Item Service
      *
      * @var ItemServiceInterface $itemService
@@ -59,11 +78,13 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
      */
     public const GATEWAY = PaymentGateway::STRIPE;
 
-    public function __construct(MailServiceInterface $mailService, OrderServiceInterface $orderService, ItemServiceInterface $itemService, array $config = [])
+    public function __construct(MailServiceInterface $mailService, OrderServiceInterface $orderService, IndividualRegistrationServiceInterface $individualRegistrationService, TeamRegistrationServiceInterface $teamRegistrationService, ItemServiceInterface $itemService, array $config = [])
     {
         $this->mailService = $mailService;
         $this->orderService = $orderService;
         $this->itemService = $itemService;
+        $this->individualRegistrationService = $individualRegistrationService;
+        $this->teamRegistrationService = $teamRegistrationService;
         $this->stripe = new StripeClient(env('STRIPE_API_SECRET_KEY'));
         $this->liveMode = env('STRIPE_LIVE_ENVIRONMENT', env('APP_ENV') === 'production');
 
@@ -201,63 +222,56 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         return $this->matchStatus($paymentIntent->status);
     }
 
-    public function createIndividualRegistration($discountcode, array $items, array $metadata = [])
+    public function createIndividualRegistration($discountcode, string $item, array $metadata = [])
     {
-        // @todo remove !empty() and reevaluate code block
-        if (!empty($metadata) && $metadata['shippingType'] === ShippingType::DELIVERY) {
-            if (
-                !isset($metadata['address']) ||
-                empty($metadata['address']) ||
-                !isset($metadata['postCode']) ||
-                empty($metadata['postCode']) ||
-                !isset($metadata['shippingChoiceCalc']) ||
-                empty($metadata['shippingChoiceCalc'])
-            ) {
-                throw new AddressCannotBeEmptyException('Attempted to create a payment intent for delivery order without address');
-            }
-        }
+
+        $tax = Tax::find(1);
+        $master = ToggleTaxControl::find(1);
         $res = DiscountCode::where('code', $discountcode)->first();
+        $hasDiscount = !empty($res);
 
-        $lineItems = [];
+        $addTax = $tax->addTaxValue;
+        $includeTax = $tax->includeTaxValue;
+        $isInclusive = $master->toggleControl2;
 
-        foreach ($items as $item) {
-            $currentItem = Item::find($item['id']);
-            $onSale = $currentItem->isOnSale();
-            $hasDiscount = !empty($res);
-            $salePrice = $currentItem->centSalePrice();
-            $regularPrice = $currentItem->centPrice();
+        $currentItem = Series::find($item);
+        $regularPrice = $currentItem->centPrice();
+        $hasDiscount = !empty($discountcode);
+        $taxAmount = 0;
 
-            if ($onSale && $hasDiscount) {
-                $price = $salePrice * (1 - $res->rate);
-            } elseif ($onSale && !$hasDiscount) {
-                $price = $salePrice;
-            } elseif (!$onSale && $hasDiscount) {
-                $price = $regularPrice * (1 - $res->rate);
-            } else {
-                $price = $regularPrice;
-            }
-            $lineItem = [
-                'item_id' => $currentItem->id,
-                'price' => $price,
-                'quantity' => $item['quantity'],
-            ];
-            array_push($lineItems, $lineItem);
+        if (!$isInclusive && $hasDiscount) {
+            $taxRate = $addTax / 100;
+            $price = $regularPrice * (1 - $res->rate);
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($price + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive && $hasDiscount) {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $price = $regularPrice * (1 - $res->rate);
+            $totalPrice = intval($price);
+            $isInclusive = true;
+        } elseif (!$isInclusive && !$hasDiscount) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } else {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
         }
 
-        $shippingchoicecalc = $metadata['shippingChoiceCalc'];
+        $seriesItem = [
+            'item_id' => $currentItem->id,
+            'price' => $regularPrice,
+        ];
 
-        $totalshipping = $this->calculateTotal($discountcode, $items, $shippingchoicecalc);
-
-        $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
-
-        $total = $itemSubtotal;
-
-        $metadata['line_items'] = json_encode($lineItems);
-
-        unset($metadata['shippingOptions']);
+        $metadata['line_item'] = json_encode($seriesItem);
 
         $productValue = [
-            'amount' => $total,
+            'amount' => $totalPrice,
             'currency' => $this->currency,
             'automatic_payment_methods' => [
                 'enabled' => true,
@@ -268,14 +282,83 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         $paymentIntent = $this->stripe->paymentIntents->create($productValue);
 
         $responseValues = [
-            'totalProduct' => $totalshipping['totalProduct'],
-            'totalShipping' => $totalshipping['totalShipping'],
             'stripeToken' => $paymentIntent->client_secret
         ];
 
         return response()->json($responseValues);
 
         // return $paymentIntent->client_secret;
+    }
+
+    public function verifyIndividualRegistration(string $paymentIntentId): PaymentStatus
+    {
+        $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
+
+        if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
+            $registrationInformation = $paymentIntent->metadata;
+
+            $lineItems = json_decode($registrationInformation->line_items, true);
+
+            $seriesRegistered = $this->individualRegistrationService->create(
+                                            $paymentIntent->id,
+                                            self::GATEWAY,
+                                            $registrationInformation->contactEmail,
+                                            $registrationInformation->contactFirstName,
+                                            $registrationInformation->contactLastName,
+                                            $registrationInformation->contactPhoneNumber,
+                                            $registrationInformation->playerFirstName,
+                                            $registrationInformation->playerLastName,
+                                            $registrationInformation->dob,
+                                            $registrationInformation->teamName,
+                                            $registrationInformation->ageGroup,
+                                            $paymentIntent->amount,
+                                            $lineItems,
+                                        );
+
+
+            if (!$seriesRegistered->is_verified) {
+                $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+
+                // $this->mailService->sendInvoice($seriesRegistered);
+            }
+        }
+
+        return $this->matchStatus($paymentIntent->status);
+    }
+
+    public function verifyTeamRegistration(string $paymentIntentId): PaymentStatus
+    {
+        $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
+
+        if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
+            $registrationInformation = $paymentIntent->metadata;
+
+            $lineItems = json_decode($registrationInformation->line_item, true);
+
+            $seriesRegistered = $this->teamRegistrationService->create(
+                                            $paymentIntent->id,
+                                            self::GATEWAY,
+                                            $registrationInformation->coachesEmail,
+                                            $registrationInformation->coachesName,
+                                            $registrationInformation->coachesPhoneNumber,
+                                            $registrationInformation->managerEmail,
+                                            $registrationInformation->managerName,
+                                            $registrationInformation->managerPhoneNumber,
+                                            $registrationInformation->teamName,
+                                            $registrationInformation->ageGroup,
+                                            $paymentIntent->amount,
+                                            $lineItems,
+                                        );
+
+
+            if (!$seriesRegistered->is_verified) {
+                $this->teamRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+
+                // $this->mailService->sendInvoice($seriesRegistered);
+            }
+        }
+
+        return $this->matchStatus($paymentIntent->status);
     }
 
 

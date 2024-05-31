@@ -103,8 +103,6 @@ class OrderController extends Controller
 
     public function shippingCalc(Request $request, array $items, array $metadata = [])
     {
-
-
         $items = $request->input('items');
         $metadata = $request->input('metadata') ?? [];
         $discountcode = $request->input('discountcode');

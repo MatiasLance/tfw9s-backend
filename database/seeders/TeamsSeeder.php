@@ -45,14 +45,14 @@ class TeamsSeeder extends Seeder
             'Wests Tigers',
             'Hawks'
         ];
-        
+
 
         $teamsPerEvent = ceil(count($teams) / count($eventIds));
-        
+
         foreach ($eventIds as $index => $id) {
             $startIndex = $index * $teamsPerEvent;
             $selectedTeams = array_slice($teams, $startIndex, $teamsPerEvent);
-            
+
             foreach ($selectedTeams as $selectedTeam) {
                 Team::create([
                     'name' => $selectedTeam,

@@ -5,6 +5,7 @@ namespace App\Modules\IndividualRegistration;
 use App\Models\IndividualRegistration;
 use App\Modules\Payment\PaymentGateway;
 use App\Repository\IndividualRegistrationRepositoryInterface;
+use DateTime;
 
 class IndividualRegistrationService implements IndividualRegistrationServiceInterface
 {
@@ -27,34 +28,38 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
     }
 
     public function create(
-        string $paymentIntentId,
-        PaymentGateway $gateway,
-        string $contact_firstname,
-        string $contact_lastname,
-        string $phone_number,
-        string $email,
-        string $player_firstname,
-        string $player_lastname,
-        string $team_name,
-        string $dob,
-        string $agegroup,
-        int $price,
+      string $paymentIntentId, 
+      PaymentGateway $gateway, 
+      string $contactEmail, 
+      string $contactFirstName, 
+      string $contactLastName, 
+      string $contactPhoneNumber, 
+      string $playerFirstName, 
+      string $playerLastName, 
+      string $dob, 
+      string $teamName, 
+      string $ageGroup, 
+      int $amount
     )
-
     {
-        return $this->orderRepository->create(
-            $paymentIntentId,
-            $gateway,
-            $contact_firstname,
-            $contact_lastname,
-            $phone_number,
-            $email,
-            $player_firstname,
-            $player_lastname,
-            $team_name,
-            $dob,
-            $agegroup,
-            $price
+        return $this->individualRegistrationRepository->create(
+          $paymentIntentId,
+          $gateway,
+          $contactEmail,
+          $contactFirstName,
+          $contactLastName,
+          $contactPhoneNumber,
+          $playerFirstName,
+          $playerLastName,
+          $dob,
+          $teamName,
+          $ageGroup,
+          $amount,
         );
+    }
+
+    public function markAsVerified(string $transactionId): bool
+    {
+        return $this->individualRegistrationRepository->markAsVerified($transactionId);
     }
 }

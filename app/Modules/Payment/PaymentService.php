@@ -25,24 +25,37 @@ class PaymentService implements PaymentServiceInterface
         return $paymentGateway->verify($transactionId);
     }
 
-    public function createIndividualRegistration($discountcode, string $gateway, array $metadata = [], $currency = null)
+    public function createIndividualRegistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null)
     {
         $config = [
             'currency' => $currency
         ];
 
         $paymentGateway = $this->getGateway($gateway, $config);
-        return $paymentGateway->createIndividualRegistration($discountcode, $metadata);
+        return $paymentGateway->createIndividualRegistration($discountcode, $item, $metadata);
+    }
+
+    public function verifyIndividualRegistration(string $gateway, string $transactionId)
+    {
+        $paymentGateway = $this->getGateway($gateway);
+        return $paymentGateway->verifyIndividualRegistration($transactionId);
+    }
+
+
+    public function verifyTeamRegistration(string $gateway, string $transactionId)
+    {
+        $paymentGateway = $this->getGateway($gateway);
+        return $paymentGateway->verifyTeamRegistration($transactionId);
     }
 
     /**
      * Payment gateway factory method
-     * 
+     *
      * @see App\Modules\Payment\PaymentGateway See for list of supported gateways
-     * 
+     *
      * @param string $gateway The unique identifier for the gateway to use.
      * @param array $config Config values to pass to the Payment gateway class
-     * 
+     *
      * @return App\Modules\Payment\Gateways\PaymentGatewayInterface
      */
     protected function getGateway(string $gateway, array $config = []): PaymentGatewayInterface
