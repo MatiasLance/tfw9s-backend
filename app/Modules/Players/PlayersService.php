@@ -4,6 +4,7 @@ namespace App\Modules\Players;
 
 use App\Models\User;
 use App\Models\Players;
+use DateTime;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\PlayersRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
@@ -35,7 +36,7 @@ class PlayersService implements PlayersServiceInterface
         string $player_firstname,
         string $player_lastname,
         string $team_name,
-        string $dob,
+        DateTime $dob,
         string $agegroup,
         string $description,
     ): Players
@@ -64,7 +65,7 @@ class PlayersService implements PlayersServiceInterface
         string $player_firstname,
         string $player_lastname,
         string $team_name,
-        string $dob,
+        DateTime $dob,
         string $agegroup,
         string $description,
     ): bool
