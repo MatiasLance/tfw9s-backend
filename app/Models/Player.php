@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class IndividualRegistration extends Model
+class Player extends Model
 {
     use HasFactory;
 
-    public function players() {
-        return $this->hasMany(Player::class);
+    public function registration()
+    {
+        return $this->belongsTo(IndividualRegistration::class);
     }
 }

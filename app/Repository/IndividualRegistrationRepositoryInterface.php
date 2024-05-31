@@ -2,51 +2,62 @@
 
 namespace App\Repository;
 
-use App\Models\IndividualRegistration as IR;
+use App\Models\IndividualRegistration;
 use App\Modules\Payment\PaymentGateway;
+use DateTime;
 
 interface IndividualRegistrationRepositoryInterface
 {
 
     /**
      * Find an existing order by its transaction id
-     * 
+     *
      * @param string $transactionId
-     * 
+     *
      * @return null|IndividualRegistration
      */
     public function findByTransactionId(string $transactionId): ?IndividualRegistration;
 
     /**
      * Create a new IndividualRegistration
-     * 
+     *
      * @param string $paymentIntentId
      * @param PaymentGateway $gateway
-     * @param string $contact_firstname
-     * @param string $contact_lastname
-     * @param string $phone_number
-     * @param string $email
-     * @param string $player_firstname
-     * @param string $player_lastname
-     * @param string $team_name
+     * @param string $contactEmail
+     * @param string $contactFirstName
+     * @param string $contactLastName
+     * @param string $contactPhoneNumber
      * @param string $dob
+     * @param string $playerFirstName
+     * @param string $playerLastName
+     * @param string $teamName
      * @param string $agegroup
-     * @param integer $price
-     * 
+     * @param integer $teamName
+     *
      * @return true|IndividualRegistration Returns true if the IndividualRegistration is already existing, otherwise returns the IndividualRegistration
      */
     public function create(
         string $paymentIntentId,
         PaymentGateway $gateway,
-        string $contact_firstname,
-        string $contact_lastname,
-        string $phone_number,
-        string $email,
-        string $player_firstname,
-        string $player_lastname,
-        string $team_name,
+        string $contactEmail,
+        string $contactFirstName,
+        string $contactLastName,
+        string $contactPhoneNumber,
+        string $playerFirstName,
+        string $playerLastName,
         string $dob,
-        string $agegroup,
-        int $price,
+        string $teamName,
+        string $ageGroup,
+        int $amount,
     );
+
+
+    /**
+     * Mark order as verified
+     *
+     * @param string $transactionId
+     *
+     * @return bool
+     */
+    public function markAsVerified(string $transactionId): bool;
 }

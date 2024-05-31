@@ -4,6 +4,7 @@ namespace App\Modules\IndividualRegistration;
 
 use App\Models\IndividualRegistration;
 use App\Modules\Payment\PaymentGateway;
+use DateTime;
 
 interface IndividualRegistrationServiceInterface
 {
@@ -38,15 +39,24 @@ interface IndividualRegistrationServiceInterface
     public function create(
         string $paymentIntentId,
         PaymentGateway $gateway,
-        string $contact_firstname,
-        string $contact_lastname,
-        string $phone_number,
-        string $email,
-        string $player_firstname,
-        string $player_lastname,
-        string $team_name,
+        string $contactEmail,
+        string $contactFirstName,
+        string $contactLastName,
+        string $contactPhoneNumber,
+        string $playerFirstName,
+        string $playerLastName,
         string $dob,
-        string $agegroup,
-        int $price,
+        string $teamName,
+        string $ageGroup,
+        int $amount,
     );
+
+    /**
+     * Mark order as verified
+     * 
+     * @param string $transactionId
+     * 
+     * @return bool
+     */
+    public function markAsVerified(string $transactionId): bool;
 }

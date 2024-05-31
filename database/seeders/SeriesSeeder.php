@@ -18,7 +18,7 @@ class SeriesSeeder extends Seeder
         $currentMonth = date('m');
         $startDate = $currentYear . '-'.$currentMonth.'-01';
         $endDate = $currentYear . '-'.$currentMonth.'-25';
-        $price = $faker->randomFloat('2', 0, 2);
+        $price = mt_rand(200, 500);
 
         $types = ['weekly', 'tournament', 'coast'];
 
@@ -28,7 +28,7 @@ class SeriesSeeder extends Seeder
             $eventTitle = $eventName . ' ' . $eventType;
             $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
             $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = $faker->randomFloat('2', 0, 2);
+            $price = mt_rand(200, 500);
             Series::create([
                 'name' => $eventTitle,
                 'type' => $Type,
@@ -44,7 +44,7 @@ class SeriesSeeder extends Seeder
             $eventTitle = $eventName . ' ' . $eventType;
             $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
             $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = $faker->randomFloat('2', 0, 2);
+            $price = mt_rand(200, 500);
             Series::create([
                 'name' => $eventTitle,
                 'type' => $Type,
@@ -60,7 +60,7 @@ class SeriesSeeder extends Seeder
             $eventTitle = $eventName . ' ' . $eventType;
             $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
             $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = $faker->randomFloat('2', 0, 2);
+            $price = mt_rand(200, 500);
             Series::create([
                 'name' => $eventTitle,
                 'type' => $Type,
@@ -76,7 +76,7 @@ class SeriesSeeder extends Seeder
             $eventTitle = $eventName . ' ' . $eventType;
             $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
             $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = $faker->randomFloat('2', 0, 2);
+            $price = mt_rand(200, 500);
             Series::create([
                 'name' => $eventTitle,
                 'type' => $Type,
@@ -92,7 +92,7 @@ class SeriesSeeder extends Seeder
             $eventTitle = $eventName . ' ' . $eventType;
             $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
             $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = $faker->randomFloat('2', 0, 2);
+            $price = mt_rand(200, 500);
             Series::create([
                 'name' => $eventTitle,
                 'type' => $Type,
@@ -108,7 +108,7 @@ class SeriesSeeder extends Seeder
             $eventTitle = $eventName . ' ' . $eventType;
             $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
             $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = $faker->randomFloat('2', 0, 2);
+            $price = mt_rand(200, 500);
             Series::create([
                 'name' => $eventTitle,
                 'type' => $Type,
@@ -124,7 +124,7 @@ class SeriesSeeder extends Seeder
             $eventTitle = $eventName . ' ' . $eventType;
             $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
             $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = $faker->randomFloat('2', 0, 2);
+            $price = mt_rand(200, 500);
             Series::create([
                 'name' => $eventTitle,
                 'type' => $Type,

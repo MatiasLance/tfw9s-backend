@@ -60,6 +60,8 @@ use App\Modules\PartnerSponsor\PartnerSponsorService;
 use App\Modules\PartnerSponsor\PartnerSponsorServiceInterface;
 use App\Modules\IndividualRegistration\IndividualRegistrationService;
 use App\Modules\IndividualRegistration\IndividualRegistrationServiceInterface;
+use App\Modules\TeamRegistration\TeamRegistrationService;
+use App\Modules\TeamRegistration\TeamRegistrationServiceInterface;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\Eloquent\Base\EloquentRepositoryInterface;
 use App\Repository\Eloquent\ItemRepository;
@@ -82,6 +84,7 @@ use App\Repository\Eloquent\OtherCountryShippingRepository;
 use App\Repository\Eloquent\OtherStateShippingRepository;
 use App\Repository\Eloquent\OtherCityShippingRepository;
 use App\Repository\Eloquent\IndividualRegistrationRepository;
+use App\Repository\Eloquent\TeamRegistrationRepository;
 use App\Repository\ItemRepositoryInterface;
 use App\Repository\RegionRepositoryInterface;
 use App\Repository\FieldRepositoryInterface;
@@ -110,6 +113,7 @@ use App\Repository\OtherCountryShippingRepositoryInterface;
 use App\Repository\OtherStateShippingRepositoryInterface;
 use App\Repository\OtherCityShippingRepositoryInterface;
 use App\Repository\IndividualRegistrationRepositoryInterface;
+use App\Repository\TeamRegistrationRepositoryInterface;
 
 use App\Modules\Players\PlayersService;
 use App\Modules\Players\PlayersServiceInterface;
@@ -159,6 +163,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(OtherStateShippingServiceInterface::class, OtherStateShippingService::class);
         $this->app->bind(OtherCityShippingServiceInterface::class, OtherCityShippingService::class);
         $this->app->bind(IndividualRegistrationServiceInterface::class, IndividualRegistrationService::class);
+        $this->app->bind(TeamRegistrationServiceInterface::class, TeamRegistrationService::class);
         $this->app->bind(PlayersServiceInterface::class,PlayersService::class);
 
         /**
@@ -189,6 +194,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(OtherStateShippingRepositoryInterface::class, OtherStateShippingRepository::class);
         $this->app->bind(OtherCityShippingRepositoryInterface::class, OtherCityShippingRepository::class);
         $this->app->bind(IndividualRegistrationRepositoryInterface::class, IndividualRegistrationRepository::class);
+        $this->app->bind(TeamRegistrationRepositoryInterface::class, TeamRegistrationRepository::class);
         $this->app->bind(PlayersRepositoryInterface::class, PlayersRepository::class);
     }
     /**
