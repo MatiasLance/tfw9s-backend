@@ -10,7 +10,6 @@ use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\PlayersRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use DateTime;
 
 class PlayersRepository extends BaseRepository implements PlayersRepositoryInterface
 {
@@ -90,12 +89,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
         // Search Filter
 
+
         if (!is_null($filters['q'])) {
-            $players = $players->where('contact_firstname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('contact_lastname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('phone_number', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('email', 'like', '%' . $filters['q'] . '%');
-        }        
+            $players = $players->where('contact_firstname', $filters['q']);
+        }
 
         if (!is_null($filters['type'])) {
             $players = $players->where('agegroup', $filters['type']);
@@ -126,7 +123,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         string $player_firstname,
         string $player_lastname,
         string $team_name,
-        DateTime $dob,
+        string $dob,
         string $agegroup,
         string $description,
     ): Players
@@ -160,7 +157,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         string $player_firstname,
         string $player_lastname,
         string $team_name,
-        DateTime $dob,
+        string $dob,
         string $agegroup,
         string $description
     ): bool

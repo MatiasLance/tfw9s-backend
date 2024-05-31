@@ -68,8 +68,11 @@ class NewsRepository extends BaseRepository implements NewsRepositoryInterface
 
         // Search Filter
         if (!is_null($filters['q'])) {
-            $news = $news->where('headline', 'like', '%' . $filters['q'] . '%');
-        }   
+            $news = $news->where(function ($q) use($filters) {
+                $q
+                    ->where('headline', 'LIKE', '%' . $filters['q'] . '%');
+            });
+        }
 
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:

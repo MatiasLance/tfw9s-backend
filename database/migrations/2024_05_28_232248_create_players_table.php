@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('player_firstname');
             $table->string('player_lastname');
             $table->string('team_name');
-            $table->date('dob');
+            $table->string('dob');
             $table->string('agegroup');
             $table->string('description');
             $table->timestamps();
