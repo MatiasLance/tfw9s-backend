@@ -10,6 +10,6 @@ class IndividualRegistration extends Model
     use HasFactory;
 
     public function players() {
-        return $this->hasMany(Player::class);
+        return $this->hasMany(Players::class);
     }
 }

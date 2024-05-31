@@ -6,6 +6,7 @@ use App\Modules\Http\Message;
 use App\Modules\Players\PlayersServiceInterface;
 use Illuminate\Http\Request;
 use App\Models\Players;
+use DateTime;
 
 class PlayersController extends Controller
 {
@@ -51,9 +52,11 @@ class PlayersController extends Controller
         $player_firstname = $request->input('player_firstname');
         $player_lastname = $request->input('player_lastname');
         $team_name = $request->input('team_name');
-        $dob = $request->input('dob');
+        $dobstring = $request->input('dob');
         $agegroup = $request->input('agegroup');
         $description = $request->input('description');
+
+        $dob = new DateTime($dobstring);
 
         $players = $this->playersService->createPlayers(
             $contact_firstname,
@@ -88,9 +91,11 @@ class PlayersController extends Controller
         $player_firstname = $request->input('player_firstname');
         $player_lastname = $request->input('player_lastname');
         $team_name = $request->input('team_name');
-        $dob = $request->input('dob');
+        $dobstring = $request->input('dob');
         $agegroup = $request->input('agegroup');
         $description = $request->input('description');
+
+        $dob = new DateTime($dobstring);
 
         $isSuccess = $this->playersService->updatePlayers(
             $id,

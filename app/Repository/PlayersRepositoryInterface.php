@@ -6,6 +6,7 @@ use App\Models\Players;
 use App\Modules\Utility\Pagination\Paginate;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use DateTime;
 
 interface PlayersRepositoryInterface
 {
@@ -44,7 +45,7 @@ interface PlayersRepositoryInterface
      * @param string player_firstname
      * @param string player_lastname
      * @param string team_name
-     * @param string dob
+     * @param int DateTime dob
      * @param string agegroup
      * @param string description
      *
@@ -58,7 +59,7 @@ interface PlayersRepositoryInterface
         string $player_firstname,
         string $player_lastname,
         string $team_name,
-        string $dob,
+        DateTime $dob,
         string $agegroup,
         string $description,
     ): Players;
@@ -74,7 +75,7 @@ interface PlayersRepositoryInterface
      * @param string player_firstname
      * @param string player_lastname
      * @param string team_name
-     * @param string dob
+     * @param int DateTime dob
      * @param string agegroup
      * @param string description
      *
@@ -89,7 +90,7 @@ interface PlayersRepositoryInterface
         string $player_firstname,
         string $player_lastname,
         string $team_name,
-        string $dob,
+        DateTime $dob,
         string $agegroup,
         string $description
     ): bool;

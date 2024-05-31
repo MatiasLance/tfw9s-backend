@@ -102,11 +102,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
         // Search Filter
         if (!is_null($filters['q'])) {
-            $items = $items->where(function ($q) use($filters) {
-                $q
-                    ->where('name', 'LIKE', '%' . $filters['q'] . '%');
-            });
-        }
+            $items = $items->where('name', 'like', '%' . $filters['q'] . '%');
+        }   
 
         // Featured Item Filter
         if (!is_null($filters['featured'])) {
