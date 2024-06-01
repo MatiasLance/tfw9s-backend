@@ -172,4 +172,9 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
             return $partnerSponsor->delete();
         });
     }
+
+    public function countPartnerSponsor()
+    {
+        return PartnerSponsor::count();
+    }
 }

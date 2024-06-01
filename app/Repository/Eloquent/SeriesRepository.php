@@ -123,7 +123,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                 $series = $series->orderByDesc('name');
                 break;
             case Filter::SORT_START_DATE:
-                $series = $series->orderBy('start');
+                $series = $series->orderByDesc('start');
                 break;
             default:
                 $series = $series->orderBy('created_at');

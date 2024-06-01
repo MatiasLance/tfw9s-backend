@@ -386,5 +386,8 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::delete('/{id}', 'App\Http\Controllers\PlayersController@delete');
     });
 
+    Route::prefix("total")->group(function() {
+        Route::get('/', 'App\Http\Controllers\TotalController@retrieve');
+    });
 });
 

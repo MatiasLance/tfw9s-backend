@@ -46,4 +46,9 @@ class PartnerSponsorService implements PartnerSponsorServiceInterface
     {
         return $this->partnerSponsorRepository->deletePartnerSponsor($partnerSponsor->id);
     }
+
+    public function countPartnerSponsor()
+    {
+        return $this->partnerSponsorRepository->countPartnerSponsor();
+    }
 }

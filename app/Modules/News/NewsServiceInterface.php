@@ -57,4 +57,6 @@ interface NewsServiceInterface
      */
     public function deleteNews(User $initiator, News $news): bool;
 
+    public function countNews();
+
 }

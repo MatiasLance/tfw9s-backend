@@ -151,4 +151,6 @@ interface ItemRepositoryInterface
      * @return int
      */
     public function totalDiscountCode(): int;
+
+    public function countItems();
 }

@@ -74,4 +74,6 @@ interface NewsRepositoryInterface
      */
     public function deleteNews(int $id): bool;
 
+    public function countNews();
+
 }

@@ -139,4 +139,9 @@ class CategoryRepository extends BaseRepository implements CategoryRepositoryInt
 
         return $lineage;
     }
+
+    public function countCategory()
+    {
+        return Category::count();
+    }
 }

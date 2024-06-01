@@ -47,4 +47,9 @@ class NewsService implements NewsServiceInterface
     {
         return $this->newsRepository->deleteNews($news->id);
     }
+
+    public function countNews()
+    {
+        return $this->newsRepository->countNews();
+    }
 }

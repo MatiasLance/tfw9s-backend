@@ -64,4 +64,6 @@ interface PartnerSponsorServiceInterface
      */
     public function deletePartnerSponsor(User $initiator, PartnerSponsor $partnerSponsor): bool;
 
+    public function countPartnerSponsor();
+
 }
