@@ -83,4 +83,9 @@ class ItemService implements ItemServiceInterface
     {
         return $this->itemRepository->discountCodeItems($filters);
     }
+
+    public function countItems()
+    {
+        return $this->itemRepository->countItems();
+    }
 }

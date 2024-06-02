@@ -71,4 +71,6 @@ interface CategoryServiceInterface
      * @return bool
      */
     public function deleteCategory(User $initiator, int $id): bool;
+
+    public function countCategory();
 }

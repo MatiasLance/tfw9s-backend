@@ -440,6 +440,11 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
     public function totalDiscountCode(): int
     {
-        return $this->discountCode->count();
+        return DiscountCode::count();
+    }
+
+    public function countItems()
+    {
+        return Item::count();
     }
 }

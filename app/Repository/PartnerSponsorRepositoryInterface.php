@@ -78,4 +78,6 @@ interface PartnerSponsorRepositoryInterface
      */
     public function deletePartnerSponsor(int $id): bool;
 
+    public function countPartnerSponsor();
+
 }

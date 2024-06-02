@@ -69,4 +69,6 @@ interface CategoryRepositoryInterface
      * @return bool
      */
     public function delete(int $id): bool;
+
+public function countCategory();
 }

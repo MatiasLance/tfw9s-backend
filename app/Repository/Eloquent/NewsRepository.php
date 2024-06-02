@@ -163,4 +163,9 @@ class NewsRepository extends BaseRepository implements NewsRepositoryInterface
             return $news->delete();
         });
     }
+
+    public function countNews()
+    {
+        return News::count();
+    }
 }

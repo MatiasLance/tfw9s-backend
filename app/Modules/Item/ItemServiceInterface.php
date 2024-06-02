@@ -136,4 +136,6 @@ interface ItemServiceInterface
     public function countDiscountCode(): int;
 
     public function discountCodeItems(array $filters = []): Paginate;
+
+    public function countItems();
 }

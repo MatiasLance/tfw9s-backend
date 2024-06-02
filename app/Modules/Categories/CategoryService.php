@@ -58,4 +58,9 @@ class CategoryService implements CategoryServiceInterface
     {
         return $this->categoryRepository->delete($id);
     }
+
+    public function countCategory()
+    {
+        return $this->categoryRepository->countCategory();
+    }
 }
