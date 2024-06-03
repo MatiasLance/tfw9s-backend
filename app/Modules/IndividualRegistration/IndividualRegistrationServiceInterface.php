@@ -4,23 +4,22 @@ namespace App\Modules\IndividualRegistration;
 
 use App\Models\IndividualRegistration;
 use App\Modules\Payment\PaymentGateway;
-use DateTime;
 
 interface IndividualRegistrationServiceInterface
 {
 
     /**
      * Find an existing IndividualRegistration by its transaction ID
-     * 
+     *
      * @param String $transactionId
-     * 
+     *
      * @return null|IndividualRegistration
      */
     public function findByTransactionId(string $transactionId): ?IndividualRegistration;
 
       /**
      * Create a new IndividualRegistration
-     * 
+     *
      * @param string $paymentIntentId
      * @param PaymentGateway $gateway
      * @param string $contact_firstname
@@ -33,7 +32,8 @@ interface IndividualRegistrationServiceInterface
      * @param string $dob
      * @param string $agegroup
      * @param integer $price
-     * 
+     * @param int $item_id
+     *
      * @return true|IndividualRegistration Returns true if the IndividualRegistration is already existing, otherwise returns the IndividualRegistration
      */
     public function create(
@@ -49,13 +49,14 @@ interface IndividualRegistrationServiceInterface
         string $teamName,
         string $ageGroup,
         int $amount,
+        int $item_id
     );
 
     /**
      * Mark order as verified
-     * 
+     *
      * @param string $transactionId
-     * 
+     *
      * @return bool
      */
     public function markAsVerified(string $transactionId): bool;

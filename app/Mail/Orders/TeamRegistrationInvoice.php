@@ -2,6 +2,7 @@
 
 namespace App\Mail\Orders;
 
+use App\Models\TeamRegistration;
 use App\Models\Order;
 use App\Models\Tax;
 use App\Models\ToggleTaxControl;
@@ -10,16 +11,16 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class Invoice extends Mailable
+class TeamRegistrationInvoice extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
      * The order for this invoice
      *
-     * @var Order $order
+     * @var TeamRegistration $teamRegistration
      */
-    protected Order $order;
+    protected TeamRegistration $teamRegistration;
 
     /**
      * Is the email to be sent to admin
@@ -33,9 +34,9 @@ class Invoice extends Mailable
      *
      * @return void
      */
-    public function __construct(Order $order, bool $toAdmin = false)
+    public function __construct(TeamRegistration $teamRegistration, bool $toAdmin = false)
     {
-        $this->order = $order;
+        $this->teamRegistration = $teamRegistration;
         $this->toAdmin = $toAdmin;
     }
 
@@ -53,9 +54,9 @@ class Invoice extends Mailable
 
         return $this
                 ->subject('Invoice')
-                ->view('mail.invoice')
+                ->view('mail.registrationInvoice')
                 ->with([
-                    'order' => $this->order,
+                    'order' => $this->teamRegistration,
                     'taxValue' => $taxValue,
                     'taxToggle' => $toggleTax,
                     'toAdmin' => $this->toAdmin,

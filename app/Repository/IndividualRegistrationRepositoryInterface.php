@@ -32,7 +32,7 @@ interface IndividualRegistrationRepositoryInterface
      * @param string $playerLastName
      * @param string $teamName
      * @param string $agegroup
-     * @param integer $teamName
+     * @param int $item_id
      *
      * @return true|IndividualRegistration Returns true if the IndividualRegistration is already existing, otherwise returns the IndividualRegistration
      */
@@ -49,6 +49,7 @@ interface IndividualRegistrationRepositoryInterface
         string $teamName,
         string $ageGroup,
         int $amount,
+        int $item_id
     );
 
 

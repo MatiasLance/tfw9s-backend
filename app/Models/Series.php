@@ -35,4 +35,14 @@ class Series extends Model
     {
         return $this->getAttributes()['price'];
     }
+
+    public function individualRegistration()
+    {
+        return $this->hasMany(IndividualRegistration::class);
+    }
+
+    public function teamRegistration()
+    {
+        return $this->hasMany(TeamRegistration::class);
+    }
 }

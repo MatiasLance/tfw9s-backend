@@ -32,6 +32,7 @@ interface TeamRegistrationRepositoryInterface
      * @param string $teamName
      * @param string $ageGroup
      * @param integer $price
+     * @param integer $item_id
      *
      * @return true|TeamRegistration Returns true if the TeamRegistration is already existing, otherwise returns the IndividualRegistration
      */
@@ -47,6 +48,7 @@ interface TeamRegistrationRepositoryInterface
         string $teamName,
         string $ageGroup,
         int $amount,
+        int $id
     );
 
 

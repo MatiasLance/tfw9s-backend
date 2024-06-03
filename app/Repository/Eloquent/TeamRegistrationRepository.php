@@ -24,7 +24,7 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
     return $this->model->where('transaction_id', $transactionId)->first();
     }
 
-    public function create(string $paymentIntentId, PaymentGateway $gateway, string $coachesEmail, string $coachesName, string $coachesPhoneNumber, string $managerEmail, string $managerName, string $managerPhoneNumber, string $teamName, string $ageGroup, int $amount)
+    public function create(string $paymentIntentId, PaymentGateway $gateway, string $coachesEmail, string $coachesName, string $coachesPhoneNumber, string $managerEmail, string $managerName, string $managerPhoneNumber, string $teamName, string $ageGroup, int $amount, int $item_id)
     {
         $existingRegistration = $this->findByTransactionId($paymentIntentId);
 
@@ -35,7 +35,10 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
         $reg = new TeamRegistration();
         $reg->transaction_id = $paymentIntentId;
         $reg->payment_gateway = $gateway;
+        $reg->coach_email = $coachesEmail;
+        $reg->manager_email = $managerEmail;
         $reg->price = $amount;
+        $reg->item_id = $item_id;
         $reg->is_verified = false;
 
         $team = new Team();

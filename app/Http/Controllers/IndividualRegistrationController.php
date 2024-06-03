@@ -8,6 +8,7 @@ use App\Models\Tax;
 use App\Models\DiscountCode;
 use App\Models\ToggleTaxControl;
 use App\Modules\Payment\PaymentServiceInterface;
+use App\Modules\IndividualRegistration\IndividualRegistrationServiceInterface;
 use App\Modules\Http\Message;
 
 class IndividualRegistrationController extends Controller
@@ -19,9 +20,10 @@ class IndividualRegistrationController extends Controller
      */
     protected PaymentServiceInterface $paymentService;
 
-    public function __construct(PaymentServiceInterface $paymentService)
+    public function __construct(PaymentServiceInterface $paymentService, IndividualRegistrationServiceInterface $individualRegistrationService)
     {
         $this->paymentService = $paymentService;
+        $this->individualRegistrationService = $individualRegistrationService;
     }
 
     public function checkout(Request $request)
@@ -64,6 +66,7 @@ class IndividualRegistrationController extends Controller
         $regularPrice = $currentItem->centPrice();
         $hasDiscount = !empty($discountcode);
         $taxAmount = 0;
+        $price = 0;
 
         if (!$isInclusive && $hasDiscount) {
             $taxRate = $addTax / 100;
@@ -77,16 +80,16 @@ class IndividualRegistrationController extends Controller
             $price = $regularPrice * (1 - $res->rate);
             $totalPrice = intval($price);
             $isInclusive = true;
-        } elseif (!$isInclusive && $hasDiscount) {
+        } elseif (!$isInclusive && !$hasDiscount) {
             $taxRate = $addTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice + $taxAmount);
             $isInclusive = false;
         } else {
-            $taxRate = $addTax / 100;
+            $taxRate = $includeTax / 100;
             $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice + $taxAmount);
-            $isInclusive = false;
+            $totalPrice = intval($regularPrice);
+            $isInclusive = true;
         }
 
         $taxAmount = intval(round($taxAmount));
@@ -95,6 +98,8 @@ class IndividualRegistrationController extends Controller
             'item_id' => $currentItem->id,
             'taxAmount' => $taxAmount,
             'isInclusive' => $isInclusive,
+            'regularPrice' => $regularPrice,
+            'afterDiscount' => intval($price),
             'totalPrice' => $totalPrice,
         ];
 
@@ -102,4 +107,5 @@ class IndividualRegistrationController extends Controller
             'calculation' => $seriesItem
         ]);
     }
+
 }
