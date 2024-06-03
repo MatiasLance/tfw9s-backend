@@ -16,9 +16,9 @@ return new class extends Migration
         Schema::create('partner_sponsors', function (Blueprint $table) {
             $table->id();
             $table->string('company_name');
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->text('description');
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

@@ -45,7 +45,7 @@ class EventController extends Controller
 
         $events = $this->eventService->listEvents($filter);
 
-        $message->setContent(200, 'Events retrieved', '', $events->toArray());
+        $message->setContent(200, 'Events retrievedyawa', '', $events->toArray());
 
         return $message->render();
     }
