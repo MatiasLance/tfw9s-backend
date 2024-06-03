@@ -35,6 +35,12 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         'q' => null,
 
         /**
+         * Event Date keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'event_date' => null,
+
+        /**
          * Type filter
          * This filters the series by type. When this value is null, this filter is skipped.
          */
@@ -105,6 +111,12 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         if (!is_null($filters['type'])) {
             $series = $series->where(function ($q) use($filters) {
                 $q->where('type', 'LIKE', '%' . $filters['type'] . '%');
+            });
+        }
+
+        if (!is_null($filters['event_date'])) {
+            $series = $series->where(function ($q) use($filters) {
+                $q->where('start', 'LIKE', '%' . $filters['event_date'] . '%');
             });
         }
 

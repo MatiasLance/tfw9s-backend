@@ -25,6 +25,7 @@ class SeriesController extends Controller
         $type = $request->query('type', null);
         $withFixing = $request->query('withFixing', null);
         $maxSeriesPerPage = $request->query('maxSeriesPerPage', null);
+        $eventDate = $request->query('eventDate', null);
         $isPaused = $request->query('isPaused', null);
 
         $filter = [
@@ -34,6 +35,7 @@ class SeriesController extends Controller
             'type' => $type,
             'withFixing' => $withFixing,
             'max_series_per_page' => $maxSeriesPerPage,
+            'event_date' => $eventDate,
             'is_paused' => $isPaused,
         ];
 
