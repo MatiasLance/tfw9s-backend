@@ -39,20 +39,22 @@ class TeamRegistrationService implements TeamRegistrationServiceInterface
         string $teamName,
         string $ageGroup,
         int $amount,
+        int $item_id
     )
     {
         return $this->teamRegistrationRepository->create(
-          $paymentIntentId,
-          $gateway,
-          $coachesEmail,
-          $coachesName,
-          $coachesPhoneNumber,
-          $coachesEmail,
-          $coachesName,
-          $coachesPhoneNumber,
-          $teamName,
-          $ageGroup,
-          $amount,
+            $paymentIntentId,
+            $gateway,
+            $coachesEmail,
+            $coachesName,
+            $coachesPhoneNumber,
+            $coachesEmail,
+            $coachesName,
+            $coachesPhoneNumber,
+            $teamName,
+            $ageGroup,
+            $amount,
+            $item_id
         );
     }
 

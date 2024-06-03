@@ -257,10 +257,10 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             $totalPrice = intval($regularPrice + $taxAmount);
             $isInclusive = false;
         } else {
-            $taxRate = $addTax / 100;
+            $taxRate = $includeTax / 100;
             $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice + $taxAmount);
-            $isInclusive = false;
+            $totalPrice = intval($regularPrice);
+            $isInclusive = true;
         }
 
         $seriesItem = [
@@ -297,7 +297,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
             $registrationInformation = $paymentIntent->metadata;
 
-            $lineItems = json_decode($registrationInformation->line_items, true);
+            $lineItem = json_decode($registrationInformation->line_item, true);
 
             $seriesRegistered = $this->individualRegistrationService->create(
                                             $paymentIntent->id,
@@ -312,14 +312,14 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                                             $registrationInformation->teamName,
                                             $registrationInformation->ageGroup,
                                             $paymentIntent->amount,
-                                            $lineItems,
+                                            $lineItem['item_id'],
                                         );
 
 
             if (!$seriesRegistered->is_verified) {
                 $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
 
-                // $this->mailService->sendInvoice($seriesRegistered);
+                $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
             }
         }
 
@@ -333,7 +333,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
             $registrationInformation = $paymentIntent->metadata;
 
-            $lineItems = json_decode($registrationInformation->line_item, true);
+            $lineItem = json_decode($registrationInformation->line_item, true);
 
             $seriesRegistered = $this->teamRegistrationService->create(
                                             $paymentIntent->id,
@@ -347,14 +347,14 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                                             $registrationInformation->teamName,
                                             $registrationInformation->ageGroup,
                                             $paymentIntent->amount,
-                                            $lineItems,
+                                            $lineItem['item_id'],
                                         );
 
 
             if (!$seriesRegistered->is_verified) {
                 $this->teamRegistrationService->markAsVerified($seriesRegistered->transaction_id);
 
-                // $this->mailService->sendInvoice($seriesRegistered);
+                $this->mailService->sendTeamRegistrationInvoice($seriesRegistered);
             }
         }
 

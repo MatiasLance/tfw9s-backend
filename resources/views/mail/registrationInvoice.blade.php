@@ -25,13 +25,13 @@
                             <!-- Start header Section -->
                             <tr>
                                 <td style="padding-top: 30px;">
-                                    <table width="560" align="center" cellpadding="15" cellspacing="0" border="0" class="devicewidth" style="background-color:#ffffff">
+                                    <table width="50" align="center" cellpadding="15" cellspacing="0" border="0" class="devicewidth" style="background-color:#ffffff">
                                         <tbody>
                                             <tr>
                                                 <td align="center">
                                                     <a href="http://128.199.231.34/">
                                                         <img
-                                                            style="padding: 5rem;"
+                                                            style="padding: 5rem; width: 300px; height: auto;"
                                                             src="https://imgur.com/HRI8Npg.png"
                                                             alt="TFW Rugby League Logo"
                                                         />
@@ -49,8 +49,8 @@
                                                     </h3>
                                                 </td>
                                                 <td width="30%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
-                                                    <div><span style="font-weight: bold; display: block;">Order Number:</span>{{ $order->orderNumber }}</div>
-                                                    <div><span style="font-weight: bold; display: block;">Order Date:</span> {{ $order->created_at->toFormattedDateString() }}</div>
+                                                    <div><span style="font-weight: bold; display: block;">Invoice Number:</span>{{ $order->orderNumber }}</div>
+                                                    <div><span style="font-weight: bold; display: block;">Registration Date:</span> {{ $order->created_at->toFormattedDateString() }}</div>
                                                 </td>
                                                 <td width="40%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
                                                     <div>
@@ -85,111 +85,29 @@
                             </tr>
                             <!-- End header Section -->
 
-                            <!-- Start address Section -->
-                            <tr>
-                                <td style="padding-top: 0;">
-                                    <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #bbbbbb;">
-                                        <tbody>
-                                            <tr style="padding-top: 2rem; padding-bottom: 10px;">
-                                                <td style="font-size: 16px; line-height: 18px; color: #666666; padding-bottom: 5px;" colspan="2">
-                                                    <span>
-                                                        <b>Shipping Type:</b>
-                                                    </span>
-                                                    <span>
-                                                        {{ ucfirst($order->shipping_type) }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <tr style="padding-top: 2rem; padding-bottom: 10px;">
-                                                <td style="font-size: 16px; line-height: 18px; color: #666666;" colspan="2">
-                                                    <span>
-                                                        {!! $order->shippingNote !!}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2">
-                                                    &nbsp;
-                                                </td>
-                                            </tr>
-                                            @if(!is_null($order->address))
-                                            <tr>
-                                                <td style="width: 55%; font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 5px;">
-                                                    Delivery Address
-                                                </td>
-                                                <td style="width: 45%; font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 5px;">
-                                                    Billing Address
-                                                </td>
-                                            </tr>
-                                            @endif
-                                            <tr>
-                                                <td style="width: 55%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->customerFullName }}
-                                                </td>
-                                                <td style="width: 45%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->customerFullName }}
-                                                </td>
-                                            </tr>
-                                            @if(!is_null($order->address))
-                                            <tr>
-                                                <td style="width: 55%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->address }}
-                                                </td>
-                                                <td style="width: 45%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->address }}
-                                                </td>
-                                            </tr>
-                                            @endif
-                                            <tr>
-                                                <td colspan="2">
-                                                    &nbsp;
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- End address Section -->
-
                             <!-- Start product Section -->
 
-                            @foreach($order->items as $lineItem)
                             <tr>
                                 <td style="padding-top: 0;">
                                     <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #eeeeee;">
                                         <tbody>
                                             <tr>
                                                 <td rowspan="5" style="padding-right: 10px; padding-bottom: 10px;">
-                                                    <img style="height: 80px;" src="{{ $lineItem->thumbnail }}" alt="Product Image" />
+                                                    <img style="height: 80px;" src="{{ $order->thumbnail }}" alt="Product Image" />
                                                 </td>
                                                 <td colspan="2" style="font-size: 14px; font-weight: bold; color: #666666; padding-bottom: 11px;">
-                                                    {{ $lineItem->item->name }}
+                                                    {{ $order->item->name }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575; width: 440px;">
-                                                    Description: {{ $lineItem->item->snippet }}
-                                                </td>
-                                                <td style="width: 130px; font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    ${{ number_format($lineItem->value, 2) }} Per Unit
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575;">
-                                                    Quantity: {{ $lineItem->quantity }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575;"></td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    <b style="color: #666666;">${{ number_format($lineItem->total, 2) }}</b> Total
+                                                    Description: {{ $order->snippet }}
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </td>
                             </tr>
-                            @endForeach
                             <!-- End product Section -->
 
                             <!-- Start calculation Section -->
@@ -203,12 +121,7 @@
                                                     Sub-Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                <?php
-                                                    $subTotal = $order->subTotal / ($taxValue / 100 + 1);
-                                                    $calculatedTaxAmount = $order->total - $subTotal;
-                                                    $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
-                                                ?>
-                                                    ${{ number_format($order->subTotal, 2) }}
+                                                    ${{ number_format($order->item->price / 100, 2) }}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -216,7 +129,13 @@
                                                     Tax Value:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format($taxAmount, 2) }}
+                                                    <?php
+                                                        $calculatedTaxAmount = $order->price - $order->item->price;
+                                                        $taxRate = $taxValue / 100;
+                                                        $calculatedTaxAmount = $order->item->price * $taxRate;
+                                                        $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
+                                                    ?>
+                                                    ${{ number_format($taxAmount / 100, 2) }}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -230,10 +149,10 @@
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; font-weight: bold; line-height: 18px; color: #666666; padding-top: 10px; padding-bottom: 10px;">
-                                                    Order Total
+                                                    Total payment
                                                 </td>
                                                 <td style="font-size: 14px; font-weight: bold; line-height: 18px; color: #666666; padding-top: 10px; text-align: right; padding-bottom: 10px;">
-                                                    ${{ number_format($order->total, 2) }}
+                                                    ${{ number_format($order->price / 100, 2) }}
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -241,27 +160,6 @@
                                 </td>
                             </tr>
                             <!-- End calculation Section -->
-
-                            <!-- Start Remarks Section -->
-                            <tr>
-                                <td style="padding: 0 10px;">
-                                    <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner">
-                                        <tbody>
-                                            <tr>
-                                                <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Remarks
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2" style="width: 100%; font-size: 14px; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    {{ $order->remarks }}
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- End Remarks Section -->
 
                             <!-- Start payment method Section -->
                             <tr>
@@ -279,7 +177,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with TFW Rugby League.
+                                                    Thank you for signing up with TFW Rugby League! Your registration has been successfully completed and confirmed. Attached is your invoice for ${{ number_format($order->total, 2) }}. We're grateful for your participation.
                                                 </td>
                                             </tr>
                                         </tbody>

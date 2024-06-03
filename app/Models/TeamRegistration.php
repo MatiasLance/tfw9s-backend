@@ -12,4 +12,9 @@ class TeamRegistration extends Model
     public function teams() {
         return $this->hasMany(Team::class);
     }
+
+    public function item()
+    {
+        return $this->belongsTo(Series::class);
+    }
 }

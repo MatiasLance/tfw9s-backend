@@ -77,16 +77,16 @@ class TeamRegistrationController extends Controller
             $price = $regularPrice * (1 - $res->rate);
             $totalPrice = intval($price);
             $isInclusive = true;
-        } elseif (!$isInclusive && $hasDiscount) {
+        } elseif (!$isInclusive && !$hasDiscount) {
             $taxRate = $addTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice + $taxAmount);
             $isInclusive = false;
         } else {
-            $taxRate = $addTax / 100;
+            $taxRate = $includeTax / 100;
             $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice + $taxAmount);
-            $isInclusive = false;
+            $totalPrice = intval($regularPrice);
+            $isInclusive = true;
         }
 
         $taxAmount = intval(round($taxAmount));

@@ -4,8 +4,12 @@ namespace App\Modules\Mail;
 
 use App\Mail\NewContactMessage;
 use App\Mail\Orders\Invoice;
+use App\Mail\Orders\IndivRegistrationInvoice;
+use App\Mail\Orders\TeamRegistrationInvoice;
 use App\Mail\PasswordResetLink;
 use App\Models\Order;
+use App\Models\IndividualRegistration;
+use App\Models\TeamRegistration;
 use GuzzleHttp\Client;
 
 class MailService implements MailServiceInterface
@@ -20,6 +24,30 @@ class MailService implements MailServiceInterface
 
         $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
         $this->send([$order->email], $customerSubject, $content);
+    }
+
+    public function sendIndividualRegistrationInvoice(IndividualRegistration $individualRegistration)
+    {
+        $mail = new IndivRegistrationInvoice($individualRegistration);
+        $content = $mail->render();
+
+        $adminSubject = 'You have a new order on thefinalwhistle.com.au! - INVOICE #: ' . $individualRegistration->id;
+        $customerSubject = 'Here is the invoice for your recent payment on thefinalwhistle.com.au - INVOICE #: ' . $individualRegistration->id;
+
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
+        $this->send([$individualRegistration->email], $customerSubject, $content);
+    }
+
+    public function sendTeamRegistrationInvoice(TeamRegistration $teamRegistration)
+    {
+        $mail = new TeamRegistrationInvoice($teamRegistration);
+        $content = $mail->render();
+
+        $adminSubject = 'You have a new order on thefinalwhistle.com.au! - INVOICE #: ' . $teamRegistration->id;
+        $customerSubject = 'Here is the invoice for your recent payment on thefinalwhistle.com.au - INVOICE #: ' . $teamRegistration->id;
+
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
+        $this->send([$teamRegistration->coach_email, $teamRegistration->manager_email], $customerSubject, $content);
     }
 
     public function sendContactForm(array $data)
