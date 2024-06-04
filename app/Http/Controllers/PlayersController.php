@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Modules\Http\Message;
 use App\Modules\Players\PlayersServiceInterface;
 use Illuminate\Http\Request;
-use App\Models\Players;
+use App\Models\Player;
 use DateTime;
 
 class PlayersController extends Controller
@@ -71,7 +71,7 @@ class PlayersController extends Controller
             $description,
         );
 
-        if ($players instanceof Players) {
+        if ($players instanceof Player) {
             $message->setContent(201, 'Player created', '', [
                 'players' => $players
             ]);

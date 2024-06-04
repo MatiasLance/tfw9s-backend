@@ -2,7 +2,7 @@
 
 namespace App\Modules\Players;
 
-use App\Models\Players;
+use App\Models\Player;
 use App\Models\User;
 use DateTime;
 use App\Modules\Utility\Pagination\Paginate;
@@ -15,12 +15,12 @@ interface PlayersServiceInterface
      *
      * @param $filters List of filters available to be applied'
      *
-     * @return Paginate<Players>
+     * @return Paginate<Player>
      */
     public function listPlayers(array $filters = []): Paginate;
 
     /**
-     * Create a new Players
+     * Create a new Player
      *
      * @param int $id
      * @param string $contact_firstname
@@ -34,7 +34,7 @@ interface PlayersServiceInterface
      * @param string agegroup
      * @param string description
      *
-     * @return Players
+     * @return Player
      */
     public function createPlayers(
         string $contact_firstname,
@@ -47,7 +47,7 @@ interface PlayersServiceInterface
         DateTime $dob,
         string $agegroup,
         string $description,
-    ): Players;
+    ): Player;
 
     /**
      * Update an existing Series
@@ -85,17 +85,17 @@ interface PlayersServiceInterface
      *
      * @param int $id
      *
-     * @return Players
+     * @return Player
      */
-    public function retrievePlayers(int $id): Players;
+    public function retrievePlayers(int $id): Player;
 
      /**
      * Delete an existing Players
      *
      * @param User $initiator The user who initiated the delete command
-     * @param Players $players The players to be deleted
+     * @param Player $players The players to be deleted
      *
      * @return bool
      */
-    public function deletePlayers(User $initiator, Players $players): bool;
+    public function deletePlayers(User $initiator, Player $players): bool;
 }

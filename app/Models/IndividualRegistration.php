@@ -13,7 +13,7 @@ class IndividualRegistration extends Model
     protected const SNIPPET_LENGTH = 120;
 
     public function players() {
-        return $this->hasMany(Players::class);
+        return $this->hasMany(Player::class);
     }
 
     public function item()

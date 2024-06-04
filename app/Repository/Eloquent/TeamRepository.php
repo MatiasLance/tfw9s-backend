@@ -92,6 +92,8 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             });
         }
 
+        $teams = $teams->with('registration');
+
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
                 $teams = $teams->orderBy('name');
