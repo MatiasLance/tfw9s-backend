@@ -3,7 +3,7 @@
 namespace App\Modules\Players;
 
 use App\Models\User;
-use App\Models\Players;
+use App\Models\Player;
 use DateTime;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\PlayersRepositoryInterface;
@@ -39,7 +39,7 @@ class PlayersService implements PlayersServiceInterface
         DateTime $dob,
         string $agegroup,
         string $description,
-    ): Players
+    ): Player
 
     {
         return $this->playersRepository->createPlayers(
@@ -85,12 +85,12 @@ class PlayersService implements PlayersServiceInterface
         );
     }
 
-    public function retrievePlayers(int $id): Players
+    public function retrievePlayers(int $id): Player
     {
         return $this->playersRepository->retrievePlayers($id);
     }
 
-    public function deletePlayers(User $initiator, Players $players): bool
+    public function deletePlayers(User $initiator, Player $players): bool
     {
         return $this->playersRepository->deletePlayers($players->id);
     }

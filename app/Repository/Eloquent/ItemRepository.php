@@ -212,11 +212,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             foreach ($categories as $category) {
                 $item->categories()->attach($category);
             }
-            
+            /*
             foreach ($tags as $tagId) {
                 $tag = Tag::findOrFail($tagId);
                 $item->tags()->attach($tag);
             }
+            */
 
             foreach ($media as $photo) {
                 $itemPhoto = $this->storageService->store($photo);
@@ -340,11 +341,13 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $category->items()->attach($item);
             }
 
+            /*
             $item->tags()->detach();
             foreach ($tags as $tagId) {
                 $tag = Tag::findOrFail($tagId);
                 $item->tags()->attach($tag);
             }
+            */
 
             if (!is_null($media)) {
 

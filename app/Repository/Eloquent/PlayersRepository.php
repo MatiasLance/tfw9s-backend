@@ -2,7 +2,7 @@
 
 namespace App\Repository\Eloquent;
 
-use App\Models\Players;
+use App\Models\Player;
 use App\Modules\Players\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
@@ -72,7 +72,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         'name' => null,
     ];
 
-    public function __construct(Players $players)
+    public function __construct(Player $players)
     {
         parent::__construct($players);
     }
@@ -100,6 +100,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         if (!is_null($filters['type'])) {
             $players = $players->where('agegroup', $filters['type']);
         }
+
+        if (is_null($filters['withFixing'])) {
+            $players = $players->with('registration');
+        }        
 
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
@@ -129,10 +133,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         DateTime $dob,
         string $agegroup,
         string $description,
-    ): Players
+    ): Player
 
     {
-        $players = new Players();
+        $players = new Player();
         $players->contact_firstname = $contact_firstname;
         $players->contact_lastname = $contact_lastname;
         $players->phone_number = $phone_number;
@@ -183,7 +187,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         });
     }
 
-    public function retrievePlayers(int $id): Players
+    public function retrievePlayers(int $id): Player
     {
         return Players::find($id);
     }
