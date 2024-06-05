@@ -51,11 +51,13 @@ class TeamController extends Controller
     public function store(Request $request, Message $message)
     {
         $name = $request->input('name');
-        $description = $request->input('description') ?? '';
         $field_id = $request->input('field_id');
-        $event_id = $request->input('event_id');
+        $agegroup_id = $request->input('agegroup_id');
         $media = $request->file('photo') ?? [];
 
+        /*
+        $description = $request->input('description') ?? '';
+        $event_id = $request->input('event_id');
         $coach_name = $request->input('coach_name');
         $coach_mobile = $request->input('coach_mobile');
         $coach_email = $request->input('coach_email');
@@ -77,6 +79,8 @@ class TeamController extends Controller
         ];
 
         $team = $this->teamService->createTeam($name, $description, $field_id, $event_id, $coach, $manager, $media);
+        */
+        $team = $this->teamService->createTeam($name, $field_id, $agegroup_id, $media);
 
         if ($team instanceof Team) {
             $message->setContent(201, 'Team created', '', [

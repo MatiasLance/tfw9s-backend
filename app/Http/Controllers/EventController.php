@@ -45,7 +45,7 @@ class EventController extends Controller
 
         $events = $this->eventService->listEvents($filter);
 
-        $message->setContent(200, 'Events retrievedyawa', '', $events->toArray());
+        $message->setContent(200, 'Events retrieved', '', $events->toArray());
 
         return $message->render();
     }
@@ -63,20 +63,26 @@ class EventController extends Controller
 
     public function store(Request $request, Message $message)
     {
+
+        $region_id = $request->input('region_id');
+        $agegroup_id = $request->input('agegroup_id');
+        $datetimeString = $request->input('datetime');
+        $matches = $request->input('matches') ?? [];
+
+        /*
         $name = $request->input('name') ?? '';
         $description = $request->input('description') ?? '';
-
         #submit datetime as string
         $datetimeString = $request->input('datetime');
-        $region_id = $request->input('region_id');
         $manager_id = $request->input('manager_id');
         $agegroup_id = $request->input('agegroup_id');
         $series = $request->input('series');
         $teamcount = $request->input('teamcount');
+        */
 
         $datetime = new DateTime($datetimeString);
 
-        $event = $this->eventService->createEvent($name, $description, $datetime, $region_id, $manager_id, $agegroup_id, $series, $teamcount);
+        $event = $this->eventService->createEvent($datetime, $region_id, $agegroup_id, $matches);
 
         if ($event instanceof Event) {
             $message->setContent(201, 'Event created', '', [

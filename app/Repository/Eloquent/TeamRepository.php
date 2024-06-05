@@ -118,19 +118,12 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         return Team::with('event')->find($id);
     }
 
-    public function createTeam(string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): Team
+    public function createTeam(string $name, int $field_id, int $agegroup_id, ?array $media): Team
     {
         $team = new Team();
         $team->name = $name;
-        $team->description = $description;
         $team->field_id = $field_id;
-        $team->event_id = $event_id;
-        $team->coach_name = $coach['name'];
-        $team->coach_mobile = $coach['mobile'];
-        $team->coach_email = $coach['email'];
-        $team->manager_name = $manager['name'];
-        $team->manager_mobile = $manager['mobile'];
-        $team->manager_email = $manager['email'];
+        $team->agegroup_id = $agegroup_id;
 
         return DB::transaction(function() use($team,$media) {
             $team->save();
