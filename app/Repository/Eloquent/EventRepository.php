@@ -191,21 +191,28 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         return $this->find($id);
     }
 
-    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount): Event
+    public function createEvent(DateTime $datetime, int $region_id, int $agegroup_id, ?array $matches): Event
     {
         $event = new Event();
-        $event->name = $name;
-        $event->description = $description;
         $event->event_date = $datetime;
         $event->region_id = $region_id;
-        $event->manager_id = $manager_id;
         $event->agegroup_id = $agegroup_id;
-        $event->series_id = $series;
-        $event->teamcount = $teamcount;
 
-        return DB::transaction(function() use($event) {
+        return DB::transaction(function() use ($event, $matches) {
             $event->save();
 
+            if (!empty($matches)) {
+                foreach ($matches as $matchesData) {
+                    $match = new EventMatch();
+                    $match->event_id = $event->id;
+                    $match->match_time= $matchesData['time'];
+                    $match->field_id = $matchesData['field_id'];
+                    $match->team1 = $matchesData['team1'];
+                    $match->team2 = $matchesData['team2'];
+
+                    $event->eventmatch()->save($match);
+                }
+            }
             return $event;
         });
     }

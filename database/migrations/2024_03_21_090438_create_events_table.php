@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('description');
+            $table->string('name')->nullable();
+            $table->text('description')->nullable();
             $table->date('event_date');
             $table->integer('teamcount')->default(0);
             $table->foreignId('series_id')->nullable();

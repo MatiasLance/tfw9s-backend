@@ -30,17 +30,16 @@ interface TeamServiceInterface
     /**
      * Create a new Team
      *
-     * @param string $name
      * @param string $description
      * @param int $field_id
-     * @param int $event_id
-     * @param array $coach
-     * @param array $manager
+     * @param int $agegroup_id
      * @param ?array $media
      *
      * @return Team
      */
-    public function createTeam(string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): Team;
+    
+    /*public function createTeam(string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): Team; */
+    public function createTeam(string $name, int $field_id, int $agegroup_id, ?array $media): Team;
 
     /**
      * Update an existing Team

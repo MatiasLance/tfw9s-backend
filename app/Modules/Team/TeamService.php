@@ -31,10 +31,16 @@ class TeamService implements TeamServiceInterface
     {
         return $this->teamRepository->retrieveTeam($id);
     }
-
+    /*
     public function createTeam($name, $description, $field_id, $event_id, $coach, $manager, $media): Team
     {
         return $this->teamRepository->createTeam($name, $description, $field_id, $event_id, $coach, $manager, $media);
+    }
+    */
+
+    public function createTeam($name, $field_id, $agegroup_id, $media): Team
+    {
+        return $this->teamRepository->createTeam($name, $field_id, $agegroup_id, $media);
     }
 
     public function updateTeam(int $id, string $name, string $description, $field_id, $event_id, $coach, $manager, $media): bool

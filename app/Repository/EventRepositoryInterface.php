@@ -44,20 +44,17 @@ interface EventRepositoryInterface
      */
     public function retrieveEvent(int $id): Event;
 
-    /**
-     * Create a new event instance
+   /**
+     * Create a new Event
      *
-     * @param string $name
-     * @param string $description
-     * @param DateTime $datetime
+     * @param int DateTime $datetime
      * @param int region_id
-     * @param int manager_id
      * @param int agegroup_id
-     * @param ?array $matches
+     * @param ?array matches
      *
-     * @return event
+     * @return Event
      */
-    public function createEvent(string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount): Event;
+    public function createEvent(DateTime $datetime, int $region_id, int $agegroup_id, array $matches): Event;
 
     /**
      * Update an existing event instance
