@@ -45,17 +45,14 @@ interface EventServiceInterface
      * Update an existing Event
      *
      * @param int $id
-     * @param string $name
-     * @param string $description
      * @param int DateTime $datetime
-     * @param int region_id
-     * @param int manager_id
+     * @param int region_idyy
      * @param int agegroup_id
      * @param ?array matches
      *
      * @return bool
      */
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): bool;
+    public function updateEvent(int $id, DateTime $datetime, int $region_id, int $agegroup_id, array $matches): bool;
 
     /**
      * Delete an existing Event

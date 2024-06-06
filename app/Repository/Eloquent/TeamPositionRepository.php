@@ -160,15 +160,15 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
 
     public function updateTeamPosition(int $event_id, int $eventMatch_id, array $existingResult): bool
     {
-        $eventMatch = EventMatch::findOrFail($eventMatch_id);
-        $team1 = $eventMatch->team1;
-        $team2 = $eventMatch->team2;
+        $eventMatch = EventMatch::findOrFail($eventMatch_id); // 4
+        $team1 = $eventMatch->team1; // 4
+        $team2 = $eventMatch->team2; // 6
 
         $team1Position = TeamPosition::where('team_id', $team1)
-            ->where('event_id', $event_id)
+            ->where('event_id', $eventMatch->event_id)
             ->firstOrFail();
         $team2Position = TeamPosition::where('team_id', $team2)
-            ->where('event_id', $event_id)
+            ->where('event_id', $eventMatch->event_id)
             ->firstOrFail();
 
         # reset

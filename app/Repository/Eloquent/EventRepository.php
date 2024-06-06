@@ -217,17 +217,12 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         });
     }
 
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $region_id, $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): bool
+    public function updateEvent(int $id, DateTime $datetime, int $region_id, int $agegroup_id, ?array $matches): bool
     {
         $event = $this->find($id);
-        $event->name = $name;
-        $event->description = $description;
         $event->event_date = $datetime;
         $event->region_id = $region_id;
-        $event->manager_id = $manager_id;
         $event->agegroup_id = $agegroup_id;
-        $event->series_id = $series;
-        $event->teamcount = $teamcount;
 
         return DB::transaction(function() use($event, $matches) {
 

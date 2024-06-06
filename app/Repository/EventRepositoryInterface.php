@@ -60,17 +60,14 @@ interface EventRepositoryInterface
      * Update an existing event instance
      *
      * @param int $id
-     * @param string $name
-     * @param string $description
-     * @param DateTime $datetime
+     * @param int DateTime $datetime
      * @param int region_id
-     * @param int manager_id
      * @param int agegroup_id
-     * @param ?array $matches
+     * @param ?array matches
      *
      * @return bool
      */
-    public function updateEvent(int $id, string $name, string $description, DateTime $datetime, int $region_id, int $manager_id, int $agegroup_id, int $series, int $teamcount, ?array $matches): bool;
+    public function updateEvent(int $id, DateTime $datetime, int $region_id, int $agegroup_id, array $matches): bool;
 
     /**
      * Delete an existing event instance
