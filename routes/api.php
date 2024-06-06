@@ -386,6 +386,11 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::delete('/{id}', 'App\Http\Controllers\PlayersController@delete');
     });
 
+    Route::prefix("teamlimit")->group(function() {
+        Route::get('/{series_id}', 'App\Http\Controllers\TeamLimitController@list');
+        Route::post('/update/{id}', 'App\Http\Controllers\TeamLimitController@update');
+    });
+
     Route::prefix("total")->group(function() {
         Route::get('/', 'App\Http\Controllers\TotalController@retrieve');
     });

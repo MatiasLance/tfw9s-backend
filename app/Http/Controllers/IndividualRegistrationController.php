@@ -8,7 +8,6 @@ use App\Models\Tax;
 use App\Models\DiscountCode;
 use App\Models\ToggleTaxControl;
 use App\Modules\Payment\PaymentServiceInterface;
-use App\Modules\IndividualRegistration\IndividualRegistrationServiceInterface;
 use App\Modules\Http\Message;
 
 class IndividualRegistrationController extends Controller
@@ -20,10 +19,9 @@ class IndividualRegistrationController extends Controller
      */
     protected PaymentServiceInterface $paymentService;
 
-    public function __construct(PaymentServiceInterface $paymentService, IndividualRegistrationServiceInterface $individualRegistrationService)
+    public function __construct(PaymentServiceInterface $paymentService)
     {
         $this->paymentService = $paymentService;
-        $this->individualRegistrationService = $individualRegistrationService;
     }
 
     public function checkout(Request $request)

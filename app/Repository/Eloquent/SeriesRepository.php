@@ -3,6 +3,7 @@
 namespace App\Repository\Eloquent;
 
 use App\Models\Series;
+use App\Modules\TeamLimit\TeamLimitServiceInterface;
 use App\Modules\Series\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
@@ -21,6 +22,8 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
      * @var StorageInterface $storageService
      */
     protected StorageInterface $storageService;
+
+    protected TeamLimitServiceInterface $teamLimitService;
 
     /**
      * Default filters for retrieving list of series
@@ -85,10 +88,11 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         'is_paused' => null,
     ];
 
-    public function __construct(Series $series, StorageInterface $storageService)
+    public function __construct(Series $series, StorageInterface $storageService, TeamLimitServiceInterface $teamLimitService)
     {
         parent::__construct($series);
         $this->storageService = $storageService;
+        $this->teamLimitService = $teamLimitService;
     }
 
     public function listSeries(array $userFilters = []): Paginate
@@ -163,8 +167,12 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->end = $end;
         $series->price = $price;
 
-        return DB::transaction(function() use($series, $media) {
+        return DB::transaction(function() use($series, $media, $type) {
             $series->save();
+
+            if ($type != 'weekly') {
+                $this->teamLimitService->createTeamLimit($series->id);
+            }
 
             foreach ($media as $file) {
                 if (!is_null($file)) {
@@ -172,7 +180,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     $Image = $this->storageService->store($file);
                     $series->media()->save($Image);
                 }
-              }
+            }
 
             return $series;
         });

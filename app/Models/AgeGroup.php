@@ -9,10 +9,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class AgeGroup extends Model
 {
     use HasFactory, SoftDeletes;
-    
+
     protected $hidden = [
         'deleted_at',
         'created_at',
         'updated_at',
     ];
+
+    public function teamLimits()
+    {
+        return $this->belongsToMany(TeamLimit::class, 'agegroup_teamlimit', 'agegroup_id', 'teamlimit_id');
+    }
 }

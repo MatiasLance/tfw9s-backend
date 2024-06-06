@@ -19,10 +19,10 @@ class MailService implements MailServiceInterface
         $mail = new Invoice($order);
         $content = $mail->render();
 
-        $adminSubject = 'You have a new order on thefinalwhistle.com.au!';
-        $customerSubject = 'Here is the invoice for your recent order on thefinalwhistle.com.au';
+        $adminSubject = 'You have a new order on tfw9s.com.au!';
+        $customerSubject = 'Here is the invoice for your recent order on tfw9s.com.au';
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'thefinalwhistlerl@hotmail.com')], $adminSubject, $content);
         $this->send([$order->email], $customerSubject, $content);
     }
 
@@ -31,10 +31,10 @@ class MailService implements MailServiceInterface
         $mail = new IndivRegistrationInvoice($individualRegistration);
         $content = $mail->render();
 
-        $adminSubject = 'You have a new order on thefinalwhistle.com.au! - INVOICE #: ' . $individualRegistration->id;
-        $customerSubject = 'Here is the invoice for your recent payment on thefinalwhistle.com.au - INVOICE #: ' . $individualRegistration->id;
+        $adminSubject = 'You have a new order on tfw9s.com.au! - INVOICE #: ' . $individualRegistration->id;
+        $customerSubject = 'Here is the invoice for your recent payment on tfw9s.com.au - INVOICE #: ' . $individualRegistration->id;
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'thefinalwhistlerl@hotmail.com')], $adminSubject, $content);
         $this->send([$individualRegistration->email], $customerSubject, $content);
     }
 
@@ -43,20 +43,20 @@ class MailService implements MailServiceInterface
         $mail = new TeamRegistrationInvoice($teamRegistration);
         $content = $mail->render();
 
-        $adminSubject = 'You have a new order on thefinalwhistle.com.au! - INVOICE #: ' . $teamRegistration->id;
-        $customerSubject = 'Here is the invoice for your recent payment on thefinalwhistle.com.au - INVOICE #: ' . $teamRegistration->id;
+        $adminSubject = 'You have a new order on tfw9s.com.au! - INVOICE #: ' . $teamRegistration->id;
+        $customerSubject = 'Here is the invoice for your recent payment on tfw9s.com.au - INVOICE #: ' . $teamRegistration->id;
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'thefinalwhistlerl@hotmail.com')], $adminSubject, $content);
         $this->send([$teamRegistration->coach_email, $teamRegistration->manager_email], $customerSubject, $content);
     }
 
     public function sendContactForm(array $data)
     {
         $to = [
-            env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')
+            env('ADMIN_EMAIL_ADDRESS', 'thefinalwhistlerl@hotmail.com')
         ];
 
-        $subject = 'You have a new message from ' . $data['name'] . ' via thefinalwhistle.com.au';
+        $subject = 'You have a new message from ' . $data['name'] . ' via tfw9s.com.au';
 
         $mail = new NewContactMessage($data['name'], $data['email'], $data['message']);
         $content = $mail->render();
