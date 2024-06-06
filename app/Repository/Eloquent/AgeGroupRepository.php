@@ -3,6 +3,8 @@
 namespace App\Repository\Eloquent;
 
 use App\Models\AgeGroup;
+use App\Models\Series;
+use App\Models\TeamLimit;
 use App\Modules\AgeGroup\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
@@ -98,7 +100,7 @@ class AgeGroupRepository extends BaseRepository implements AgeGroupRepositoryInt
         return $this->find($id);
     }
 
-    public function createAgeGroup(string $name, int $min_age, int $max_age): ageGroup
+    public function createAgeGroup(string $name, int $min_age, int $max_age): AgeGroup
     {
         $ageGroup = new AgeGroup();
         $ageGroup->name = $name;
@@ -107,6 +109,16 @@ class AgeGroupRepository extends BaseRepository implements AgeGroupRepositoryInt
 
         return DB::transaction(function() use($ageGroup) {
             $ageGroup->save();
+
+            $seriesList = Series::all();
+
+            foreach ($seriesList as $series) {
+                $teamLimit = new TeamLimit();
+                $teamLimit->series_id = $series->id;
+                $teamLimit->save();
+
+            $teamLimit->ageGroups()->attach($ageGroup->id);
+            }
 
             return $ageGroup;
         });
