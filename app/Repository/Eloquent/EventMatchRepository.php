@@ -158,15 +158,72 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
     public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool
     {
         $eventMatch = $this->find($id);
+        $event_id = $eventMatch->event_id;
+
         $eventMatch->team1_oldScore = $eventMatch->team1_score;
         $eventMatch->team2_oldScore = $eventMatch->team2_score;
 
         $eventMatch->team1_score = $team1_score;
         $eventMatch->team2_score = $team2_score;
 
-        return DB::transaction(function() use($eventMatch) {
+        if ($team1_score > $team2_score) {
+            $eventMatch->winner = $eventMatch->team1;
+            $eventMatch->losser = $eventMatch->team2;
+        } else if ($team2_score > $team1_score) {
+            $eventMatch->winner = $eventMatch->team2;
+            $eventMatch->losser = $eventMatch->team1;
+        } else {
+            $eventMatch->winner = null;
+            $eventMatch->losser = null;
+        }
+        $eventMatch->isDraw = ($team1_score == $team2_score);
 
-            return $eventMatch->save();
+        return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id) {
+            $eventMatch->save();
+            
+            if ($eventMatch->submitted) {
+                $win1 = ($team1_score > $team2_score) ? 1 : 0;
+                $loss1 = ($team1_score > $team2_score) ? 0 : 1;
+                $draw1 = ($team1_score == $team2_score);
+                $for1 = $team1_score;
+                $against1 = $team2_score;
+                $diff1 = $team1_score - $team2_score;
+                $pts1 = ($team1_score > $team2_score) ? 2 : 0;
+            
+                $win2 = ($team2_score > $team1_score) ? 1 : 0;
+                $loss2 = ($team2_score > $team1_score) ? 0 : 1;
+                $draw2 = ($team1_score == $team2_score);
+                $for2 = $team2_score;
+                $against2 = $team1_score;
+                $diff2 = $team2_score - $team1_score;
+                $pts2 = ($team2_score > $team1_score) ? 2 : 0;
+            
+                TeamPosition::where('event_id', $event_id)
+                    ->where('team_id', $eventMatch->team1)
+                    ->update([
+                        'win' => $win1,
+                        'loss' => $loss1,
+                        'draw' => $draw1,
+                        'for' => $for1,
+                        'against' => $against1,
+                        'difference' => $diff1,
+                        'points' => $pts1,
+                    ]);
+            
+                TeamPosition::where('event_id', $event_id)
+                    ->where('team_id', $eventMatch->team2)
+                    ->update([
+                        'win' => $win2,
+                        'loss' => $loss2,
+                        'draw' => $draw2,
+                        'for' => $for2,
+                        'against' => $against2,
+                        'difference' => $diff2,
+                        'points' => $pts2,
+                    ]);
+            }
+            
+             return true;
         });
     }
 
