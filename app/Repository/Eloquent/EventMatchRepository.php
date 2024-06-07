@@ -180,49 +180,172 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
 
         return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id) {
             $eventMatch->save();
-            
+
+            $t1OldScore = $eventMatch->team1_oldScore;
+            $t2OldScore = $eventMatch->team2_oldScore;
+            $t1score = $eventMatch->team1_score;
+            $t2score = $eventMatch->team2_score;
+            $updatedFor1 = $t1OldScore - $t1score;
+            $updatedFor2 = $t2OldScore - $t2score;
+
+            $addWinCount1 = 'win + ' . 0;
+            $addWinCount2 = 'win + ' . 0;
+            $addLoseCount1 = 'loss + ' . 0;
+            $addLoseCount2 = 'loss + ' . 0;
+            $addDrawCount1 = 'draw + ' . 0;
+            $addDrawCount2 = 'draw + ' . 0;
+
             if ($eventMatch->submitted) {
-                $win1 = ($team1_score > $team2_score) ? 1 : 0;
-                $loss1 = ($team1_score > $team2_score) ? 0 : 1;
-                $draw1 = ($team1_score == $team2_score);
-                $for1 = $team1_score;
-                $against1 = $team2_score;
-                $diff1 = $team1_score - $team2_score;
-                $pts1 = ($team1_score > $team2_score) ? 2 : 0;
-            
-                $win2 = ($team2_score > $team1_score) ? 1 : 0;
-                $loss2 = ($team2_score > $team1_score) ? 0 : 1;
-                $draw2 = ($team1_score == $team2_score);
-                $for2 = $team2_score;
-                $against2 = $team1_score;
-                $diff2 = $team2_score - $team1_score;
-                $pts2 = ($team2_score > $team1_score) ? 2 : 0;
-            
+
+                if ($team1_score > $team2_score) {
+                    if ($t1OldScore > $t2OldScore) {
+                        $addWinCount1 = 'win - ' . 1;
+                        $addWinCount2 = 'win + ' . 1;
+                        $addLoseCount1 = 'loss + ' . 1;
+                        $addLoseCount2 = 'loss - ' . 1;
+                        $addDrawCount1 = 'draw + ' . 0;
+                        $addDrawCount2 = 'draw + ' . 0;
+                    }
+
+                    if ($t2OldScore > $t1OldScore) {
+                        $addWinCount1 = 'win + ' . 1;
+                        $addWinCount2 = 'win - ' . 1;
+                        $addLoseCount1 = 'loss - ' . 1;
+                        $addLoseCount2 = 'loss + ' . 1;
+                        $addDrawCount1 = 'draw + ' . 0;
+                        $addDrawCount2 = 'draw + ' . 0;
+                    }
+
+                } elseif ($team2_score > $team1_score) {
+                     if ($t1OldScore > $t2OldScore) {
+                        $addWinCount1 = 'win - ' . 1;
+                        $addWinCount2 = 'win + ' . 1;
+                        $addLoseCount1 = 'loss + ' . 1;
+                        $addLoseCount2 = 'loss - ' . 1;
+                        $addDrawCount1 = 'draw + ' . 0;
+                        $addDrawCount2 = 'draw + ' . 0;
+                    }
+
+                    if ($t2OldScore > $t1OldScore) {
+                        $addWinCount1 = 'win + ' . 1;
+                        $addWinCount2 = 'win - ' . 1;
+                        $addLoseCount1 = 'loss - ' . 1;
+                        $addLoseCount2 = 'loss + ' . 1;
+                        $addDrawCount1 = 'draw + ' . 0;
+                        $addDrawCount2 = 'draw + ' . 0;
+                    }
+                } else {
+                    $addWinCount1 = 'win + ' . 0;
+                    $addWinCount2 = 'win + ' . 0;
+                    $addLoseCount1 = 'loss + ' . 0;
+                    $addLoseCount2 = 'loss + ' . 0;
+                    $addDrawCount1 = 'draw + ' . 0;
+                    $addDrawCount2 = 'draw + ' . 0;
+                }
+
+                if ($t1OldScore == $t1score) {
+                    $addWinCount1 = 'win + ' . 0;
+                    $addWinCount2 = 'win + ' . 0;
+                    $addLoseCount1 = 'loss + ' . 0;
+                    $addLoseCount2 = 'loss + ' . 0;
+                    $addDrawCount1 = 'draw + ' . 0;
+                    $addDrawCount2 = 'draw + ' . 0;
+                }
+
+                if ($t2OldScore == $t2score) {
+                    $addWinCount1 = 'win + ' . 0;
+                    $addWinCount2 = 'win + ' . 0;
+                    $addLoseCount1 = 'loss + ' . 0;
+                    $addLoseCount2 = 'loss + ' . 0;
+                    $addDrawCount1 = 'draw + ' . 0;
+                    $addDrawCount2 = 'draw + ' . 0;
+                }
+
+                if ($t1OldScore == $t2OldScore) {
+                    if ($t1score > $t2score) {
+                        $addWinCount1 = 'win + ' . 1;
+                        $addWinCount2 = 'win + ' . 0;
+                        $addLoseCount1 = 'loss + ' . 0;
+                        $addLoseCount2 = 'loss + ' . 1;
+                        $addDrawCount1 = 'draw - ' . 1;
+                        $addDrawCount2 = 'draw - ' . 1;
+                    }
+                    if ($t2score > $t1score) {
+                        $addWinCount1 = 'win + ' . 0;
+                        $addWinCount2 = 'win + ' . 1;
+                        $addLoseCount1 = 'loss + ' . 1;
+                        $addLoseCount2 = 'loss + ' . 0;
+                        $addDrawCount1 = 'draw - ' . 1;
+                        $addDrawCount2 = 'draw - ' . 1;
+                    }
+                }
+
+                if ($t1score == $t2score) {
+                    if ($t1OldScore > $t2OldScore) {
+                        $addWinCount1 = 'win - ' . 1;
+                        $addWinCount2 = 'win + ' . 0;
+                        $addLoseCount1 = 'loss + ' . 0;
+                        $addLoseCount2 = 'loss - ' . 1;
+                        $addDrawCount1 = 'draw + ' . 1;
+                        $addDrawCount2 = 'draw + ' . 1;
+                    }
+
+                    if ($t2OldScore > $t1OldScore) {
+                        $addWinCount1 = 'win + ' . 0;
+                        $addWinCount2 = 'win - ' . 1;
+                        $addLoseCount1 = 'loss - ' . 1;
+                        $addLoseCount2 = 'loss + ' . 0;
+                        $addDrawCount1 = 'draw + ' . 1;
+                        $addDrawCount2 = 'draw + ' . 1;
+                    }
+
+                    if ($t1OldScore == $t2OldScore) {
+                        if ($t1score == $t2score) {
+                            if($t1OldScore > $t1score) {
+                                $addWinCount1 = 'win + ' . 0;
+                                $addWinCount2 = 'win + ' . 0;
+                                $addLoseCount1 = 'loss + ' . 0;
+                                $addLoseCount2 = 'loss + ' . 0;
+                                $addDrawCount1 = 'draw + ' . 0;
+                                $addDrawCount2 = 'draw + ' . 0;
+                            }
+
+                            if($t2OldScore > $t2score) {
+                                $addWinCount1 = 'win + ' . 0;
+                                $addWinCount2 = 'win + ' . 0;
+                                $addLoseCount1 = 'loss + ' . 0;
+                                $addLoseCount2 = 'loss + ' . 0;
+                                $addDrawCount1 = 'draw + ' . 0;
+                                $addDrawCount2 = 'draw + ' . 0;
+                            }
+                        }
+                    }
+                }
+
                 TeamPosition::where('event_id', $event_id)
                     ->where('team_id', $eventMatch->team1)
                     ->update([
-                        'win' => $win1,
-                        'loss' => $loss1,
-                        'draw' => $draw1,
-                        'for' => $for1,
-                        'against' => $against1,
-                        'difference' => $diff1,
-                        'points' => $pts1,
+                        'win' => DB::raw($addWinCount1),
+                        'loss' => DB::raw($addLoseCount1),
+                        'draw' => DB::raw($addDrawCount1),
+                        'for' => DB::raw('`for` - ' . $updatedFor1),
+                        'against' => DB::raw('`against` - ' . $updatedFor2),
+                        'difference' => DB::raw('(`for` - ' . $updatedFor1 . ') - (`against` - ' . $updatedFor1 . ')'),
+                        'points' => DB::raw('(win * 2) + (draw * 1)'),
                     ]);
-            
+
                 TeamPosition::where('event_id', $event_id)
                     ->where('team_id', $eventMatch->team2)
                     ->update([
-                        'win' => $win2,
-                        'loss' => $loss2,
-                        'draw' => $draw2,
-                        'for' => $for2,
-                        'against' => $against2,
-                        'difference' => $diff2,
-                        'points' => $pts2,
+                        'win' => DB::raw($addWinCount2),
+                        'loss' => DB::raw($addLoseCount2),
+                        'draw' => DB::raw($addDrawCount2),
+                        'for' => DB::raw('`for` - ' . $updatedFor2),
+                        'against' => DB::raw('`against` - ' . $updatedFor1),
+                        'difference' => DB::raw('(`for` - ' . $updatedFor2 . ') - (`against` - ' . $updatedFor2 . ')'),
+                        'points' => DB::raw('(win * 2) + (draw * 1)'),
                     ]);
             }
-            
              return true;
         });
     }
@@ -230,35 +353,96 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
     public function storeResult(int $id, int $team1_score, int $team2_score): bool
     {
         $eventMatch = $this->find($id);
-        $team1 = $eventMatch->team1;
-        $team2 = $eventMatch->team2;
         $event_id = $eventMatch->event_id;
 
-        $existingResult = [
-            'team1_score' => $eventMatch->team1_oldScore,
-            'team2_score' => $eventMatch->team2_oldScore,
-            'winner' => $eventMatch->winner,
-            'losser' => $eventMatch->losser,
-            'isDraw' => $eventMatch->isDraw
-        ];
-
-        list($winner, $losser, $isDraw) = $this->decision($team1, $team2, $team1_score, $team2_score);
+        $eventMatch->team1_oldScore = $eventMatch->team1_score;
+        $eventMatch->team2_oldScore = $eventMatch->team2_score;
 
         $eventMatch->team1_score = $team1_score;
         $eventMatch->team2_score = $team2_score;
-        $eventMatch->winner = $winner;
-        $eventMatch->losser = $losser;
-        $eventMatch->isDraw = $isDraw;
+
+        if ($team1_score > $team2_score) {
+            $eventMatch->winner = $eventMatch->team1;
+            $eventMatch->losser = $eventMatch->team2;
+        } else if ($team2_score > $team1_score) {
+            $eventMatch->winner = $eventMatch->team2;
+            $eventMatch->losser = $eventMatch->team1;
+        } else {
+            $eventMatch->winner = null;
+            $eventMatch->losser = null;
+        }
+        $eventMatch->isDraw = ($team1_score == $team2_score);
         $eventMatch->submitted = true;
 
-        return DB::transaction(function() use($eventMatch, $event_id, $id, $existingResult) {
+        return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id) {
             $eventMatch->save();
+            
+            if ($eventMatch->submitted) {
 
-            $isSuccess = $this->teamPositionService->updateTeamPosition($event_id, $id, $existingResult);
+                if ($team1_score > $team2_score) {
+                    $win1 = 1;
+                    $loss1 = 0;
+                    $draw1 = 0;
+                    $win2 = 0;
+                    $loss2 = 1;
+                    $draw2 = 0;
+                    $pts1 = 2;
+                    $pts2 = 0;
+                } elseif ($team2_score > $team1_score) {
+                    $win1 = 0;
+                    $loss1 = 1;
+                    $draw1 = 0;
+                    $win2 = 1;
+                    $loss2 = 0;
+                    $draw2 = 0;
+                    $pts1 = 0;
+                    $pts2 = 2;
+                } else {
+                    $win1 = 0;
+                    $loss1 = 0;
+                    $draw1 = 1;
+                    $win2 = 0;
+                    $loss2 = 0;
+                    $draw2 = 1;
+                    $pts1 = 1;
+                    $pts2 = 1;
+                }
 
-            return $isSuccess;
+                $for1 = $team1_score;
+                $against1 = $team2_score;
+                $diff1 = $team1_score - $team2_score;
+            
+                $for2 = $team2_score;
+                $against2 = $team1_score;
+                $diff2 = $team2_score - $team1_score;
+
+                TeamPosition::where('event_id', $event_id)
+                    ->where('team_id', $eventMatch->team1)
+                    ->update([
+                        'win' => DB::raw('win + ' . $win1),
+                        'loss' => DB::raw('loss + ' . $loss1),
+                        'draw' => DB::raw('draw + ' . $draw1),
+                        'for' => DB::raw('`for` + ' . $for1),
+                        'against' => DB::raw('against + ' . $against1),
+                        'difference' => DB::raw('difference + ' . $diff1),
+                        'points' => DB::raw('points + ' . $pts1),
+                    ]);
+
+            
+                TeamPosition::where('event_id', $event_id)
+                    ->where('team_id', $eventMatch->team2)
+                    ->update([
+                        'win' => DB::raw('win + ' . $win2),
+                        'loss' => DB::raw('loss + ' . $loss2),
+                        'draw' => DB::raw('draw + ' . $draw2),
+                        'for' => DB::raw('`for` + ' . $for2),
+                        'against' => DB::raw('against + ' . $against2),
+                        'difference' => DB::raw('difference + ' . $diff2),
+                        'points' => DB::raw('points + ' . $pts2),
+                    ]);
+            }
+             return true;
         });
-
     }
 
     public function deleteEventMatch(int $id): bool
