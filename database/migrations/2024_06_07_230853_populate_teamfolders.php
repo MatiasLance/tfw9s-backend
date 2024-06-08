@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Models\TeamFolder;
 
 return new class extends Migration
 {
@@ -13,13 +14,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('team_limits', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('series_id')->onDelete('cascade');
-            $table->integer('teamcount')->default(0);
-            $table->integer('team_limit')->default(8);
-            $table->timestamps();
-        });
+        TeamFolder::factory()->create([
+            'title' =>  '',
+            'content' => '',
+        ]);
     }
 
     /**
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('team_limits');
+        //
     }
 };

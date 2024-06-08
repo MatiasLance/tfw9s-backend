@@ -32,7 +32,7 @@
                                                     <a href="http://128.199.231.34/">
                                                         <img
                                                             style="padding: 5rem; width: 300px; height: auto;"
-                                                            src="https://imgur.com/HRI8Npg.png"
+                                                            src="https://imgur.com/ahNrz0Q.png"
                                                             alt="TFW Rugby League Logo"
                                                         />
                                                     </a>

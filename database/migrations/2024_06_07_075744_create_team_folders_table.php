@@ -13,11 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('team_limits', function (Blueprint $table) {
+        Schema::create('team_folders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('series_id')->onDelete('cascade');
-            $table->integer('teamcount')->default(0);
-            $table->integer('team_limit')->default(8);
+            $table->string('title');
+            $table->text('content');
             $table->timestamps();
         });
     }
@@ -29,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('team_limits');
+        Schema::dropIfExists('team_folders');
     }
 };
