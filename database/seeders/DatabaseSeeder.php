@@ -93,5 +93,7 @@ class DatabaseSeeder extends Seeder
             $this->call(EventMatchesSeeder::class);
 
             $this->call(TeamPositionSeeder::class);
+
+            $this->call(TeamLimitSeeder::class);
     }
 }

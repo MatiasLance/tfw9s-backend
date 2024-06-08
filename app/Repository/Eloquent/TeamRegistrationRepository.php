@@ -4,6 +4,7 @@ namespace App\Repository\Eloquent;
 
 use App\Models\TeamRegistration;
 use App\Models\Team;
+use App\Models\TeamLimit;
 use App\Modules\Payment\PaymentGateway;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\TeamRegistrationRepositoryInterface;
@@ -51,10 +52,19 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
         $team->name = $teamName;
         $team->agegroup_id = $ageGroup;
 
-        DB::transaction(function() use ($reg, $team) {
+        $teamLimit = TeamLimit::where('series_id', $item_id)
+            ->whereHas('ageGroups', function ($query) use ($ageGroup) {
+            $query->where('agegroup_id', $ageGroup);
+        })
+        ->first();
+
+        DB::transaction(function() use ($reg, $team, $teamLimit) {
             $reg->save();
             $team->registration_id = $reg->id;
             $team->save();
+
+            $teamLimit->teamcount += 1;
+            $teamLimit->save();
         });
 
         return $reg;

@@ -391,6 +391,11 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/update/{id}', 'App\Http\Controllers\TeamLimitController@update');
     });
 
+    Route::prefix("teamfolder")->group(function() {
+        Route::get('/{id}', 'App\Http\Controllers\TeamFolderController@retrieve');
+        Route::post('/update/{id}', 'App\Http\Controllers\TeamFolderController@update');
+    });
+
     Route::prefix("total")->group(function() {
         Route::get('/', 'App\Http\Controllers\TotalController@retrieve');
     });
