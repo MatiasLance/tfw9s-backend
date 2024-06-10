@@ -50,6 +50,9 @@ class IndividualRegistrationController extends Controller
 
     public function calculation(Request $request)
     {
+        $paymentIntent = $request->input('paymentIntent');
+        $paymentMethod = $request->input('paymentMethod');
+
         $item = $request->input('item');
         $tax = Tax::find(1);
         $discountcode = $request->input('discountcode');
@@ -77,8 +80,7 @@ class IndividualRegistrationController extends Controller
             $taxAmount = $regularPrice * $taxRate;
             $price = $regularPrice * (1 - $res->rate);
             $totalPrice = intval($price);
-            $isInclusive = true;
-        } elseif (!$isInclusive && !$hasDiscount) {
+            $isInclusive = true; } elseif (!$isInclusive && !$hasDiscount) {
             $taxRate = $addTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice + $taxAmount);
@@ -101,8 +103,15 @@ class IndividualRegistrationController extends Controller
             'totalPrice' => $totalPrice,
         ];
 
+        $response = [];
+
+        if ($paymentIntent) {
+            $response = $this->paymentService->updateAmount($paymentIntent, $seriesItem, $paymentMethod);
+        }
+
         return response()->json([
-            'calculation' => $seriesItem
+            'calculation' => $seriesItem,
+            'paymentIntent' => $response
         ]);
     }
 

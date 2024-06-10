@@ -45,6 +45,15 @@ interface PaymentServiceInterface
     public function createindividualregistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null);
 
     /**
+     * Update a payment intent
+     *
+     * @param string $paymentIntent ID to use
+     * @param array $seriesItem
+     * @param string gateway
+     */
+    public function updateAmount(string $paymentIntent, array $seriesItem, string $gateway);
+
+    /**
      * Verify a payment intent and check its status.
      *
      * @param string $gateway Payment gateway to use
