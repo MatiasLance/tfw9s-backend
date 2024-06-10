@@ -50,6 +50,9 @@ class TeamRegistrationController extends Controller
 
     public function calculation(Request $request)
     {
+        $paymentIntent = $request->input('paymentIntent');
+        $paymentMethod = $request->input('paymentMethod');
+
         $item = $request->input('item');
         $tax = Tax::find(1);
         $discountcode = $request->input('discountcode');
@@ -98,8 +101,15 @@ class TeamRegistrationController extends Controller
             'totalPrice' => $totalPrice,
         ];
 
+        $response = [];
+
+        if ($paymentIntent) {
+            $response = $this->paymentService->updateAmount($paymentIntent, $seriesItem, $paymentMethod);
+        }
+
         return response()->json([
-            'calculation' => $seriesItem
+            'calculation' => $seriesItem,
+            'paymentIntent' => $response
         ]);
     }
 
