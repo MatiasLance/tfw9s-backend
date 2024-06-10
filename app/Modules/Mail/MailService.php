@@ -22,7 +22,7 @@ class MailService implements MailServiceInterface
         $adminSubject = 'You have a new order on tfw9s.com.au!';
         $customerSubject = 'Here is the invoice for your recent order on tfw9s.com.au';
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'thefinalwhistlerl@hotmail.com')], $adminSubject, $content);
         $this->send([$order->email], $customerSubject, $content);
     }
 
@@ -34,7 +34,7 @@ class MailService implements MailServiceInterface
         $adminSubject = 'You have a new order on tfw9s.com.au! - INVOICE #: ' . $individualRegistration->id;
         $customerSubject = 'Here is the invoice for your recent payment on tfw9s.com.au - INVOICE #: ' . $individualRegistration->id;
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'thefinalwhistlerl@hotmail.com')], $adminSubject, $content);
         $this->send([$individualRegistration->email], $customerSubject, $content);
     }
 
@@ -46,14 +46,14 @@ class MailService implements MailServiceInterface
         $adminSubject = 'You have a new order on tfw9s.com.au! - INVOICE #: ' . $teamRegistration->id;
         $customerSubject = 'Here is the invoice for your recent payment on tfw9s.com.au - INVOICE #: ' . $teamRegistration->id;
 
-        $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
+        $this->send([env('ADMIN_EMAIL_ADDRESS', 'thefinalwhistlerl@hotmail.com')], $adminSubject, $content);
         $this->send([$teamRegistration->coach_email, $teamRegistration->manager_email], $customerSubject, $content);
     }
 
     public function sendContactForm(array $data)
     {
         $to = [
-            env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')
+            env('ADMIN_EMAIL_ADDRESS', 'thefinalwhistlerl@hotmail.com')
         ];
 
         $subject = 'You have a new message from ' . $data['name'] . ' via tfw9s.com.au';
