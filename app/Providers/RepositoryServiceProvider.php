@@ -122,10 +122,16 @@ use App\Repository\OtherStateShippingRepositoryInterface;
 use App\Repository\OtherCityShippingRepositoryInterface;
 use App\Repository\IndividualRegistrationRepositoryInterface;
 use App\Repository\TeamRegistrationRepositoryInterface;
+
 use App\Modules\Players\PlayersService;
 use App\Modules\Players\PlayersServiceInterface;
 use App\Repository\Eloquent\PlayersRepository;
 use App\Repository\PlayersRepositoryInterface;
+
+use App\Modules\Variant\VariantService;
+use App\Modules\Variant\VariantServiceInterface;
+use App\Repository\Eloquent\VariantRepository;
+use App\Repository\VariantRepositoryInterface;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -174,6 +180,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(IndividualRegistrationServiceInterface::class, IndividualRegistrationService::class);
         $this->app->bind(TeamRegistrationServiceInterface::class, TeamRegistrationService::class);
         $this->app->bind(PlayersServiceInterface::class,PlayersService::class);
+        $this->app->bind(VariantServiceInterface::class,VariantService::class);
 
         /**
          * Repositories
@@ -207,6 +214,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(IndividualRegistrationRepositoryInterface::class, IndividualRegistrationRepository::class);
         $this->app->bind(TeamRegistrationRepositoryInterface::class, TeamRegistrationRepository::class);
         $this->app->bind(PlayersRepositoryInterface::class, PlayersRepository::class);
+        $this->app->bind(VariantRepositoryInterface::class, VariantRepository::class);
     }
     /**
      * Bootstrap services.
