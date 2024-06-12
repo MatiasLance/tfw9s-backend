@@ -17,6 +17,7 @@ use App\Models\Field;
 use App\Models\AgeGroup;
 use App\Models\PartnerSponsor;
 use App\Models\Guideline;
+use App\Models\Variant;
 use App\Repository\ItemRepositoryInterface;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
@@ -67,6 +68,8 @@ class DatabaseSeeder extends Seeder
             $this->call(RegionsSeeder::class);
 
             $this->call(FieldsSeeder::class);
+
+            $this->call(VariantSeeder::class);
 
         News::factory()
             ->count(15)
