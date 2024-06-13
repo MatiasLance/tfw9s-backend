@@ -133,6 +133,11 @@ use App\Modules\Variant\VariantServiceInterface;
 use App\Repository\Eloquent\VariantRepository;
 use App\Repository\VariantRepositoryInterface;
 
+use App\Modules\Discount\DiscountService;
+use App\Modules\Discount\DiscountServiceInterface;
+use App\Repository\Eloquent\DiscountRepository;
+use App\Repository\DiscountRepositoryInterface;
+
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -181,6 +186,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(TeamRegistrationServiceInterface::class, TeamRegistrationService::class);
         $this->app->bind(PlayersServiceInterface::class,PlayersService::class);
         $this->app->bind(VariantServiceInterface::class,VariantService::class);
+        $this->app->bind(DiscountServiceInterface::class,DiscountService::class);
 
         /**
          * Repositories
@@ -215,6 +221,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(TeamRegistrationRepositoryInterface::class, TeamRegistrationRepository::class);
         $this->app->bind(PlayersRepositoryInterface::class, PlayersRepository::class);
         $this->app->bind(VariantRepositoryInterface::class, VariantRepository::class);
+        $this->app->bind(DiscountRepositoryInterface::class, DiscountRepository::class);
     }
     /**
      * Bootstrap services.
