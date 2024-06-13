@@ -95,7 +95,8 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
                      ->orWhere('contact_lastname', 'like', '%' . $filters['q'] . '%')
                      ->orWhere('phone_number', 'like', '%' . $filters['q'] . '%')
                      ->orWhere('email', 'like', '%' . $filters['q'] . '%');
-        }        
+        }   
+             
 
         if (!is_null($filters['type'])) {
             $players = $players->where('agegroup', $filters['type']);

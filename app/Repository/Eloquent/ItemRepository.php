@@ -419,7 +419,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         });
     }
 
-    public function discountCodeItems(array $userFilters = []): Paginate{
+    public function discountCodeItems(array $userFilters = []): Paginate
+    {
         $items = $this->discountCode->query();
         $filters = array_merge($this->defaultItemListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
     
@@ -427,7 +428,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($filters['q'])) {
             $items = $items->where(function ($q) use($filters) {
                 $q
-                    ->where('code', 'LIKE', '%' . $filters['q'] . '%');
+                    ->where('code', 'like', '%' . $filters['q'] . '%');
             });
         }
 

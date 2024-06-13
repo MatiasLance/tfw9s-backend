@@ -6,21 +6,26 @@ use App\Modules\Http\Message;
 use App\Models\DiscountCode;
 use Illuminate\Http\Request;
 use App\Modules\Item\ItemServiceInterface;
+use App\Modules\Discount\DiscountServiceInterface;
 
 class DiscountCodeController extends Controller
 {
     /**
      * @var ItemServiceInterface $itemService
+     * @var DiscountServiceInterface $discountService
      */
     protected ItemServiceInterface $itemService;
+    protected DiscountServiceInterface $discountService;
 
     /**
      * DiscountCodeController constructor.
      * @param ItemServiceInterface $itemService
+     * @param DiscountServiceInterface $discountService
      */
-    public function __construct(ItemServiceInterface $itemService)
+    public function __construct(ItemServiceInterface $itemService, DiscountServiceInterface $discountService)
     {
         $this->itemService = $itemService;
+        $this->discountService = $discountService;
     }
 
     public function list(Request $request, Message $message) {
@@ -28,22 +33,23 @@ class DiscountCodeController extends Controller
         $total_discountcode = $this->itemService->countDiscountCode();
 
         $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
         $page = $request->query('page', null);
+        $maxDiscountPerPage = $request->query('maxDiscountPerPage', null);
 
         $filter = [
             'q' => $query,
-            'page' => $page
+            'sort' => $sort,
+            'page' => $page,
+            'max_discount_per_page' => $maxDiscountPerPage,
         ];
 
-        $paginatedItems = $this->itemService->discountCodeItems($filter);
+        $paginatedItems = $this->discountService->listDiscount($filter);
 
-        $message->setContent(200, 'Discount Codes retrieved', '', [
-            'discountcode' => $discountcode,
-            'total_discountcode' => $total_discountcode,
-            $paginatedItems->toArray()
-        ]);
+        $message->setContent(200, 'Discount Codes retrieved', '', $paginatedItems->toArray());
 
         return $message->render();
+
     }
 
     public function retrieve(Message $message, int $id) {
