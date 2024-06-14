@@ -81,13 +81,13 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
          * This filters the events with a keyword. When this value is null, this filter is skipped.
          */
         'manager' => null,
-        
+
         /**
          * event keyword
          * This filters the events with a keyword. When this value is null, this filter is skipped.
          */
         'region' => null,
-                
+
         /**
          * event keyword
          * This filters the events with a keyword. When this value is null, this filter is skipped.
@@ -107,14 +107,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         $events = $this->model->query();
 
         $filters = array_merge($this->defaultEventListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
-
-        // Search Filter
-        if (!is_null($filters['q'])) {
-            $events = $events->where(function ($q) use($filters) {
-                $q
-                    ->where('name', 'LIKE', '%' . $filters['q'] . '%');
-            });
-        }
 
         // Event Date Filter
         if (!is_null($filters['event_date'])) {
@@ -140,14 +132,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             });
         }
 
-        // Event Filter
-        if (!is_null($filters['manager'])) {
-            $events = $events->where(function ($q) use($filters) {
-                $q
-                    ->where('manager_id', '=', $filters['manager']);
-            });
-        }
-
         // Region Filter
         if (!is_null($filters['region'])) {
             $events = $events->where(function ($q) use($filters) {
@@ -164,14 +148,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         }
 
         switch ($filters['sort']) {
-            case Filter::SORT_A_TO_Z:
-                $events = $events->orderBy('name');
-                break;
-
-            case Filter::SORT_Z_TO_A:
-                $events = $events->orderByDesc('name');
-                break;
-
                 case Filter::SORT_LATEST:
                     $events = $events->orderBy('event_date');
                     break;
@@ -191,9 +167,10 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         return $this->find($id);
     }
 
-    public function createEvent(DateTime $datetime, int $region_id, int $agegroup_id, ?array $matches): Event
+    public function createEvent(string $time, int $region_id, int $agegroup_id, DateTime $datetime, ?array $matches): Event
     {
         $event = new Event();
+        $event->time = $time;
         $event->event_date = $datetime;
         $event->region_id = $region_id;
         $event->agegroup_id = $agegroup_id;
@@ -205,7 +182,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 foreach ($matches as $matchesData) {
                     $match = new EventMatch();
                     $match->event_id = $event->id;
-                    $match->match_time= $matchesData['time'];
                     $match->field_id = $matchesData['field_id'];
                     $match->team1 = $matchesData['team1'];
                     $match->team2 = $matchesData['team2'];
@@ -217,9 +193,10 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         });
     }
 
-    public function updateEvent(int $id, DateTime $datetime, int $region_id, int $agegroup_id, ?array $matches): bool
+    public function updateEvent(int $id, string $time, int $region_id, int $agegroup_id, DateTime $datetime, ?array $matches): bool
     {
         $event = $this->find($id);
+        $event->time = $time;
         $event->event_date = $datetime;
         $event->region_id = $region_id;
         $event->agegroup_id = $agegroup_id;
@@ -238,7 +215,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
                 if ($existingSponsor) {
                     $existingSponsor->update([
-                        'match_time' => $matchesData['time'],
                         'field_id' => $matchesData['field_id'],
                         'team1' => $matchesData['team1'],
                         'team2' => $matchesData['team2'],
@@ -248,7 +224,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 $match = new EventMatch();
                 $match->event_id = $event->id;
                 $match->field_id = $matchesData['field_id'];
-                $match->match_time= $matchesData['time'];
                 $match->team1 = $matchesData['team1'];
                 $match->team2 = $matchesData['team2'];
 

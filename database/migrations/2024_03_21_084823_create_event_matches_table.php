@@ -17,7 +17,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_id');
             $table->foreignId('field_id')->nullable();
-            $table->time('match_time');
             $table->foreignId('team1');
             $table->foreignId('team2');
             $table->integer('team1_score')->default(0);

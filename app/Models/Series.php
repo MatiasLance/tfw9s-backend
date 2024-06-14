@@ -26,6 +26,11 @@ class Series extends Model
         return $this->hasMany(Event::class);
     }
 
+    public function team()
+    {
+        return $this->hasMany(Team::class);
+    }
+
     public function media()
     {
         return $this->morphMany('App\Models\Media', 'imageable');

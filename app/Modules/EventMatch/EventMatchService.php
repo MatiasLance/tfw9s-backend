@@ -29,14 +29,14 @@ class EventMatchService implements EventMatchServiceInterface
         return $this->eventMatchRepository->retrieveEventMatch($id);
     }
 
-    public function createEventMatch(int $event_id, int $field_id, string $match_time, int $team1, int $team2): EventMatch
+    public function createEventMatch(int $event_id, int $field_id, int $team1, int $team2): EventMatch
     {
-        return $this->eventMatchRepository->createEventMatch($event_id, $field_id, $match_time, $team1, $team2);
+        return $this->eventMatchRepository->createEventMatch($event_id, $field_id, $team1, $team2);
     }
 
-    public function updateEventMatch(int $id, int $event_id, int $field_id, string $match_time, int $team1, int $team2): bool
+    public function updateEventMatch(int $id, int $event_id, int $field_id, int $team1, int $team2): bool
     {
-        return $this->eventMatchRepository->updateEventMatch($id, $event_id, $field_id, $match_time, $team1, $team2);
+        return $this->eventMatchRepository->updateEventMatch($id, $event_id, $field_id, $team1, $team2);
     }
 
     public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool

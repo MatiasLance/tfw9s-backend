@@ -80,7 +80,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
     public function listTeams(array $userFilters = []): Paginate
     {
-        $teams = $this->model->query()->with('event');
+        $teams = $this->model->query();
 
         $filters = array_merge($this->defaultTeamListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -115,22 +115,28 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
     public function retrieveTeam(int $id): Team
     {
-        return Team::with('event')->find($id);
+        return Team::find($id);
     }
 
-    public function createTeam(string $name, int $field_id, int $agegroup_id, ?array $media): Team
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): Team
     {
         $team = new Team();
         $team->name = $name;
-        $team->field_id = $field_id;
         $team->agegroup_id = $agegroup_id;
+        $team->series_id = $series_id;
+        $team->coach_name = $coach['name'];
+        $team->coach_mobile = $coach['mobile'];
+        $team->coach_email = $coach['email'];
+        $team->manager_name = $manager['name'];
+        $team->manager_mobile = $manager['mobile'];
+        $team->manager_email = $manager['email'];
 
-        return DB::transaction(function() use($team,$media) {
+        return DB::transaction(function() use($team, $media) {
             $team->save();
 
             foreach ($media as $file) {
                 if (!is_null($file)) {
-  
+
                     $teamImage = $this->storageService->store($file);
                     $team->media()->save($teamImage);
                 }
@@ -140,13 +146,12 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         });
     }
 
-    public function updateTeam(int $id, string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): bool
+    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): bool
     {
         $team = $this->find($id);
         $team->name = $name;
-        $team->description = $description;
-        $team->field_id = $field_id;
-        $team->event_id = $event_id;
+        $team->agegroup_id = $agegroup_id;
+        $team->series_id = $series_id;
         $team->coach_name = $coach['name'];
         $team->coach_mobile = $coach['mobile'];
         $team->coach_email = $coach['email'];

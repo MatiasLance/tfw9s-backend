@@ -23,6 +23,7 @@ class PlayersController extends Controller
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
         $type = $request->query('type', null);
+        $agegroup = $request->query('agegroup', null);
         $withPlayers = $request->query('withPlayers', null);
         $maxPlayersPerPage = $request->query('maxPlayersPerPage', null);
 
@@ -31,6 +32,7 @@ class PlayersController extends Controller
             'sort' => $sort,
             'page' => $page,
             'type' => $type,
+            'agegroup' => $agegroup,
             'withPlayers' => $withPlayers,
             'max_players_per_page' => $maxPlayersPerPage,
         ];
@@ -119,7 +121,7 @@ class PlayersController extends Controller
 
         return $message->render();
     }
-    
+
     public function retrieve(Message $message, int $id)
     {
         $players = $this->playersService->retrievePlayers($id);

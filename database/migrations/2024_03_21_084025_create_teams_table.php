@@ -16,17 +16,15 @@ return new class extends Migration
         Schema::create('teams', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description')->nullable();
             $table->foreignId('registration_id')->nullable();
-            $table->foreignId('field_id')->nullable();
-            $table->foreignId('agegroup_id')->nullable();
-            $table->foreignId('event_id')->nullable();
-            $table->string('coach_name')->nullable();
-            $table->string('coach_mobile')->nullable();
-            $table->string('coach_email')->unique()->nullable();
-            $table->string('manager_name')->nullable();
-            $table->string('manager_mobile')->nullable();
-            $table->string('manager_email')->unique()->nullable();
+            $table->foreignId('agegroup_id');
+            $table->foreignId('series_id');
+            $table->string('coach_name');
+            $table->string('coach_mobile')->unique();
+            $table->string('coach_email')->unique();
+            $table->string('manager_name');
+            $table->string('manager_mobile')->unique();
+            $table->string('manager_email')->unique();
             $table->softDeletes();
             $table->timestamps();
         });

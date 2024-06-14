@@ -40,6 +40,12 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         'type' => null,
 
         /**
+         * AgeGroup filter
+         * This filters the players by agegroup. When this value is null, this filter is skipped.
+         */
+        'agegroup' => null,
+
+        /**
          * withFixing filter
          * This filters the series by type. When this value is null, this filter is skipped.
          */
@@ -95,8 +101,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
                      ->orWhere('contact_lastname', 'like', '%' . $filters['q'] . '%')
                      ->orWhere('phone_number', 'like', '%' . $filters['q'] . '%')
                      ->orWhere('email', 'like', '%' . $filters['q'] . '%');
-        }   
-             
+        }    
 
         if (!is_null($filters['type'])) {
             $players = $players->where('agegroup', $filters['type']);
@@ -104,7 +109,11 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
         if (is_null($filters['withFixing'])) {
             $players = $players->with('registration');
-        }        
+        }
+
+        if (!is_null($filters['agegroup'])) {
+            $players = $players->where('agegroup', $filters['agegroup']);
+        }
 
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
@@ -114,10 +123,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
                 $players = $players->orderByDesc('contact_firstname');
                 break;
             default:
-                $players = $players->orderBy('created_at'); 
+                $players = $players->orderBy('created_at');
                 break;
         }
-        
+
         $maxPerPage = is_null($filters['max_players_per_page']) ? $players->count() : $filters['max_players_per_page'];
 
         return new Paginate($players, $maxPerPage, $filters['page'], 'players');
@@ -190,7 +199,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
     public function retrievePlayers(int $id): Player
     {
-        return Players::find($id);
+        return Player::find($id);
     }
 
     public function deletePlayers(int $id): bool

@@ -47,27 +47,28 @@ interface EventRepositoryInterface
    /**
      * Create a new Event
      *
-     * @param int DateTime $datetime
+     * @param string $time
      * @param int region_id
      * @param int agegroup_id
-     * @param ?array matches
+     * @param DateTime $datetime
+     * @param array matches
      *
      * @return Event
      */
-    public function createEvent(DateTime $datetime, int $region_id, int $agegroup_id, array $matches): Event;
+    public function createEvent(string $time, int $region_id, int $agegroup_id, DateTime $datetime, array $matches): Event;
 
     /**
      * Update an existing event instance
      *
-     * @param int $id
-     * @param int DateTime $datetime
+     * @param string $time
      * @param int region_id
      * @param int agegroup_id
-     * @param ?array matches
+     * @param DateTime $datetime
+     * @param array matches
      *
      * @return bool
      */
-    public function updateEvent(int $id, DateTime $datetime, int $region_id, int $agegroup_id, array $matches): bool;
+    public function updateEvent(int $id, string $time, int $region_id, int $agegroup_id, DateTime $datetime, array $matches): bool;
 
     /**
      * Delete an existing event instance

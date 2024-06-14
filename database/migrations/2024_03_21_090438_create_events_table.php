@@ -15,14 +15,11 @@ return new class extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->text('description')->nullable();
+            $table->string('time');
             $table->date('event_date');
             $table->integer('teamcount')->default(0);
-            $table->foreignId('series_id')->nullable();
-            $table->foreignId('region_id')->nullable();
-            $table->foreignId('manager_id')->nullable();
-            $table->foreignId('agegroup_id')->nullable();
+            $table->foreignId('region_id');
+            $table->foreignId('agegroup_id');
             $table->softDeletes();
             $table->timestamps();
         });

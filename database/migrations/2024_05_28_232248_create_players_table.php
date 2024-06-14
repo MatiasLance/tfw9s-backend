@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('players', function (Blueprint $table) {
             $table->id();
             $table->foreignId('registration_id')->nullable();
+            $table->foreignId('agegroup');
             $table->string('contact_firstname');
             $table->string('contact_lastname');
             $table->string('phone_number');
@@ -24,8 +25,8 @@ return new class extends Migration
             $table->string('player_lastname');
             $table->string('team_name');
             $table->date('dob');
-            $table->string('agegroup');
             $table->string('description')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
