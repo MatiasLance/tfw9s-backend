@@ -38,14 +38,14 @@ class TeamService implements TeamServiceInterface
     }
     */
 
-    public function createTeam($name, $field_id, $agegroup_id, $media): Team
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): Team
     {
-        return $this->teamRepository->createTeam($name, $field_id, $agegroup_id, $media);
+        return $this->teamRepository->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media);
     }
 
-    public function updateTeam(int $id, string $name, string $description, $field_id, $event_id, $coach, $manager, $media): bool
+    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): bool
     {
-        return $this->teamRepository->updateTeam($id, $name, $description, $field_id, $event_id, $coach, $manager, $media);
+        return $this->teamRepository->updateTeam($id, $name, $agegroup_id, $series_id, $coach, $manager, $media);
     }
 
     public function deleteTeam(User $initiator, Team $team): bool

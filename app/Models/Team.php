@@ -20,12 +20,13 @@ class Team extends Model
     protected $with = [
         'media',
         'field',
-        'agegroup'
+        'agegroup',
+        'series'
     ];
 
-    public function event()
+    public function series()
     {
-        return $this->belongsTo(Event::class);
+        return $this->belongsTo(Series::class);
     }
 
     public function field()

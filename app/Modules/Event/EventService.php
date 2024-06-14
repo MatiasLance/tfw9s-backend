@@ -33,14 +33,14 @@ class EventService implements EventServiceInterface
         return $this->eventRepository->retrieveEvent($id);
     }
 
-    public function createEvent(DateTime $datetime, int $region_id, int $agegroup_id , ?array $matches): Event
+    public function createEvent(string $time, int $region_id, int $agegroup_id , DateTime $datetime, array $matches): Event
     {
-        return $this->eventRepository->createEvent($datetime, $region_id, $agegroup_id, $matches);
+        return $this->eventRepository->createEvent($time, $region_id, $agegroup_id, $datetime, $matches);
     }
 
-    public function updateEvent(int $id, DateTime $datetime, int $region_id, int $agegroup_id , ?array $matches): bool
+    public function updateEvent(int $id, string $time, int $region_id, int $agegroup_id, DateTime $datetime, array $matches): bool
     {
-        return $this->eventRepository->updateEvent($id, $datetime, $region_id, $agegroup_id, $matches);
+        return $this->eventRepository->updateEvent($id, $time, $region_id, $agegroup_id, $datetime, $matches);
     }
 
     public function deleteEvent(User $initiator, Event $event): bool

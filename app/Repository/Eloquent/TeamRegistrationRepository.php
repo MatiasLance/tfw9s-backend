@@ -49,6 +49,7 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
         $team->manager_email = $managerEmail;
         $team->manager_name = $managerName;
         $team->manager_mobile = $managerPhoneNumber;
+        $team->series_id = $item_id;
         $team->name = $teamName;
         $team->agegroup_id = $ageGroup;
 

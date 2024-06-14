@@ -33,13 +33,12 @@ interface EventMatchServiceInterface
      *
      * @param int $event_id
      * @param int $field_id
-     * @param string $match_time
      * @param int $team1
      * @param int $team2
      *
      * @return EventMatch
      */
-    public function createEventMatch(int $event_id, int $field_id, string $match_time, int $team1, int $team2): EventMatch;
+    public function createEventMatch(int $event_id, int $field_id, int $team1, int $team2): EventMatch;
 
     /**
      * Update an existing EventMatch
@@ -47,13 +46,12 @@ interface EventMatchServiceInterface
      * @param int $id
      * @param int $event_id
      * @param int $field_id
-     * @param string $match_time
      * @param int $team1
      * @param int $team2
      *
      * @return bool
      */
-    public function updateEventMatch(int $id, int $event_id, int $field_id, string $match_time, int $team1, int $team2): bool;
+    public function updateEventMatch(int $id, int $event_id, int $field_id, int $team1, int $team2): bool;
 
         /**
      * Update an existing EventMatch score

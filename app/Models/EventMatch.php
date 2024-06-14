@@ -43,4 +43,9 @@ class EventMatch extends Model
         return $this->hasOne(EventMatchVideo::class);
     }
 
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
+
 }

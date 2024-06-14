@@ -22,32 +22,31 @@ class Event extends Model
         'agegroup',
         'series',
         'eventmatch',
-        'team',
     ];
 
     public function region()
     {
         return $this->belongsTo(Region::class)->withTrashed();
     }
+
     public function manager()
     {
         return $this->belongsTo(Manager::class)->withTrashed();
     }
+
     public function agegroup()
     {
         return $this->belongsTo(AgeGroup::class)->withTrashed();
     }
+
     public function series()
     {
         return $this->belongsTo(Series::class)->withTrashed();
     }
+
     public function eventmatch()
     {
         return $this->hasMany(EventMatch::class);
-    }
-    public function team()
-    {
-        return $this->hasMany(Team::class);
     }
 
 }

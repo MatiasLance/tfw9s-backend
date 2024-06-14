@@ -30,32 +30,33 @@ interface TeamServiceInterface
     /**
      * Create a new Team
      *
-     * @param string $description
-     * @param int $field_id
+     * @param string $name
      * @param int $agegroup_id
+     * @param int $series_id
+     * @param array $coach
+     * @param array $manager
      * @param ?array $media
      *
      * @return Team
      */
-    
+
     /*public function createTeam(string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): Team; */
-    public function createTeam(string $name, int $field_id, int $agegroup_id, ?array $media): Team;
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): Team;
 
     /**
      * Update an existing Team
      *
      * @param int $id
      * @param string $name
-     * @param string $description
-     * @param int $field_id
-     * @param int $event_id
+     * @param int $agegroup_id
+     * @param int $series_id
      * @param array $coach
      * @param array $manager
      * @param ?array $media
-     * 
+     *
      * @return bool
      */
-    public function updateTeam(int $id, string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): bool;
+    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): bool;
 
     /**
      * Delete an existing Team
@@ -66,7 +67,7 @@ interface TeamServiceInterface
      * @return bool
      */
     public function deleteTeam(User $initiator, Team $team): bool;
-    
+
     /**
      * Retrieve a list of teams
      *

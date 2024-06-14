@@ -97,7 +97,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
     public function listSeries(array $userFilters = []): Paginate
     {
-        $series = $this->model->query()->with('event');
+        $series = $this->model->query();
 
         $filters = array_merge($this->defaultSeriesListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
