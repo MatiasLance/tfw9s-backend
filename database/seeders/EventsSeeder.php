@@ -34,13 +34,14 @@ class EventsSeeder extends Seeder
             $series = $faker->randomElement($seriesData);
             $eventTitle = $series['name'];
             Event::create([
-                'name' => $eventTitle,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
+                // 'name' => $eventTitle,
+                // 'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
+                // 'series_id' => $series['id'],
+                // 'manager_id' => $faker->randomElement($managerIds),
+                'time' => $faker->time(),
                 'event_date' => $faker->dateTimeBetween($series['start'], $series['end'])->format('Y-m-d'),
                 'teamcount' => 4,
-                'series_id' => $series['id'],
                 'region_id' => $faker->randomElement($regionIds),
-                'manager_id' => $faker->randomElement($managerIds),
                 'agegroup_id' => $agegroup->id,
             ]);
         }

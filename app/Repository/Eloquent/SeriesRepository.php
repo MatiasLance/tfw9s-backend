@@ -153,8 +153,8 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
     public function retrieveSeries(int $id): Series
     {
-        return Series::with('event')->find($id);
-    }
+        return Series::find($id);
+    }    
 
     public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): Series
     {

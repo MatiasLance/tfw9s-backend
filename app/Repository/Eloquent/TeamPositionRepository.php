@@ -65,6 +65,18 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
          * This filters the teamPositions with a keyword. When this value is null, this filter is skipped.
          */
         'year' => null,
+
+        /**
+         * event keyword
+         * This filters the teamPositions with a keyword. When this value is null, this filter is skipped.
+         */
+        'agegroup' => null,
+
+        /**
+         * event keyword
+         * This filters the teamPositions with a keyword. When this value is null, this filter is skipped.
+         */
+        'series' => null,
     ];
 
     public function __construct(TeamPosition $teamPosition, StorageInterface $storageService)
@@ -76,7 +88,8 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
     public function listTeamPositions(array $userFilters = []): Paginate
     {
         $teamPositions = $this->model->query();
-
+        
+        
         $filters = array_merge($this->defaultTeamPositionListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
         // Search Filter
@@ -101,13 +114,27 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
             });
         }
 
+        
+
+        if (!is_null($filters['series']) || !is_null($filters['agegroup'])) {
+            $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
+                if (!is_null($filters['series'])) {
+                    $q->where('series_id', 'LIKE', '%' . $filters['series'] . '%');
+                }
+                if (!is_null($filters['agegroup'])) {
+                    $q->where('agegroup_id', 'LIKE', '%' . $filters['agegroup'] . '%');
+                }
+            });
+        }
+
+        
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
-                $teamPositions = $teamPositions->orderBy('position');
+                $teamPositions = $teamPositions->orderBy('for');
                 break;
 
             case Filter::SORT_Z_TO_A:
-                $teamPositions = $teamPositions->orderByDesc('position');
+                $teamPositions = $teamPositions->orderByDesc('for');
                 break;
 
             case Filter::SORT_POINTS:
@@ -119,7 +146,9 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
                 break;
         }
 
+
         $maxPerPage = is_null($userFilters['max_teamPosition_per_page']) ? $teamPositions->count() : $filters['max_teamPosition_per_page'];
+
 
         return new Paginate($teamPositions, $maxPerPage, $filters['page'], 'teamPositions');
     }
@@ -160,9 +189,9 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
 
     public function updateTeamPosition(int $event_id, int $eventMatch_id, array $existingResult): bool
     {
-        $eventMatch = EventMatch::findOrFail($eventMatch_id); // 4
-        $team1 = $eventMatch->team1; // 4
-        $team2 = $eventMatch->team2; // 6
+        $eventMatch = EventMatch::findOrFail($eventMatch_id); 
+        $team1 = $eventMatch->team1; 
+        $team2 = $eventMatch->team2;
 
         $team1Position = TeamPosition::where('team_id', $team1)
             ->where('event_id', $eventMatch->event_id)

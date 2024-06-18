@@ -4,6 +4,7 @@ namespace App\Repository\Eloquent;
 
 use App\Models\Event;
 use App\Models\EventMatch;
+use App\Models\TeamPosition;
 use App\Modules\Event\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
@@ -179,19 +180,52 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             $event->save();
 
             if (!empty($matches)) {
+
                 foreach ($matches as $matchesData) {
                     $match = new EventMatch();
                     $match->event_id = $event->id;
                     $match->field_id = $matchesData['field_id'];
                     $match->team1 = $matchesData['team1'];
                     $match->team2 = $matchesData['team2'];
-
                     $event->eventmatch()->save($match);
                 }
             }
+
+            $matchesData = EventMatch::where('event_id', $event->id)->get(['team1', 'team2']);
+            $teamPositions = [];
+
+            foreach ($matchesData as $match) {
+                foreach (['team1', 'team2'] as $teamKey) {
+                    $teamId = $match->$teamKey;
+
+                    if (!isset($teamPositions[$teamId])) {
+                        $teamPositions[$teamId] = TeamPosition::where('event_id', $event->id)
+                                                            ->where('team_id', $teamId)
+                                                            ->value('position');
+
+                        if ($teamPositions[$teamId] === null) {
+                            $teamPositions[$teamId] = count($teamPositions);
+                        }
+                    }
+
+                    $existingPosition = TeamPosition::where('event_id', $event->id)
+                                ->where('team_id', $teamId)
+                                ->exists();
+
+                    if (!$existingPosition) {
+                        $teamPosition = new TeamPosition();
+                        $teamPosition->event_id = $event->id;
+                        $teamPosition->team_id = $teamId;
+                        $teamPosition->position = $teamPositions[$teamId];
+                        $teamPosition->save();
+                    }
+                }
+            }
+            
             return $event;
         });
     }
+
 
     public function updateEvent(int $id, string $time, int $region_id, int $agegroup_id, DateTime $datetime, ?array $matches): bool
     {
@@ -201,7 +235,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         $event->region_id = $region_id;
         $event->agegroup_id = $agegroup_id;
 
-        return DB::transaction(function() use($event, $matches) {
+        return DB::transaction(function() use($event, $matches, $id) {
 
             //return $event->save();
 
@@ -230,10 +264,36 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 $event->eventmatch()->save($match);
                 }
             }
-
             if (!empty($matchesToDeleteIds)) {
                 EventMatch::whereIn('id', $matchesToDeleteIds)->delete();
             }
+
+            $matchesData = EventMatch::where('event_id', $event->id)->get(['team1', 'team2']);
+            $teamPositions = [];
+
+            foreach ($matchesData as $match) {
+                foreach (['team1', 'team2'] as $teamKey) {
+                    $teamId = $match->$teamKey;
+
+                    $existingTeamPosition = TeamPosition::where('event_id', $event->id)
+                                                        ->where('team_id', $teamId)
+                                                        ->first();
+
+                    if (!$existingTeamPosition) {
+                        $teamPosition = new TeamPosition();
+                        $teamPosition->event_id = $event->id;
+                        $teamPosition->team_id = $teamId;
+                        
+                        if (!isset($teamPositions[$teamId])) {
+                            $teamPositions[$teamId] = count($teamPositions);
+                        }
+                        $teamPosition->position = $teamPositions[$teamId];
+                        
+                        $teamPosition->save();
+                    }
+                }
+            }
+
         return $event->save();
         });
     }
@@ -243,10 +303,12 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         $event = $this->find($id);
 
         return DB::transaction(function() use($event) {
-
+            TeamPosition::where('event_id', $event->id)->delete();
+            EventMatch::where('event_id', $event->id)->delete();
             return $event->delete();
         });
     }
+
 
     public function allEvents(array $userFilters = []): Paginate
     {

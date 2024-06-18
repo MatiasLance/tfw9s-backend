@@ -8,6 +8,8 @@ use Faker\Factory as Faker;
 use App\Models\Team;
 use App\Models\Field;
 use App\Models\Event;
+use App\Models\AgeGroup;
+use App\Models\Series;
 
 class TeamsSeeder extends Seeder
 {
@@ -21,6 +23,8 @@ class TeamsSeeder extends Seeder
         $faker = Faker::create();
         $fieldIds = Field::pluck('id')->toArray();
         $eventIds = Event::pluck('id')->toArray();
+        $agegroupIds = AgeGroup::pluck('id')->toArray();
+        $seriesIds = Series::pluck('id')->toArray();
 
         $teams = [
             'Bulldogs',
@@ -56,9 +60,11 @@ class TeamsSeeder extends Seeder
             foreach ($selectedTeams as $selectedTeam) {
                 Team::create([
                     'name' => $selectedTeam,
-                    'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                    'field_id' => $faker->randomElement($fieldIds),
-                    'event_id' => $id,
+                    // 'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
+                    // 'field_id' => $faker->randomElement($fieldIds),
+                    // 'event_id' => $id,
+                    'series_id' => $faker->randomElement($seriesIds),
+                    'agegroup_id' => $faker->randomElement($fieldIds),
                     'coach_name' => $faker->name,
                     'coach_mobile' => $faker->unique()->phoneNumber,
                     'coach_email' => $faker->unique()->safeEmail,
