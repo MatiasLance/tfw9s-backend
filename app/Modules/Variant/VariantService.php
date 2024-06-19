@@ -19,6 +19,11 @@ class VariantService implements VariantServiceInterface
         return $this->variantRepository->retrieveVariant();
     }
 
+    public function storeVariant($name): Variant
+    {
+        return $this->variantRepository->storeVariant($name);
+    }
+
     public function addVariant($itemId, $colors)
     {
         return $this->variantRepository->addVariant($itemId, $colors);

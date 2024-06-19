@@ -10,6 +10,8 @@ interface VariantRepositoryInterface
 
     public function addVariant($itemId, $colors);
 
+    public function storeVariant(string $name): Variant;
+
     public function retrieveItemVariant(int $id): ?array;
 
     public function deleteVariant(int $variantId): bool;
