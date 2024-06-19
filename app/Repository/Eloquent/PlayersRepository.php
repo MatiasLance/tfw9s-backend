@@ -100,7 +100,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             $players = $players->where('contact_firstname', 'like', '%' . $filters['q'] . '%')
                      ->orWhere('contact_lastname', 'like', '%' . $filters['q'] . '%')
                      ->orWhere('phone_number', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('email', 'like', '%' . $filters['q'] . '%');
+                     ->orWhere('email', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('player_firstname', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('player_lastname', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('team_name', 'like', '%' . $filters['q'] . '%');
         }    
 
         if (!is_null($filters['type'])) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Modules\Variant\VariantServiceInterface;
 use App\Modules\Http\Message;
+use App\Models\Variant;
 
 class VariantController extends Controller
 {
@@ -30,15 +31,33 @@ class VariantController extends Controller
     public function store(Request $request, Message $message)
     {
         $itemId = $request->input('item_id');
-        $color = $request->input('color') ?? [];
-
-        $isSuccess = $this->variantService->addVariant($itemId, $color,);
-
-        if ($isSuccess) {
-            $message->setContent(200, 'Item variant added: Item ID ' . $itemId . ', Color ' . implode(', ', $color));
+        $colors = $request->input('color') ?? [];
+    
+        $result = $this->variantService->addVariant($itemId, $colors);
+    
+        if ($result['status'] == 'success') {
+            $message->setContent(200, 'success');
+        } elseif ($result['status'] == 'exists') {
+            $message->setContent(200, 'exists');
         } else {
             $message->setContent(400, 'Item variant not added');
         }
+        return $message->render();
+    }    
+
+    public function storeVariant(Request $request, Message $message)
+    {
+        $name = $request->input('name');
+        $variant = $this->variantService->storeVariant($name);
+
+        if ($variant instanceof Variant) {
+            $message->setContent(201, 'Variant created', '', [
+                'variant' => $variant
+            ]);
+        } else {
+            $message->setContent(400, 'Region not created');
+        }
+
         return $message->render();
     }
 

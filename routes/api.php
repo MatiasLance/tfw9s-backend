@@ -403,6 +403,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("variant")->group(function() {
         Route::get('/', 'App\Http\Controllers\VariantController@retrieve');
         Route::post('/', 'App\Http\Controllers\VariantController@store');
+        Route::post('/itemvariant', 'App\Http\Controllers\VariantController@storeVariant');
         Route::get('/{id}', 'App\Http\Controllers\VariantController@itemvariant');
         Route::delete('/{id}', 'App\Http\Controllers\VariantController@delete');
     });
