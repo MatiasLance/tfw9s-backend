@@ -67,6 +67,7 @@ class EventController extends Controller
         $time = $request->input('time');
         $region_id = $request->input('region_id');
         $agegroup_id = $request->input('agegroup_id');
+        $series_id = $request->input('series_id');
         $datetimeString = $request->input('datetime');
         $matches = $request->input('matches') ?? [];
 
@@ -83,7 +84,7 @@ class EventController extends Controller
 
         $datetime = new DateTime($datetimeString);
 
-        $event = $this->eventService->createEvent($time, $region_id, $agegroup_id, $datetime, $matches);
+        $event = $this->eventService->createEvent($time, $region_id, $agegroup_id, $series_id, $datetime, $matches);
 
         if ($event instanceof Event) {
             $message->setContent(201, 'Event created', '', [

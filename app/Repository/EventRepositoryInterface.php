@@ -50,12 +50,13 @@ interface EventRepositoryInterface
      * @param string $time
      * @param int region_id
      * @param int agegroup_id
+     * @param int series_id
      * @param DateTime $datetime
      * @param array matches
      *
      * @return Event
      */
-    public function createEvent(string $time, int $region_id, int $agegroup_id, DateTime $datetime, array $matches): Event;
+    public function createEvent(string $time, int $region_id, int $agegroup_id, int  $series_id, DateTime $datetime, array $matches): Event;
 
     /**
      * Update an existing event instance

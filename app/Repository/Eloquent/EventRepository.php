@@ -168,13 +168,14 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         return $this->find($id);
     }
 
-    public function createEvent(string $time, int $region_id, int $agegroup_id, DateTime $datetime, ?array $matches): Event
+    public function createEvent(string $time, int $region_id, int $agegroup_id, int  $series_id, DateTime $datetime, ?array $matches): Event
     {
         $event = new Event();
         $event->time = $time;
         $event->event_date = $datetime;
         $event->region_id = $region_id;
         $event->agegroup_id = $agegroup_id;
+        $event->series_id = $series_id;
 
         return DB::transaction(function() use ($event, $matches) {
             $event->save();
