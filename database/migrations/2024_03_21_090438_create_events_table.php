@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('teamcount')->default(0);
             $table->foreignId('region_id');
             $table->foreignId('agegroup_id');
+            $table->foreignId('series_id');
             $table->softDeletes();
             $table->timestamps();
         });
