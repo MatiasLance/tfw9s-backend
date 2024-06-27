@@ -407,5 +407,12 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/{id}', 'App\Http\Controllers\VariantController@itemvariant');
         Route::delete('/{id}', 'App\Http\Controllers\VariantController@delete');
     });
-});
 
+    Route::prefix("faq")->group(function() {
+        Route::get('/', 'App\Http\Controllers\FaqController@list');
+        Route::get('/{id}', 'App\Http\Controllers\FaqController@retrieve');
+        Route::post('/', 'App\Http\Controllers\FaqController@store');
+        Route::post('/{id}', 'App\Http\Controllers\FaqController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\FaqController@delete');
+    });
+});

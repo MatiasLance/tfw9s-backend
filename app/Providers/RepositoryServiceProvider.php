@@ -138,6 +138,11 @@ use App\Modules\Discount\DiscountServiceInterface;
 use App\Repository\Eloquent\DiscountRepository;
 use App\Repository\DiscountRepositoryInterface;
 
+use App\Modules\Faq\FaqService;
+use App\Modules\Faq\FaqServiceInterface;
+use App\Repository\Eloquent\FaqRepository;
+use App\Repository\FaqRepositoryInterface;
+
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -187,6 +192,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(PlayersServiceInterface::class,PlayersService::class);
         $this->app->bind(VariantServiceInterface::class,VariantService::class);
         $this->app->bind(DiscountServiceInterface::class,DiscountService::class);
+        $this->app->bind(FaqServiceInterface::class,FaqService::class);
 
         /**
          * Repositories
@@ -222,6 +228,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(PlayersRepositoryInterface::class, PlayersRepository::class);
         $this->app->bind(VariantRepositoryInterface::class, VariantRepository::class);
         $this->app->bind(DiscountRepositoryInterface::class, DiscountRepository::class);
+        $this->app->bind(FaqRepositoryInterface::class, FaqRepository::class);
     }
     /**
      * Bootstrap services.
