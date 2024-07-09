@@ -28,12 +28,11 @@ interface TeamLimitRepositoryInterface
     /**
      * Update an existing TeamLimit instance
      *
-     * @param int $id
-     * @param int $teamcount
+     * @param array $teamcount
      *
      * @return bool
      */
-    public function updateTeamLimit(int $id, int $teamcount): bool;
+    public function updateTeamLimit(array $teamcount): bool;
 
     /**
      * Delete an existing TeamLimit instance

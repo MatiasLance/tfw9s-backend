@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Variant;
+use App\Models\ItemVariant;
 
 class VariantSeeder extends Seeder
 {
@@ -27,7 +27,7 @@ class VariantSeeder extends Seeder
         ];
 
         foreach ($colors as $color) {
-            Variant::create([
+            ItemVariant::create([
                 'color' => $color,
             ]);
         }

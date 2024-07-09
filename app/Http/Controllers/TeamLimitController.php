@@ -24,11 +24,11 @@ class TeamLimitController extends Controller
         return $message->render();
     }
 
-    public function update(Request $request, Message $message, int $id)
+    public function update(Request $request, Message $message)
     {
         $teamcount = $request->input('teamcount');
 
-        $isSuccess = $this->teamLimitService->updateTeamLimit($id, $teamcount);
+        $isSuccess = $this->teamLimitService->updateTeamLimit($teamcount);
 
         if ($isSuccess) {
             $message->setContent(200, 'Team Limit updated');

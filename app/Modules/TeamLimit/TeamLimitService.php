@@ -29,9 +29,9 @@ class TeamLimitService implements TeamLimitServiceInterface
         return $this->teamLimitRepository->createTeamLimit($series_id);
     }
 
-    public function updateTeamLimit(int $id, int $teamcount): bool
+    public function updateTeamLimit(array $teamcount): bool
     {
-        return $this->teamLimitRepository->updateTeamLimit($id, $teamcount);
+        return $this->teamLimitRepository->updateTeamLimit($teamcount);
     }
 
     public function deleteTeamLimit(TeamLimit $teamLimit): bool

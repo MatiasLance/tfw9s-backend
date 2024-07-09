@@ -46,6 +46,7 @@ interface PartnerSponsorRepositoryInterface
      * Create a new partnerSponsor instance
      *
      * @param string $company_name
+     * @param string $hyperlink
      * @param string $first_name
      * @param string $last_name
      * @param string $description
@@ -53,13 +54,14 @@ interface PartnerSponsorRepositoryInterface
      *
      * @return partnerSponsor
      */
-    public function createPartnerSponsor(string $company_name, string $first_name, string $last_name, string $description, ?array $media): PartnerSponsor;
+    public function createPartnerSponsor(string $company_name, string $hyperlink, string $first_name, string $last_name, string $description, ?array $media): PartnerSponsor;
 
     /**
      * Update an existing partnerSponsor instance
      *
      * @param int $id
      * @param string $company_name
+     * @param string $hyperlink
      * @param string $first_name
      * @param string $last_name
      * @param string $description
@@ -67,7 +69,7 @@ interface PartnerSponsorRepositoryInterface
      *
      * @return bool
      */
-    public function updatePartnerSponsor(int $id, string $company_name, string $first_name, string $last_name, string $description, ?array $media): bool;
+    public function updatePartnerSponsor(int $id, string $company_name, string $hyperlink, string $first_name, string $last_name, string $description, ?array $media): bool;
 
     /**
      * Delete an existing partnerSponsor instance
