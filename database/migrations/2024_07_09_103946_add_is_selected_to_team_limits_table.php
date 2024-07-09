@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('team_limits', function (Blueprint $table) {
-            $table->boolean('is_selected')->after('team_limit');
+            $table->boolean('is_selected')->default(0)->after('team_limit');
         });
     }
 
