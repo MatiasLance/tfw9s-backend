@@ -51,12 +51,13 @@ class PartnerSponsorController extends Controller
     public function store(Request $request, Message $message)
     {
         $company_name = $request->input('company_name');
+        $hyperlink = $request->input('hyperlink');
         $first_name = $request->input('first_name');
         $last_name = $request->input('last_name');
         $description = $request->input('description') ?? '';
         $media = $request->file('photo') ?? [];
 
-        $partnerSponsor = $this->partnerSponsorService->createPartnerSponsor($company_name, $first_name, $last_name, $description, $media);
+        $partnerSponsor = $this->partnerSponsorService->createPartnerSponsor($company_name, $hyperlink, $first_name, $last_name, $description, $media);
 
         if ($partnerSponsor instanceof PartnerSponsor) {
             $message->setContent(201, 'PartnerSponsor created', '', [
@@ -72,6 +73,7 @@ class PartnerSponsorController extends Controller
     public function update(Request $request, Message $message, int $id)
     {
         $company_name = $request->input('company_name');
+        $hyperlink = $request->input('hyperlink');
         $first_name = $request->input('first_name');
         $last_name = $request->input('last_name');
         $description = $request->input('description') ?? '';
@@ -96,7 +98,7 @@ class PartnerSponsorController extends Controller
             $media = null;
         }
 
-        $isSuccess = $this->partnerSponsorService->updatePartnerSponsor($id, $company_name, $first_name, $last_name, $description, $media);
+        $isSuccess = $this->partnerSponsorService->updatePartnerSponsor($id, $company_name, $hyperlink, $first_name, $last_name, $description, $media);
 
         if ($isSuccess) {
             $message->setContent(200, 'PartnerSponsor updated');

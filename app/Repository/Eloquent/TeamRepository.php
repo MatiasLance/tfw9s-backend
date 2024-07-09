@@ -11,6 +11,7 @@ use App\Repository\TeamRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use App\Models\TeamLimit;
 
 class TeamRepository extends BaseRepository implements teamRepositoryInterface
 {
@@ -131,7 +132,14 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_mobile = $manager['mobile'];
         $team->manager_email = $manager['email'];
 
-        return DB::transaction(function() use($team, $media) {
+
+        $teamLimit = TeamLimit::where('series_id', $series_id)
+            ->whereHas('ageGroups', function ($query) use ($agegroup_id) {
+            $query->where('agegroup_id', $agegroup_id);
+        })
+        ->first();
+
+        return DB::transaction(function() use($team, $media, $teamLimit) {
             $team->save();
 
             foreach ($media as $file) {
@@ -140,7 +148,10 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
                     $teamImage = $this->storageService->store($file);
                     $team->media()->save($teamImage);
                 }
-              }
+            }
+
+            $teamLimit->teamcount += 1;
+            $teamLimit->save();
 
             return $team;
         });
@@ -149,6 +160,9 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
     public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): bool
     {
         $team = $this->find($id);
+        $oldAgegroupId = $team->agegroup_id;
+        $oldSeriesId = $team->series_id;
+
         $team->name = $name;
         $team->agegroup_id = $agegroup_id;
         $team->series_id = $series_id;
@@ -159,8 +173,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_mobile = $manager['mobile'];
         $team->manager_email = $manager['email'];
 
-        return DB::transaction(function() use($team, $media) {
-
+        return DB::transaction(function() use($team, $media, $oldAgegroupId, $oldSeriesId) {
             if (!is_null($media)) {
                 $newMedia = array_filter($media, function ($file) {
                     return $file instanceof UploadedFile;
@@ -173,7 +186,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
                 foreach ($team->media as $existingMedia) {
                     if (
                         $existingMedia->path !== 'media/default/' . self::PLACEHOLDER_IMAGE &&
-                        !in_array($existingMedia->hash, $oldMedia)
+                            !in_array($existingMedia->hash, $oldMedia)
                     ) {
                         $this->storageService->delete($existingMedia);
                         $existingMedia->delete();
@@ -181,9 +194,35 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
                 }
 
                 foreach ($newMedia as $newFile) {
-
                     $teamImage = $this->storageService->store($newFile);
                     $team->media()->save($teamImage);
+                }
+            }
+
+            // Update team limit
+            if ($team->agegroup_id != $oldAgegroupId || $team->series_id != $oldSeriesId) {
+                // Decrement the old team limit
+                $oldTeamLimit = TeamLimit::where('series_id', $oldSeriesId)
+                    ->whereHas('ageGroups', function ($query) use ($oldAgegroupId) {
+                        $query->where('agegroup_id', $oldAgegroupId);
+                    })
+                    ->first();
+
+                if ($oldTeamLimit) {
+                    $oldTeamLimit->teamcount -= 1;
+                    $oldTeamLimit->save();
+                }
+
+                // Increment the new team limit
+                $newTeamLimit = TeamLimit::where('series_id', $team->series_id)
+                    ->whereHas('ageGroups', function ($query) use ($team) {
+                        $query->where('agegroup_id', $team->agegroup_id);
+                    })
+                    ->first();
+
+                if ($newTeamLimit) {
+                    $newTeamLimit->teamcount += 1;
+                    $newTeamLimit->save();
                 }
             }
 
@@ -196,6 +235,17 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team = $this->find($id);
 
         return DB::transaction(function() use($team) {
+            // Decrement the team limit
+            $teamLimit = TeamLimit::where('series_id', $team->series_id)
+                ->whereHas('ageGroups', function ($query) use ($team) {
+                    $query->where('agegroup_id', $team->agegroup_id);
+                })
+                ->first();
+
+            if ($teamLimit) {
+                $teamLimit->teamcount -= 1;
+                $teamLimit->save();
+            }
 
             return $team->delete();
         });

@@ -108,8 +108,7 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::patch('/{id}', [TaxController::class, 'update']);
         });
 
-        Route::prefix("toogletax")->group(function() { // Tax Setting  API Endpoints
-            Route::get('/{id}', [ToggleTaxControlController::class, 'retrieve']);
+        Route::prefix("toogletax")->group(function() { // Tax Setting  API Endpoints Route::get('/{id}', [ToggleTaxControlController::class, 'retrieve']);
             Route::patch('/{id}', [ToggleTaxControlController::class, 'update']);
         });
 
@@ -388,7 +387,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
 
     Route::prefix("teamlimit")->group(function() {
         Route::get('/{series_id}', 'App\Http\Controllers\TeamLimitController@list');
-        Route::post('/update/{id}', 'App\Http\Controllers\TeamLimitController@update');
+        Route::post('/update', 'App\Http\Controllers\TeamLimitController@update');
     });
 
     Route::prefix("teamfolder")->group(function() {
@@ -415,4 +414,10 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/{id}', 'App\Http\Controllers\FaqController@update');
         Route::delete('/{id}', 'App\Http\Controllers\FaqController@delete');
     });
+
+    Route::prefix("homepageinfo")->group(function() {
+        Route::get('/{id}', 'App\Http\Controllers\HomePageInformationController@retrieve');
+        Route::post('/update/{id}', 'App\Http\Controllers\HomePageInformationController@update');
+    });
+
 });

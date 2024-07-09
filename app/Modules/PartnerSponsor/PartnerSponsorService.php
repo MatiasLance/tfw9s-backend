@@ -32,14 +32,14 @@ class PartnerSponsorService implements PartnerSponsorServiceInterface
         return $this->partnerSponsorRepository->retrievePartnerSponsor($id);
     }
 
-    public function createPartnerSponsor(string $company_name, string $first_name, string $last_name, string $description, ?array $media): PartnerSponsor
+    public function createPartnerSponsor(string $company_name, string $hyperlink, string $first_name, string $last_name, string $description, ?array $media): PartnerSponsor
     {
-        return $this->partnerSponsorRepository->createPartnerSponsor($company_name, $first_name, $last_name, $description, $media);
+        return $this->partnerSponsorRepository->createPartnerSponsor($company_name, $hyperlink, $first_name, $last_name, $description, $media);
     }
 
-    public function updatePartnerSponsor(int $id, string $company_name, string $first_name, string $last_name, string $description, ?array $media): bool
+    public function updatePartnerSponsor(int $id, string $company_name, string $hyperlink, string $first_name, string $last_name, string $description, ?array $media): bool
     {
-        return $this->partnerSponsorRepository->updatePartnerSponsor($id, $company_name, $first_name, $last_name, $description, $media);
+        return $this->partnerSponsorRepository->updatePartnerSponsor($id, $company_name, $hyperlink, $first_name, $last_name, $description, $media);
     }
 
     public function deletePartnerSponsor(User $initiator, PartnerSponsor $partnerSponsor): bool

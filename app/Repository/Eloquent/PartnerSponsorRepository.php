@@ -100,10 +100,11 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
         return $this->find($id);
     }
 
-    public function createPartnerSponsor(string $company_name, string $first_name, string $last_name, string $description, ?array $media): partnerSponsor
+    public function createPartnerSponsor(string $company_name, string $hyperlink, string $first_name, string $last_name, string $description, ?array $media): partnerSponsor
     {
         $partnerSponsor = new PartnerSponsor();
         $partnerSponsor->company_name = $company_name;
+        $partnerSponsor->hyperlink = $hyperlink;
         $partnerSponsor->first_name = $first_name;
         $partnerSponsor->last_name = $last_name;
         $partnerSponsor->description = $description;
@@ -113,7 +114,7 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
 
             foreach ($media as $file) {
                 if (!is_null($file)) {
-  
+
                     $Image = $this->storageService->store($file);
                     $partnerSponsor->media()->save($Image);
                 }
@@ -123,10 +124,11 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
         });
     }
 
-    public function updatePartnerSponsor(int $id, string $company_name, string $first_name, string $last_name, string $description, ?array $media): bool
+    public function updatePartnerSponsor(int $id, string $company_name, string $hyperlink, string $first_name, string $last_name, string $description, ?array $media): bool
     {
         $partnerSponsor = $this->find($id);
         $partnerSponsor->company_name = $company_name;
+        $partnerSponsor->hyperlink = $hyperlink;
         $partnerSponsor->first_name = $first_name;
         $partnerSponsor->last_name = $last_name;
         $partnerSponsor->description = $description;

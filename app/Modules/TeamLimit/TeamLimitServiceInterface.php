@@ -28,12 +28,11 @@ interface TeamLimitServiceInterface
     /**
      * Update an existing TeamLimit
      *
-     * @param int $id
-     * @param int teamlimit
+     * @param array teamlimit
      *
      * @return bool
      */
-    public function updateTeamLimit(int $id, int $teamcount): bool;
+    public function updateTeamLimit(array $teamcount): bool;
 
     /**
      * Delete an existing TeamLimit

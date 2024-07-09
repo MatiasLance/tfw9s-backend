@@ -41,15 +41,20 @@ class TeamLimitRepository extends BaseRepository implements TeamLimitRepositoryI
         });
     }
 
-    public function updateTeamLimit(int $id, int $teamcount): bool
+    public function updateTeamLimit(array $teamcounts): bool
     {
-        $teamLimit = $this->find($id);
-        $teamLimit->team_limit = $teamcount;
+        foreach ($teamcounts as $id => $teamcount) {
+            $teamLimit = $this->find($id);
 
-        return DB::transaction(function() use($teamLimit) {
+            $teamLimit->team_limit = $teamcount['teamcount'];
+            $teamLimit->is_selected = $teamcount['selected'];
 
-            return $teamLimit->save();
-        });
+            DB::transaction(function () use ($teamLimit) {
+                $teamLimit->save();
+            });
+        }
+
+        return true;
     }
 
     public function deleteTeamLimit(int $id): bool
