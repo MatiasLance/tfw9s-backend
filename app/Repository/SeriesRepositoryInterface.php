@@ -101,4 +101,13 @@ interface SeriesRepositoryInterface
      */
     public function pauseSeries(int $id): bool;
 
+    /**
+     * Update an existing Thumbnail
+     *
+     * @param array $media
+     *
+     * @return bool
+     */
+    public function editThumbnail(?array $media): bool;
+
 }

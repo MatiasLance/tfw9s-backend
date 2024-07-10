@@ -154,7 +154,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
     public function retrieveSeries(int $id): Series
     {
         return Series::find($id);
-    }    
+    }
 
     public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): Series
     {
@@ -256,6 +256,32 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
         return DB::transaction(function() use($series) {
             return $series->save();
+        });
+    }
+
+    public function editThumbnail(?array $media): bool
+    {
+        $series = Series::all();
+
+        return DB::transaction(function() use($series, $media) {
+            foreach ($series as $series) {
+
+                $existingImages = $series->media()->get();
+                foreach ($existingImages as $image) {
+                    $this->storageService->delete($image);
+                    $image->delete();
+                }
+
+                // Add new image
+                if (!is_null($media)) {
+                    foreach ($media as $file) {
+                        $newImage = $this->storageService->store($file);
+                        $series->media()->save($newImage);
+                    }
+                }
+                $series->save();
+            }
+            return true;
         });
     }
 }

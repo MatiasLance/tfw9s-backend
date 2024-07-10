@@ -374,6 +374,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::delete('/{id}', 'App\Http\Controllers\SeriesController@delete');
         Route::post('/resume/{id}', 'App\Http\Controllers\SeriesController@resumeSeries');
         Route::post('/pause/{id}', 'App\Http\Controllers\SeriesController@pauseSeries');
+        Route::post('/edit/thumbnail', 'App\Http\Controllers\SeriesController@editThumbnail');
 
     });
 

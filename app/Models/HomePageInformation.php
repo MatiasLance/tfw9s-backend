@@ -11,4 +11,12 @@ class HomePageInformation extends Model
 
     protected $table = 'homepage_informations';
 
+    protected $with = [
+        'media'
+    ];
+
+    public function media()
+    {
+        return $this->morphMany('App\Models\Media', 'imageable');
+    }
 }

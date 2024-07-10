@@ -57,4 +57,9 @@ class SeriesService implements SeriesServiceInterface
     {
         return $this->seriesRepository->pauseSeries($id);
     }
+
+    public function editThumbnail(?array $media): bool
+    {
+        return $this->seriesRepository->editThumbnail($media);
+    }
 }
