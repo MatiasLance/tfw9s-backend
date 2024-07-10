@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Item;
+use App\Models\HomePageInformation;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Media>
@@ -19,12 +19,12 @@ class MediaFactory extends Factory
     public function definition()
     {
         return [
-            'imageable_type' => Item::class,
-            'imageable_id' => Item::inRandomOrder()->first()->id,
+            'imageable_type' => HomePageInformation::class,
+            'imageable_id' => HomePageInformation::first()->id,
             'hash' => $this->faker->sha256,
-            'path' => 'media/items/' . hash('sha256', Carbon::now()->timestamp) . '.png',
-            'format' => 'png',
-            'mime_type' => 'image/png',
+            'path' => 'media/default/kidsplaying.jpg',
+            'format' => 'jpg',
+            'mime_type' => 'image/jpeg',
             'size' => $this->faker->numberBetween(300, 50000),
         ];
     }

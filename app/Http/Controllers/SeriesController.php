@@ -172,6 +172,21 @@ class SeriesController extends Controller
 
         return $message->render();
     }
+
+    public function editThumbnail(Request $request, Message $message)
+    {
+        $media = $request->file('photo') ?? [];
+
+        $isSuccess = $this->seriesService->editThumbnail($media);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Thumbnail updated');
+        } else {
+            $message->setContent(400, 'Thumbnail not updated');
+        }
+
+        return $message->render();
+    }
 }
 
 
