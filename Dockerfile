@@ -1,5 +1,7 @@
 FROM php:8.1-apache
 
+FROM php:8.1-apache
+
 LABEL maintainer="tech1@sumomedia.co"
 LABEL app_environment="development"
 
@@ -25,11 +27,10 @@ RUN yes | pecl install xdebug \
     && echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/xdebug.ini \
     && echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini
 
+WORKDIR /var/www/html
+
 COPY . /var/www/html/
-RUN composer install
 
-# CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port", "8000"]
-
-CMD sh -c "composer install && php artisan serve --host=0.0.0.0 --port 8000"
+CMD bash -c "composer install && php artisan serve --host=0.0.0.0 --port 8000"
 
 EXPOSE 8000
