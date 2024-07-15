@@ -44,7 +44,7 @@ class TeamLimitRepository extends BaseRepository implements TeamLimitRepositoryI
     public function updateTeamLimit(array $teamcounts): bool
     {
         foreach ($teamcounts as $id => $teamcount) {
-            $teamLimit = $this->find($id);
+            $teamLimit = $this->find($teamcount['id']);
 
             $teamLimit->team_limit = $teamcount['teamcount'];
             $teamLimit->is_selected = $teamcount['selected'];
