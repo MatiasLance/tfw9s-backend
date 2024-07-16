@@ -148,6 +148,12 @@ class NewsRepository extends BaseRepository implements NewsRepositoryInterface
                     $newsImage = $this->storageService->store($newFile);
                     $news->media()->save($newsImage);
                 }
+            } else {
+                foreach ($news->media as $existingMedia) {
+                    $this->storageService->delete($existingMedia);
+                    $existingMedia->delete();
+                }
+
             }
 
             return $news->save();
