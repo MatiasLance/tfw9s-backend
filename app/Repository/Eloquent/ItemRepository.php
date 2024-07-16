@@ -373,7 +373,15 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                     $itemPhoto = $this->storageService->store($newPhoto);
                     $item->media()->save($itemPhoto);
                 }
+            } else {
+                foreach ($item->media as $existingMedia) {
+                    $this->storageService->delete($existingMedia);
+                    $existingMedia->delete();
+                }
+
             }
+
+            
 
             return $item->save();
         });

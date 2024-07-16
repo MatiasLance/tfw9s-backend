@@ -159,6 +159,12 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
                     $Image = $this->storageService->store($newFile);
                     $partnerSponsor->media()->save($Image);
                 }
+            } else {
+                foreach ($partnerSponsor->media as $existingMedia) {
+                    $this->storageService->delete($existingMedia);
+                    $existingMedia->delete();
+                }
+
             }
 
             return $partnerSponsor->save();

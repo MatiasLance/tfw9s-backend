@@ -62,6 +62,13 @@ class HomePageInformationRepository extends BaseRepository implements homePageIn
                     $homePageInfo->media()->save($Image);
                 }
             }
+            else {
+                foreach ($homePageInfo->media as $existingMedia) {
+                    $this->storageService->delete($existingMedia);
+                    $existingMedia->delete();
+                }
+
+            }
 
             return $homePageInfo->save();
         });

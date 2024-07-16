@@ -109,6 +109,7 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
         });
 
         Route::prefix("toogletax")->group(function() { // Tax Setting  API Endpoints Route::get('/{id}', [ToggleTaxControlController::class, 'retrieve']);
+            Route::get('/{id}', [ToggleTaxControlController::class, 'retrieve']);
             Route::patch('/{id}', [ToggleTaxControlController::class, 'update']);
         });
 
