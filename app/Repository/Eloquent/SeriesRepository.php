@@ -3,8 +3,6 @@
 namespace App\Repository\Eloquent;
 
 use App\Models\Series;
-use App\Models\Event;
-use App\Models\Team;
 use App\Modules\TeamLimit\TeamLimitServiceInterface;
 use App\Modules\Series\Filter;
 use App\Modules\Storage\StorageInterface;
@@ -236,9 +234,6 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series = $this->find($id);
 
         return DB::transaction(function() use($series) {
-
-            Event::where('series_id', $series->id)->delete();
-            Team::where('series_id', $series->id)->delete();
 
             return $series->delete();
         });

@@ -30,6 +30,11 @@ class Series extends Model
     {
         return $this->hasMany(Team::class);
     }
+    
+    public function teamlimit()
+    {
+        return $this->hasMany(TeamLimit::class);
+    }
 
     public function media()
     {
@@ -49,5 +54,17 @@ class Series extends Model
     public function teamRegistration()
     {
         return $this->hasMany(TeamRegistration::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($series) {
+            // Soft delete related models
+            $series->event()->delete();
+            $series->team()->delete();
+            $series->teamlimit()->delete();
+        });
     }
 }

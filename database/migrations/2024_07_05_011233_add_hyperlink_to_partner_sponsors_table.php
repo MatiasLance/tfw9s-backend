@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('partner_sponsors', function (Blueprint $table) {
-            $table->string('hyperlink')->after('company_name');
+            $table->string('hyperlink')->after('company_name')->default("");
         });
     }
 

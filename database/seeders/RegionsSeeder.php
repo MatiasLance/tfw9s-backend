@@ -19,11 +19,11 @@ class RegionsSeeder extends Seeder
         $faker = Faker::create();
 
         $regions = [
-            'Australia',
-            'South Africa',
-            'United States',
-            'Spain',
-            'Romania'
+            'Northern Lakes International',
+            'Northern lakes mini ',
+            'Southern Corridor ',
+            'Western Sydney International ',
+            'Western Sydney Mini '
         ];
         
 
