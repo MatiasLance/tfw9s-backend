@@ -20,12 +20,19 @@ class Player extends Model
         'dob',
         'agegroup',
         'description',
+    ];
 
+    protected $with = [
+        'agegroup',
     ];
 
     public function registration()
     {
         return $this->belongsTo(IndividualRegistration::class);
+    }
+    public function agegroup()
+    {
+        return $this->belongsTo(AgeGroup::class, 'agegroup')->withTrashed();
     }
 
 }
