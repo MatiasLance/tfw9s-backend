@@ -10,6 +10,13 @@ class EventMatch extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $hidden = [
+        'deleted_at',
+        'created_at',
+        'updated_at',
+        'event',
+    ];
+
     protected $fillable = [
         'match_time',
         'field_id',

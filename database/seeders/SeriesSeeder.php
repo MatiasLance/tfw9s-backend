@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\TeamLimit\TeamLimitServiceInterface;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Faker\Factory as Faker;
@@ -11,6 +12,13 @@ use DateTime;
 
 class SeriesSeeder extends Seeder
 {
+    protected $teamLimitService;
+
+    // Use constructor injection to get the service
+    public function __construct(TeamLimitServiceInterface $teamLimitService)
+    {
+        $this->teamLimitService = $teamLimitService;
+    }
     public function run()
     {
         $faker = Faker::create();
@@ -29,7 +37,7 @@ class SeriesSeeder extends Seeder
             $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
             $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
             $price = mt_rand(200, 500);
-            Series::create([
+            $series = Series::create([
                 'name' => $eventTitle,
                 'type' => $Type,
                 'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
@@ -39,102 +47,9 @@ class SeriesSeeder extends Seeder
                 'price' => $price,
             ]);
 
-            $eventType = $faker->randomElement(['Cup', 'League', 'Tournament', 'Championship']);
-            $eventName = $faker->unique()->state();
-            $eventTitle = $eventName . ' ' . $eventType;
-            $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
-            $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = mt_rand(200, 500);
-            Series::create([
-                'name' => $eventTitle,
-                'type' => $Type,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'address' => $faker->address(),
-                'start' => $startDate,
-                'end' => $endDate,
-                'price' => $price,
-            ]);
-
-            $eventType = $faker->randomElement(['Cup', 'League', 'Tournament', 'Championship']);
-            $eventName = $faker->unique()->state();
-            $eventTitle = $eventName . ' ' . $eventType;
-            $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
-            $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = mt_rand(200, 500);
-            Series::create([
-                'name' => $eventTitle,
-                'type' => $Type,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'address' => $faker->address(),
-                'start' => $startDate,
-                'end' => $endDate,
-                'price' => $price,
-            ]);
-
-            $eventType = $faker->randomElement(['Cup', 'League', 'Tournament', 'Championship']);
-            $eventName = $faker->unique()->state();
-            $eventTitle = $eventName . ' ' . $eventType;
-            $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
-            $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = mt_rand(200, 500);
-            Series::create([
-                'name' => $eventTitle,
-                'type' => $Type,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'address' => $faker->address(),
-                'start' => $startDate,
-                'end' => $endDate,
-                'price' => $price,
-            ]);
-
-            $eventType = $faker->randomElement(['Cup', 'League', 'Tournament', 'Championship']);
-            $eventName = $faker->unique()->state();
-            $eventTitle = $eventName . ' ' . $eventType;
-            $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
-            $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = mt_rand(200, 500);
-            Series::create([
-                'name' => $eventTitle,
-                'type' => $Type,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'address' => $faker->address(),
-                'start' => $startDate,
-                'end' => $endDate,
-                'price' => $price,
-            ]);
-
-            $eventType = $faker->randomElement(['Cup', 'League', 'Tournament', 'Championship']);
-            $eventName = $faker->unique()->state();
-            $eventTitle = $eventName . ' ' . $eventType;
-            $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
-            $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = mt_rand(200, 500);
-            Series::create([
-                'name' => $eventTitle,
-                'type' => $Type,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'address' => $faker->address(),
-                'start' => $startDate,
-                'end' => $endDate,
-                'price' => $price,
-            ]);
-
-            $eventType = $faker->randomElement(['Cup', 'League', 'Tournament', 'Championship']);
-            $eventName = $faker->unique()->state();
-            $eventTitle = $eventName . ' ' . $eventType;
-            $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
-            $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = mt_rand(200, 500);
-            Series::create([
-                'name' => $eventTitle,
-                'type' => $Type,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'address' => $faker->address(),
-                'start' => $startDate,
-                'end' => $endDate,
-                'price' => $price,
-            ]);
-
+            if ($Type != 'weekly') {
+                $this->teamLimitService->createTeamLimit($series->id);
+            }
         }
     }
 }

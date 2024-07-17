@@ -49,4 +49,20 @@ class Event extends Model
         return $this->hasMany(EventMatch::class);
     }
 
+    public function teamposition()
+    {
+        return $this->hasMany(TeamPosition::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($event) {
+            // Soft delete related models
+            $event->eventmatch()->delete();
+            $event->teamposition()->delete();
+        });
+    }
+
 }

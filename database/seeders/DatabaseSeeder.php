@@ -47,16 +47,16 @@ class DatabaseSeeder extends Seeder
 
         // Seed 2nd level
         Category::factory()
-            ->count(20)
+            ->count(10)
             ->create();
 
         // Seed 2nd level
         Category::factory()
-            ->count(50)
+            ->count(20)
             ->create();
 
         Item::factory()
-            ->count(20)
+            ->count(8)
             ->has(
                 Tag::factory()->count(2)
             )
@@ -68,6 +68,8 @@ class DatabaseSeeder extends Seeder
             $this->call(RegionsSeeder::class);
 
             $this->call(FieldsSeeder::class);
+
+            $this->call(AgeGroupsSeeder::class);
 
             $this->call(VariantSeeder::class);
 
@@ -83,20 +85,20 @@ class DatabaseSeeder extends Seeder
             ->count(5)
             ->create();
 
-            $this->call(AgeGroupsSeeder::class);
-
-            $this->call(ManagersSeeder::class);
-
             $this->call(SeriesSeeder::class);
 
-            $this->call(EventsSeeder::class);
+            //Commented to have some playground hehe - KenChickem
 
-            $this->call(TeamsSeeder::class);
+            // $this->call(ManagersSeeder::class);
 
-            $this->call(EventMatchesSeeder::class);
+            // $this->call(EventsSeeder::class);
 
-            $this->call(TeamPositionSeeder::class);
+            // $this->call(TeamsSeeder::class);
 
-            $this->call(TeamLimitSeeder::class);
+            // $this->call(EventMatchesSeeder::class);
+
+            // $this->call(TeamPositionSeeder::class);
+
+            // $this->call(TeamLimitSeeder::class);
     }
 }

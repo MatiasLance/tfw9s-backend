@@ -9,6 +9,13 @@ class TeamLimit extends Model
 {
     use HasFactory;
 
+    protected $hidden = [
+        'deleted_at',
+        'created_at',
+        'updated_at',
+        'series',
+    ];
+
     protected $with = [
         'ageGroups',
     ];
@@ -16,5 +23,10 @@ class TeamLimit extends Model
     public function ageGroups()
     {
         return $this->belongsToMany(AgeGroup::class, 'agegroup_teamlimit', 'teamlimit_id', 'agegroup_id');
+    }
+
+    public function series()
+    {
+        return $this->belongsTo(Series::class)->withTrashed();
     }
 }
