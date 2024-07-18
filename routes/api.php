@@ -272,9 +272,9 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/', 'App\Http\Controllers\RegionController@store');
         Route::post('/update/{id}', 'App\Http\Controllers\RegionController@update');
         Route::get('/{id}', 'App\Http\Controllers\RegionController@retrieve');
-        // Route::post('/', 'App\Http\Controllers\RegionController@store');
-        // Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
-        // Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
+        Route::post('/', 'App\Http\Controllers\RegionController@store');
+        Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
 
     });
 
@@ -282,9 +282,9 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/', 'App\Http\Controllers\FieldController@list');
         Route::get('/all', 'App\Http\Controllers\FieldController@all');
         Route::get('/{id}', 'App\Http\Controllers\FieldController@retrieve');
-        // Route::post('/', 'App\Http\Controllers\FieldController@store');
-        // Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
-        // Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
+        Route::post('/', 'App\Http\Controllers\FieldController@store');
+        Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
 
     });
 
@@ -309,9 +309,9 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/', 'App\Http\Controllers\TeamController@list');
         Route::get('/all', 'App\Http\Controllers\TeamController@all');
         Route::get('/{id}', 'App\Http\Controllers\TeamController@retrieve');
-        // Route::post('/', 'App\Http\Controllers\TeamController@store');
-        // Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
-        // Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
+        Route::post('/', 'App\Http\Controllers\TeamController@store');
+        Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
 
     });
 
@@ -320,8 +320,8 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/all', 'App\Http\Controllers\EventController@all');
         Route::get('/{id}', 'App\Http\Controllers\EventController@retrieve');
         Route::post('/', 'App\Http\Controllers\EventController@store');
-        // Route::post('/{id}', 'App\Http\Controllers\EventController@update');
-        // Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
+        Route::post('/{id}', 'App\Http\Controllers\EventController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
     });
 
     Route::prefix("eventmatches")->group(function() {
@@ -335,9 +335,9 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("partnersponsors")->group(function() {
         Route::get('/', 'App\Http\Controllers\PartnerSponsorController@list');
         Route::get('/{id}', 'App\Http\Controllers\PartnerSponsorController@retrieve');
-        // Route::post('/', 'App\Http\Controllers\PartnerSponsorController@store');
-        // Route::post('/{id}', 'App\Http\Controllers\PartnerSponsorController@update');
-        // Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
+        Route::post('/', 'App\Http\Controllers\PartnerSponsorController@store');
+        Route::post('/{id}', 'App\Http\Controllers\PartnerSponsorController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
     });
 
     Route::prefix("news")->group(function() {
