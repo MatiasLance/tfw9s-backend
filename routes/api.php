@@ -291,9 +291,9 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("agegroups")->group(function() {
         Route::get('/', 'App\Http\Controllers\AgeGroupController@list');
         Route::get('/{id}', 'App\Http\Controllers\AgeGroupController@retrieve');
-        // Route::post('/', 'App\Http\Controllers\AgeGroupController@store');
-        // Route::post('/{id}', 'App\Http\Controllers\AgeGroupController@update');
-        // Route::delete('/{id}', 'App\Http\Controllers\AgeGroupController@delete');
+        Route::post('/', 'App\Http\Controllers\AgeGroupController@store');
+        Route::post('/{id}', 'App\Http\Controllers\AgeGroupController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\AgeGroupController@delete');
     });
 
     Route::prefix("managers")->group(function() {
