@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->id();
             $table->string('time');
+            $table->string('round');
             $table->date('event_date');
             $table->integer('teamcount')->default(0);
             $table->foreignId('region_id');

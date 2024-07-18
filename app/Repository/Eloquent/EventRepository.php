@@ -168,10 +168,11 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         return $this->find($id);
     }
 
-    public function createEvent(string $time, int $region_id, int $agegroup_id, int  $series_id, DateTime $datetime, ?array $matches): Event
+    public function createEvent(string $time, string $round, int $region_id, int $agegroup_id, int  $series_id, DateTime $datetime, ?array $matches): Event
     {
         $event = new Event();
         $event->time = $time;
+        $event->round = $round;
         $event->event_date = $datetime;
         $event->region_id = $region_id;
         $event->agegroup_id = $agegroup_id;
@@ -228,10 +229,11 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
     }
 
 
-    public function updateEvent(int $id, string $time, int $region_id, int $agegroup_id, DateTime $datetime, ?array $matches): bool
+    public function updateEvent(int $id, string $time, string $round, int $region_id, int $agegroup_id, DateTime $datetime, ?array $matches): bool
     {
         $event = $this->find($id);
         $event->time = $time;
+        $event->round = $round;
         $event->event_date = $datetime;
         $event->region_id = $region_id;
         $event->agegroup_id = $agegroup_id;

@@ -48,6 +48,7 @@ interface EventRepositoryInterface
      * Create a new Event
      *
      * @param string $time
+     * @param string $round
      * @param int region_id
      * @param int agegroup_id
      * @param int series_id
@@ -56,12 +57,13 @@ interface EventRepositoryInterface
      *
      * @return Event
      */
-    public function createEvent(string $time, int $region_id, int $agegroup_id, int  $series_id, DateTime $datetime, array $matches): Event;
+    public function createEvent(string $time, string $round, int $region_id, int $agegroup_id, int  $series_id, DateTime $datetime, array $matches): Event;
 
     /**
      * Update an existing event instance
      *
      * @param string $time
+     * @param string $round
      * @param int region_id
      * @param int agegroup_id
      * @param DateTime $datetime
@@ -69,7 +71,7 @@ interface EventRepositoryInterface
      *
      * @return bool
      */
-    public function updateEvent(int $id, string $time, int $region_id, int $agegroup_id, DateTime $datetime, array $matches): bool;
+    public function updateEvent(int $id, string $time, string $round, int $region_id, int $agegroup_id, DateTime $datetime, array $matches): bool;
 
     /**
      * Delete an existing event instance
