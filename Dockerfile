@@ -1,7 +1,5 @@
 FROM php:8.1-apache
 
-FROM php:8.1-apache
-
 LABEL maintainer="tech1@sumomedia.co"
 LABEL app_environment="development"
 
