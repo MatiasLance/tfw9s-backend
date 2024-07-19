@@ -49,7 +49,7 @@ class IndividualRegistrationRepository extends BaseRepository implements Individ
         $player->player_lastname = $playerLastName;
         $player->team_name = $teamName;
         $player->dob = $dob;
-        $player->agegroup = $ageGroup;
+        $player->agegroup_id = $ageGroup;
 
         DB::transaction(function() use ($reg, $player) {
             $reg->save();

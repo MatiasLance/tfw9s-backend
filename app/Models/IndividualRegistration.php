@@ -13,12 +13,12 @@ class IndividualRegistration extends Model
     protected const SNIPPET_LENGTH = 120;
 
     public function players() {
-        return $this->hasMany(Player::class);
+        return $this->hasMany(Player::class, 'registration_id');
     }
 
     public function item()
     {
-        return $this->belongsTo(Series::class);
+        return $this->belongsTo(Series::class, 'item_id');
     }
 
     public function getOrderNumberAttribute()

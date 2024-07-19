@@ -158,7 +158,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $players->player_lastname = $player_lastname;
         $players->team_name = $team_name;
         $players->dob = $dob;
-        $players->agegroup = $agegroup;
+        $players->agegroup_id = $agegroup;
         $players->description = $description;
 
         return DB::transaction(function() use($players) {
@@ -192,7 +192,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $players->player_lastname = $player_lastname;
         $players->team_name = $team_name;
         $players->dob = $dob;
-        $players->agegroup = $agegroup;
+        $players->agegroup_id = $agegroup;
         $players->description = $description;
 
         return DB::transaction(function() use($players) {
