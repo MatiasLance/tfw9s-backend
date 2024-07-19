@@ -69,6 +69,17 @@
                                                             </span>
                                                         </div>
                                                     </div>
+                                                    @if ($order->item->type === 'weekly')
+                                                        @foreach($order->players as $player)
+                                                            <div><span style="font-weight: bold; display: block;">Player Name:</span>
+                                                            {{ ($player->player_firstname ?? 'unknown') . ' ' . ($player->player_lastname ?? 'unknown') }}
+                                                            </div>
+                                                        @endforeach
+                                                    @else
+                                                        @foreach($order->teams as $team)
+                                                            <div><span style="font-weight: bold; display: block;">Team Name:</span>{{ $team->name ?? 'unknown' }}</div>
+                                                        @endforeach
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <table>
@@ -93,15 +104,27 @@
                                         <tbody>
                                             <tr>
                                                 <td rowspan="5" style="padding-right: 10px; padding-bottom: 10px;">
-                                                    <img style="height: 80px;" src="{{ $order->thumbnail }}" alt="Product Image" />
+                                                    <img style="height: 80px;" src="{{ $order->item->thumbnail }}" alt="Product Image" />
                                                 </td>
                                                 <td colspan="2" style="font-size: 14px; font-weight: bold; color: #666666; padding-bottom: 11px;">
-                                                    {{ $order->item->name }}
+                                                @php
+                                                    if ($order->item->type === 'weekly') {
+                                                        $agegroups = $order->players->map(function($player) {
+                                                            return $player->agegroup->name ?? 'unknown';
+                                                        })->unique()->implode(', ');
+                                                    } else {
+                                                        $agegroups = $order->teams->map(function($team) {
+                                                            return $team->agegroup->name ?? 'unknown';
+                                                        })->unique()->implode(', ');
+                                                    }
+                                                @endphp
+
+                                                {{ $order->item->name }} - {{ $agegroups }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #757575; width: 440px;">
-                                                    Description: {{ $order->snippet }}
+                                                    Description: {{ $order->item->snippet }}
                                                 </td>
                                             </tr>
                                         </tbody>

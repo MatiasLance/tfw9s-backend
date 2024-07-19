@@ -11,6 +11,10 @@ class Series extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $appends = [
+        'snippet',
+    ];
+
     protected $hidden = [
         'deleted_at',
         'created_at',
@@ -54,6 +58,47 @@ class Series extends Model
     public function teamRegistration()
     {
         return $this->hasMany(TeamRegistration::class);
+    }
+
+    public function getThumbnailAttribute()
+    {
+        $media = $this->media;
+
+        if (count($media) > 0) {
+            $x = env('APP_URL') . '/storage/' . $media[0]->path;
+        } else {
+            $x = env('APP_URL') . '/storage/media/default/' . 'brand_item_placeholder_thumbnail.png';
+        }
+
+        return $x;
+    }
+
+        public function getSnippetAttribute() {
+        $snippetLength = 160;
+        if (isset($this->description) && !is_null($this->description)) {
+            $sanitized = $this->sanitize($this->description);
+            if (strlen($sanitized) > $snippetLength) {
+                return substr($sanitized, 0, $snippetLength) . '...';
+            } else {
+                return $sanitized;
+            }
+        }
+    }
+
+    /**
+     * Remove the html tags and replace hard breaks with spaces.
+     *
+     * @return string
+     */
+    protected function sanitize(string $value): string
+    {
+        $whitespacePattern = "/(<br( )?(\/)?>)|(<\/p>)/mi";
+        $sanitized = preg_replace($whitespacePattern, ' ', $value);
+        $sanitized = strip_tags($sanitized);
+        $sanitized = trim($sanitized);
+        $sanitized = html_entity_decode($sanitized);
+
+        return $sanitized;
     }
 
     protected static function boot()

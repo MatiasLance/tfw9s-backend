@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('players', function (Blueprint $table) {
             $table->id();
             $table->foreignId('registration_id')->nullable();
-            $table->foreignId('agegroup');
+            $table->foreignId('agegroup_id');
             $table->string('contact_firstname');
             $table->string('contact_lastname');
             $table->string('phone_number');

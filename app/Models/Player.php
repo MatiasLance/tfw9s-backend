@@ -32,7 +32,7 @@ class Player extends Model
     }
     public function agegroup()
     {
-        return $this->belongsTo(AgeGroup::class, 'agegroup')->withTrashed();
+        return $this->belongsTo(AgeGroup::class, 'agegroup_id')->withTrashed();
     }
 
 }
