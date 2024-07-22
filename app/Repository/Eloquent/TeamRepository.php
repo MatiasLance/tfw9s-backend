@@ -71,6 +71,13 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
          * When this value is null, this filter is skipped.
          */
         'email' => null,
+
+                /**
+         * Email keyword
+         * When this value is null, this filter is skipped.
+         */
+        'seriestype' => null,
+
     ];
 
     public function __construct(Team $team, StorageInterface $storageService)
@@ -93,6 +100,13 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             });
         }
 
+        if (!is_null($filters['seriestype'])) {
+            $teams->whereHas('series', function ($q) use ($filters) {
+                $q->where('type', 'LIKE', '%' . $filters['seriestype'] . '%');
+            });
+        }
+        
+
         $teams = $teams->with('registration');
 
         switch ($filters['sort']) {
@@ -103,6 +117,11 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             case Filter::SORT_Z_TO_A:
                 $teams = $teams->orderByDesc('name');
                 break;
+
+            case Filter::SORT_LATEST:
+                $teams = $teams->orderByDesc('updated_at');
+                break;
+
 
             default:
                 $teams = $teams->orderBy('created_at');
