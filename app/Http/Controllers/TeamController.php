@@ -21,12 +21,14 @@ class TeamController extends Controller
         $query = $request->query('q', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
+        $seriestype = $request->query('seriestype', null);
         $maxTeamsPerPage = $request->query('maxTeamsPerPage', null);
 
         $filter = [
             'q' => $query,
             'sort' => $sort,
             'page' => $page,
+            'seriestype' => $seriestype,
             'max_team_per_page' => $maxTeamsPerPage,
         ];
 

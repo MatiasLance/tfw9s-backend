@@ -125,6 +125,9 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             case Filter::SORT_Z_TO_A:
                 $players = $players->orderByDesc('contact_firstname');
                 break;
+            case Filter::SORT_LATEST:
+                $players = $players->orderByDesc('updated_at');
+                break;
             default:
                 $players = $players->orderBy('created_at');
                 break;
