@@ -89,4 +89,31 @@ interface TeamRepositoryInterface
      */
     public function allTeams(array $userFilters = []): Paginate;
 
+    /**
+     * Retrieve a list of teams.
+     *
+     * @param array $userFilters
+     *
+     * @return Paginate<team>
+     */
+    public function trashedTeams(array $userFilters = []): Paginate;
+
+    /**
+     * Refubnd an Team
+     *
+     * @param int $id
+     *
+     * @return Team
+     */
+    public function refundTeam(int $id): bool;
+
+    /**
+     * Cancel a Refund
+     *
+     * @param int $id
+     *
+     * @return Team
+     */
+    public function cancelrefTeam(int $id): bool;
+
 }

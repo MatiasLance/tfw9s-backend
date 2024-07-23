@@ -95,4 +95,19 @@ class PlayersService implements PlayersServiceInterface
         return $this->playersRepository->deletePlayers($players->id);
     }
 
+    public function trashedPlayers(array $filters = []): Paginate
+    {
+        return $this->playersRepository->trashedPlayers($filters);
+    }
+
+    public function refundPlayer(int $id): bool
+    {
+        return $this->playersRepository->refundPlayer($id);
+    }
+
+    public function cancelrefPlayer(int $id): bool
+    {
+        return $this->playersRepository->cancelrefPlayer($id);
+    }
+
 }

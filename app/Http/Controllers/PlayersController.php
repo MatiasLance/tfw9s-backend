@@ -150,5 +150,54 @@ class PlayersController extends Controller
         return $message->render();
     }
 
+    public function trashed(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $type = $request->query('type', null);
+        $agegroup = $request->query('agegroup', null);
+        $withPlayers = $request->query('withPlayers', null);
+        $maxPlayersPerPage = $request->query('maxPlayersPerPage', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'type' => $type,
+            'agegroup' => $agegroup,
+            'withPlayers' => $withPlayers,
+            'max_players_per_page' => $maxPlayersPerPage,
+        ];
+
+        $players = $this->playersService->trashedPlayers($filter);
+
+        $message->setContent(200, 'Players retrieved', '', $players->toArray());
+
+        return $message->render();
+    }
+
+    public function refund(Message $message, int $id)
+    {
+        $refund = $this->playersService->refundPlayer($id);
+
+        $message->setContent(200, 'Player refunded', '', [
+            'refund' => $refund
+        ]);
+
+        return $message->render();
+    }
+
+    public function cancelref(Message $message, int $id)
+    {
+        $cancel = $this->playersService->cancelrefPlayer($id);
+
+        $message->setContent(200, 'Refund canceled', '', [
+            'canceled' => $cancel
+        ]);
+
+        return $message->render();
+    }
+
 
 }

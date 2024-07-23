@@ -51,4 +51,19 @@ interface PaymentGatewayInterface
      * @param string $transactionId
      */
     public function verifyTeamRegistration(string $transactionId): PaymentStatus;
+
+    /**
+     * Refund Registered request
+     *
+     * @param string $transaction_id registration payment transaction id
+     * @param int $amount registration amount
+     */
+    public function registrationRefund(string $transaction_id, int $amount);
+
+    /**
+     * Cancle refund request
+     *
+     * @param string $transaction_id registration payment transaction id
+     */
+    public function cancelRefund(string $transaction_id);
 }
