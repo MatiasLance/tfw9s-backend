@@ -77,4 +77,31 @@ interface TeamServiceInterface
      */
     public function allTeams(array $filters = []): Paginate;
 
+    /**
+     * Retrieve a list of teams
+     *
+     * @param $filters List of filters available to be applied'
+     *
+     * @return Paginate<Team>
+     */
+    public function trashedTeams(array $filters = []): Paginate;
+
+    /**
+     * Refubnd an Team
+     *
+     * @param int $id
+     *
+     * @return Team
+     */
+    public function refundTeam(int $id): bool;
+
+    /**
+     * Cancel a Refund
+     *
+     * @param int $id
+     *
+     * @return Team
+     */
+    public function cancelrefTeam(int $id): bool;
+
 }

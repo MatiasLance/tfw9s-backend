@@ -187,6 +187,51 @@ class TeamController extends Controller
 
         return $message->render();
     }
+
+        public function trashed(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $seriestype = $request->query('seriestype', null);
+        $maxTeamsPerPage = $request->query('maxTeamsPerPage', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'seriestype' => $seriestype,
+            'max_team_per_page' => $maxTeamsPerPage,
+        ];
+
+        $teams = $this->teamService->trashedTeams($filter);
+
+        $message->setContent(200, 'Teams retrieved', '', $teams->toArray());
+
+        return $message->render();
+    }
+
+    public function refund(Message $message, int $id)
+    {
+        $refund = $this->teamService->refundTeam($id);
+
+        $message->setContent(200, 'Team refunded', '', [
+            'refund success:' => $refund
+        ]);
+
+        return $message->render();
+    }
+
+    public function cancelref(Message $message, int $id)
+    {
+        $cancel = $this->teamService->cancelrefTeam($id);
+
+        $message->setContent(200, 'Refund canceled', '', [
+            'cancel success:' => $cancel
+        ]);
+
+        return $message->render();
+    }
 }
 
 

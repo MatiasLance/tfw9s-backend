@@ -98,4 +98,31 @@ interface PlayersServiceInterface
      * @return bool
      */
     public function deletePlayers(User $initiator, Player $players): bool;
+        
+    /**
+     * Retrieve a list of players
+     *
+     * @param $filters List of filters available to be applied'
+     *
+     * @return Paginate<Player>
+     */
+    public function trashedPlayers(array $filters = []): Paginate;
+
+    /**
+     * Refubnd an Player
+     *
+     * @param int $id
+     *
+     * @return Player
+     */
+    public function refundPlayer(int $id): bool;
+
+    /**
+     * Cancel a Refund
+     *
+     * @param int $id
+     *
+     * @return Player
+     */
+    public function cancelrefPlayer(int $id): bool;
 }

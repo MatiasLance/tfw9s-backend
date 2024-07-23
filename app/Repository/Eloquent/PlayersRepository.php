@@ -10,6 +10,8 @@ use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\PlayersRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use App\Models\IndividualRegistration;
+use App\Modules\Payment\PaymentServiceInterface;
 use DateTime;
 
 class PlayersRepository extends BaseRepository implements PlayersRepositoryInterface
@@ -20,6 +22,13 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
      * @var StorageInterface $storageService
      */
     protected StorageInterface $storageService;
+
+    /**
+     * Payment service
+     *
+     * @var PaymentServiceInterface $paymentService
+     */
+    protected PaymentServiceInterface $paymentService;
 
     /**
      * Default filters for retrieving list of series
@@ -78,9 +87,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         'name' => null,
     ];
 
-    public function __construct(Player $players)
+    public function __construct(Player $players, PaymentServiceInterface $paymentService)
     {
         parent::__construct($players);
+        $this->paymentService = $paymentService;
     }
 
     public function listPlayers(array $playersFilters = []): Paginate
@@ -214,6 +224,103 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
         return DB::transaction(function() use($players) {
             return $players->delete();
+        });
+    }
+
+    public function trashedPlayers(array $playersFilters = []): Paginate
+    {
+        $players = $this->model->onlyTrashed()->newQuery();
+
+
+        $filters = array_merge($this->defaultPlayersListFilters, array_filter($playersFilters, fn($f) => !is_null($f)));
+
+        // if (!is_null($filters['withFixing'])) {
+        //    $players = $players->has('event');
+        // }
+
+        // Search Filter
+
+        if (!is_null($filters['q'])) {
+            $players = $players->where('contact_firstname', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('contact_lastname', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('phone_number', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('email', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('player_firstname', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('player_lastname', 'like', '%' . $filters['q'] . '%')
+                     ->orWhere('team_name', 'like', '%' . $filters['q'] . '%');
+        }    
+
+        if (!is_null($filters['type'])) {
+            $players = $players->where('agegroup', $filters['type']);
+        }
+
+        if (is_null($filters['withFixing'])) {
+            $players = $players->with('registration');
+        }
+
+        if (!is_null($filters['agegroup'])) {
+            $players = $players->where('agegroup', $filters['agegroup']);
+        }
+
+        switch ($filters['sort']) {
+            case Filter::SORT_A_TO_Z:
+                $players = $players->orderBy('contact_firstname');
+                break;
+            case Filter::SORT_Z_TO_A:
+                $players = $players->orderByDesc('contact_firstname');
+                break;
+            case Filter::SORT_LATEST:
+                $players = $players->orderByDesc('updated_at');
+                break;
+            default:
+                $players = $players->orderBy('created_at');
+                break;
+        }
+
+        $maxPerPage = is_null($filters['max_players_per_page']) ? $players->count() : $filters['max_players_per_page'];
+
+        return new Paginate($players, $maxPerPage, $filters['page'], 'players');
+    }
+
+    public function refundPlayer(int $id): bool
+    {
+        $player = $this->find($id);
+
+        return DB::transaction(function() use($player) {
+
+            $playerregistration = IndividualRegistration::find($player->registration_id);
+
+            $transaction_id = $player->registration->transaction_id;
+            $amount = $player->registration->price;
+            $method = $player->registration->payment_gateway;
+
+            $refund = $this->paymentService->registrationRefund($method, $transaction_id, $amount);  
+
+            $playerregistration->refund_id = $refund; 
+            $playerregistration->save();
+
+            return $player->delete();
+        });
+    }
+
+    public function cancelrefPlayer(int $id): bool
+    {
+        $player = Player::withTrashed()->find($id);
+
+        return DB::transaction(function() use($player) {
+
+            $playerregistration = IndividualRegistration::find($player->registration_id);
+
+            $method = $player->registration->payment_gateway;
+            $refund_id = $player->registration->refund_id;
+
+            $cancel = $this->paymentService->cancelRefund($method, $refund_id);
+            dd($cancel);
+
+            $playerregistration->refund_id = $cancel; 
+            $playerregistration->save();
+
+            return $player->restore();
         });
     }
 

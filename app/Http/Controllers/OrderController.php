@@ -218,4 +218,22 @@ class OrderController extends Controller
         $price = $dprice;
         return $price * $quantity;
     }
+
+    public function refundRegistration(Request $request)
+    {
+        $transaction_id = $request->input('transaction_id');
+        $amount = $request->input('amount');
+        $method = $request->input('method');
+
+        return $this->paymentService->registrationRefund($method, $transaction_id, $amount);
+    }
+
+    public function cancelRefund(Request $request)
+    {
+        $transaction_id = $request->input('transaction_id');
+        $method = $request->input('method');
+
+        return $this->paymentService->cancelRefund($method, $transaction_id);
+    }
+    
 }

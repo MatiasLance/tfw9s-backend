@@ -112,4 +112,32 @@ interface PlayersRepositoryInterface
      * @return bool
      */
     public function deletePlayers(int $id): bool;
+
+        /**
+     * Retrieve a list of players.
+     *
+     * @param array $playersFilters
+     *
+     * @return Paginate<players>
+     */
+    public function trashedPlayers(array $playersFilters = []): Paginate;
+
+
+        /**
+     * Refubnd an Player
+     *
+     * @param int $id
+     *
+     * @return Player
+     */
+    public function refundPlayer(int $id): bool;
+
+    /**
+     * Cancel a Refund
+     *
+     * @param int $id
+     *
+     * @return Player
+     */
+    public function cancelrefPlayer(int $id): bool;
 }

@@ -74,4 +74,16 @@ class PaymentService implements PaymentServiceInterface
 
         return App::makeWith($paymentGateway->getGatewayClass(), ['config' => $config]);
     }
+
+    public function registrationRefund(string $method, string $transaction_id, int $amount)
+    {
+        $paymentGateway = $this->getGateway($method);
+        return $paymentGateway->registrationRefund($transaction_id, $amount);
+    }
+
+    public function cancelRefund(string $method, string $transaction_id)
+    {
+        $paymentGateway = $this->getGateway($method);
+        return $paymentGateway->cancelRefund($transaction_id);
+    }
 }

@@ -57,4 +57,19 @@ class TeamService implements TeamServiceInterface
     {
         return $this->teamRepository->allTeams($filters);
     }
+
+    public function trashedTeams(array $filters = []): Paginate
+    {
+        return $this->teamRepository->trashedTeams($filters);
+    }
+
+    public function refundTeam(int $id): bool
+    {
+        return $this->teamRepository->refundTeam($id);
+    }
+
+    public function cancelrefTeam(int $id): bool
+    {
+        return $this->teamRepository->cancelrefTeam($id);
+    }
 }

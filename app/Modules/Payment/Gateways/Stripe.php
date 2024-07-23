@@ -221,6 +221,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         return $this->matchStatus($paymentIntent->status);
     }
+    
 
     public function createIndividualRegistration($discountcode, string $item, array $metadata = [])
     {
@@ -546,4 +547,29 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 break;
         }
     }
+
+    public function registrationRefund(string $transaction_id, int $amount): ?string
+    {
+        try {
+            $refund = $this->stripe->refunds->create([
+                'payment_intent' => $transaction_id,
+                'amount' => $amount,
+            ]);
+            return $refund->id;
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            return null;
+        }
+    }
+
+    public function cancelRefund(string $refund_id): ?string
+    {
+        try {
+            $refund = $this->stripe->refunds->cancel($refund_id, []);
+            return $refund->id;
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+
+            return null;
+        }
+    }
+    
 }

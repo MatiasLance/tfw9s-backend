@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use App\Models\TeamLimit;
+use App\Models\TeamRegistration;
+use App\Modules\Payment\PaymentServiceInterface;
 
 class TeamRepository extends BaseRepository implements teamRepositoryInterface
 {
@@ -21,6 +23,13 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
      * @var StorageInterface $storageService
      */
     protected StorageInterface $storageService;
+
+    /**
+     * Payment service
+     *
+     * @var PaymentServiceInterface $paymentService
+     */
+    protected PaymentServiceInterface $paymentService;
 
     /**
      * Default filters for retrieving list of teams
@@ -80,9 +89,10 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
     ];
 
-    public function __construct(Team $team, StorageInterface $storageService)
+    public function __construct(Team $team, StorageInterface $storageService, PaymentServiceInterface $paymentService)
     {
         parent::__construct($team);
+        $this->paymentService = $paymentService;
         $this->storageService = $storageService;
     }
 
@@ -279,5 +289,118 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $maxPerPage = is_null($userFilters['max_team_per_page']) ? $teams->count() : $filters['max_team_per_page'];
 
         return new Paginate($teams, $maxPerPage, $filters['page'], 'teams');
+    }
+
+    public function trashedTeams(array $userFilters = []): Paginate
+    {
+
+        $teams = $this->model->onlyTrashed()->newQuery();
+
+        $filters = array_merge($this->defaultTeamListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+        // Search Filter
+        if (!is_null($filters['q'])) {
+            $teams = $teams->where(function ($q) use($filters) {
+                $q
+                    ->where('name', 'LIKE', '%' . $filters['q'] . '%');
+            });
+        }
+
+        if (!is_null($filters['seriestype'])) {
+            $teams->whereHas('series', function ($q) use ($filters) {
+                $q->where('type', 'LIKE', '%' . $filters['seriestype'] . '%');
+            });
+        }
+        
+
+        $teams = $teams->with('registration');
+
+        switch ($filters['sort']) {
+            case Filter::SORT_A_TO_Z:
+                $teams = $teams->orderBy('name');
+                break;
+
+            case Filter::SORT_Z_TO_A:
+                $teams = $teams->orderByDesc('name');
+                break;
+
+            case Filter::SORT_LATEST:
+                $teams = $teams->orderByDesc('updated_at');
+                break;
+
+
+            default:
+                $teams = $teams->orderBy('created_at');
+                break;
+        }
+
+        $maxPerPage = is_null($userFilters['max_team_per_page']) ? $teams->count() : $filters['max_team_per_page'];
+
+        return new Paginate($teams, $maxPerPage, $filters['page'], 'teams');
+    }
+
+    public function refundTeam(int $id): bool
+    {
+        $team = $this->find($id);
+
+        return DB::transaction(function() use($team) {
+
+            $teamregistration = TeamRegistration::find($team->registration_id);
+
+            $transaction_id = $team->registration->transaction_id;
+            $amount = $team->registration->price;
+            $method = $team->registration->payment_gateway;
+
+            $refund = $this->paymentService->registrationRefund($method, $transaction_id, $amount);  
+
+            $teamregistration->refund_id = $refund; 
+            $teamregistration->save();
+
+            // Decrement the team limit
+            $teamLimit = TeamLimit::where('series_id', $team->series_id)
+                ->whereHas('ageGroups', function ($query) use ($team) {
+                    $query->where('agegroup_id', $team->agegroup_id);
+                })
+                ->first();
+
+            if ($teamLimit) {
+                $teamLimit->teamcount -= 1;
+                $teamLimit->save();
+            }
+
+            return $team->delete();
+        });
+    }
+
+    public function cancelrefTeam(int $id): bool
+    {
+        $team = Team::withTrashed()->find($id);
+
+        return DB::transaction(function() use($team) {
+
+            $teamregistration = TeamRegistration::find($team->registration_id);
+
+            $method = $team->registration->payment_gateway;
+            $refund_id = $team->registration->refund_id;
+
+            $cancel = $this->paymentService->cancelRefund($method, $refund_id);  
+
+            $teamregistration->refund_id = $cancel; 
+            $teamregistration->save();
+
+            // Decrement the team limit
+            $teamLimit = TeamLimit::where('series_id', $team->series_id)
+                ->whereHas('ageGroups', function ($query) use ($team) {
+                    $query->where('agegroup_id', $team->agegroup_id);
+                })
+                ->first();
+
+            if ($teamLimit) {
+                $teamLimit->teamcount += 1;
+                $teamLimit->save();
+            }
+
+            return $team->restore();
+        });
     }
 }
