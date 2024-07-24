@@ -317,7 +317,6 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             }
 
             $cancel = $this->paymentService->cancelRefund($method, $refund_id);
-            dd($cancel);
 
             $playerregistration->refund_id = $cancel; 
             $playerregistration->save();
