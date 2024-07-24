@@ -298,6 +298,10 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
         $filters = array_merge($this->defaultTeamListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
+        $teams->whereHas('registration', function ($q) use ($filters) {
+            $q->whereNotNull('refund_id');
+        });
+
         // Search Filter
         if (!is_null($filters['q'])) {
             $teams = $teams->where(function ($q) use($filters) {
@@ -352,6 +356,10 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             $method = $team->registration->payment_gateway;
 
             $refund = $this->paymentService->registrationRefund($method, $transaction_id, $amount);  
+
+            if ($refund === null) {
+                throw new \Exception("Refund failed, refund ID is null.");
+            }
 
             $teamregistration->refund_id = $refund; 
             $teamregistration->save();
