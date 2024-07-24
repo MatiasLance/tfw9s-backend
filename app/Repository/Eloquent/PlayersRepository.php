@@ -234,11 +234,9 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
         $filters = array_merge($this->defaultPlayersListFilters, array_filter($playersFilters, fn($f) => !is_null($f)));
 
-        // if (!is_null($filters['withFixing'])) {
-        //    $players = $players->has('event');
-        // }
-
-        // Search Filter
+        $players->whereHas('registration', function ($q) use ($filters) {
+            $q->whereNotNull('refund_id');
+        });
 
         if (!is_null($filters['q'])) {
             $players = $players->where('contact_firstname', 'like', '%' . $filters['q'] . '%')
@@ -313,6 +311,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
             $method = $player->registration->payment_gateway;
             $refund_id = $player->registration->refund_id;
+
+            if ($refund === null) {
+                throw new \Exception("Refund failed, refund ID is null.");
+            }
 
             $cancel = $this->paymentService->cancelRefund($method, $refund_id);
             dd($cancel);
