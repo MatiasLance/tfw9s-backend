@@ -87,6 +87,12 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
          */
         'seriestype' => null,
 
+        /**
+         * Registered key
+         * When this value is null, this filter is skipped.
+         */
+        'isRegistered' => null,
+
     ];
 
     public function __construct(Team $team, StorageInterface $storageService, PaymentServiceInterface $paymentService)
@@ -115,6 +121,13 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
                 $q->where('type', 'LIKE', '%' . $filters['seriestype'] . '%');
             });
         }
+
+        if (!is_null($filters['isRegistered'])) {
+            $teams->whereHas('registration', function ($q) use ($filters) {
+                $q->whereNotNull('transaction_id');
+            });
+        }
+
         
 
         $teams = $teams->with('registration');
