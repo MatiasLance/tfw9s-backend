@@ -23,6 +23,7 @@ class TeamController extends Controller
         $page = $request->query('page', null);
         $seriestype = $request->query('seriestype', null);
         $maxTeamsPerPage = $request->query('maxTeamsPerPage', null);
+        $isRegistered = $request->query('isRegistered', null);
 
         $filter = [
             'q' => $query,
@@ -30,6 +31,7 @@ class TeamController extends Controller
             'page' => $page,
             'seriestype' => $seriestype,
             'max_team_per_page' => $maxTeamsPerPage,
+            'isRegistered' => $isRegistered,
         ];
 
         $teams = $this->teamService->listTeams($filter);

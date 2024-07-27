@@ -105,8 +105,12 @@ class IndividualRegistrationController extends Controller
 
         $response = [];
 
+        $updateParams = [
+            'amount' => $seriesItem['totalPrice'],
+        ];
+
         if ($paymentIntent) {
-            $response = $this->paymentService->updateAmount($paymentIntent, $seriesItem, $paymentMethod);
+            $response = $this->paymentService->updateAmount($paymentIntent, $updateParams, $paymentMethod);
         }
 
         return response()->json([

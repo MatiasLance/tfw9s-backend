@@ -26,6 +26,7 @@ class PlayersController extends Controller
         $agegroup = $request->query('agegroup', null);
         $withPlayers = $request->query('withPlayers', null);
         $maxPlayersPerPage = $request->query('maxPlayersPerPage', null);
+        $isRegistered = $request->query('isRegistered', null);
 
         $filter = [
             'q' => $query,
@@ -35,6 +36,7 @@ class PlayersController extends Controller
             'agegroup' => $agegroup,
             'withPlayers' => $withPlayers,
             'max_players_per_page' => $maxPlayersPerPage,
+            'isRegistered' => $isRegistered,
         ];
 
         $players = $this->playersService->listPlayers($filter);

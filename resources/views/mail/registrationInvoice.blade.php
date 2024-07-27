@@ -162,12 +162,20 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee;">
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666;  border-bottom: 1px solid #eeeeee;">
                                                     Total GST:
                                                 </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; border-bottom: 1px solid #eeeeee; text-align: right;">
                                                     GST Inclusive
                                                     {{-- ${{ number_format($order->totalGST, 2) }} --}}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee;">
+                                                    Discount:
+                                                </td>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
+                                                    {{ number_format((($order->item->price - $order->price) / $order->item->price) * 100) }}%
                                                 </td>
                                             </tr>
                                             <tr>

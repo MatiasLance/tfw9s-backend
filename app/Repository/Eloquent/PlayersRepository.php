@@ -85,6 +85,12 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
          * When this value is null, this filter is skipped.
          */
         'name' => null,
+
+        /**
+         * Registered key
+         * When this value is null, this filter is skipped.
+         */
+        'isRegistered' => null,
     ];
 
     public function __construct(Player $players, PaymentServiceInterface $paymentService)
@@ -126,6 +132,12 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
         if (!is_null($filters['agegroup'])) {
             $players = $players->where('agegroup', $filters['agegroup']);
+        }
+
+        if (!is_null($filters['isRegistered'])) {
+            $players->whereHas('registration', function ($q) use ($filters) {
+                $q->whereNotNull('transaction_id');
+            });
         }
 
         switch ($filters['sort']) {

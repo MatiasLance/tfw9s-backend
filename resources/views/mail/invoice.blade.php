@@ -200,32 +200,61 @@
                                             <tr>
                                                 <td rowspan="5" style="width: 55%;"></td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    Sub-Total:
+                                                    Discount:
                                                 </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
                                                 <?php
-                                                    $subTotal = $order->subTotal / ($taxValue / 100 + 1);
-                                                    $calculatedTaxAmount = $order->total - $subTotal;
-                                                    $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
+                                                    $itemtotal = $order->subTotal;
+                                                    $totalWithShipping = $order->total/100;
+                                                    $shipping = $order->shipping/100;
+                                                    $taxRate = $taxValue / 100;
+
+                                                    $discountedItemTotal = $taxToggle->toggleControl2 
+                                                    ? $totalWithShipping - $shipping
+                                                    : ($totalWithShipping - $shipping) / (1 + $taxRate);
+                                                    
+                                                    $totalWithShipping - $shipping;
+                                                    $discountAmount = $itemtotal - $discountedItemTotal;
+                                                    $discountRate = ($discountAmount / $itemtotal) * 100;
                                                 ?>
-                                                    ${{ number_format($order->subTotal, 2) }}
+                                                    {{ number_format($discountRate)}}%
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    Tax Value:
+                                                    Sub-Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format($taxAmount, 2) }}
+                                                    ${{ number_format($discountedItemTotal, 2) }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
+                                                    Shipping Fee:
+                                                </td>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
+                                                    ${{ number_format(($order->shipping/100), 2) }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
+                                                    GST:
+                                                </td>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
+                                                {{$taxToggle->toggleControl2 ? 'GST Inclusive' : 'GST Exclusive'}}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee;">
-                                                    Total GST:
+                                                    Tax Amount:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                    GST Inclusive
-                                                    {{-- ${{ number_format($order->totalGST, 2) }} --}}
+                                                    <?php
+                                                        $taxRate = $taxValue / 100;
+                                                        $calculatedTaxAmount = $discountedItemTotal * $taxRate;
+                                                        $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
+                                                    ?>
+                                                    ${{ number_format($taxAmount, 2) }}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -233,7 +262,7 @@
                                                     Order Total
                                                 </td>
                                                 <td style="font-size: 14px; font-weight: bold; line-height: 18px; color: #666666; padding-top: 10px; text-align: right; padding-bottom: 10px;">
-                                                    ${{ number_format($order->total, 2) }}
+                                                    ${{ number_format(($order->total/100), 2) }}
                                                 </td>
                                             </tr>
                                         </tbody>
