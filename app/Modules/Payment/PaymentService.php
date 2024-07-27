@@ -35,12 +35,6 @@ class PaymentService implements PaymentServiceInterface
         return $paymentGateway->createIndividualRegistration($discountcode, $item, $metadata);
     }
 
-    public function updateAmount(string $paymentIntent, array $seriesItem, string $gateway)
-    {
-        $paymentGateway = $this->getGateway($gateway);
-        return $paymentGateway->updateAmount($paymentIntent, $seriesItem);
-    }
-
     public function verifyIndividualRegistration(string $gateway, string $transactionId)
     {
         $paymentGateway = $this->getGateway($gateway);
@@ -73,6 +67,12 @@ class PaymentService implements PaymentServiceInterface
         }
 
         return App::makeWith($paymentGateway->getGatewayClass(), ['config' => $config]);
+    }
+
+    public function updateAmount(string $paymentIntent, array $updateParams, string $gateway)
+    {
+        $paymentGateway = $this->getGateway($gateway);
+        return $paymentGateway->updateAmount($paymentIntent, $updateParams);
     }
 
     public function registrationRefund(string $method, string $transaction_id, int $amount)

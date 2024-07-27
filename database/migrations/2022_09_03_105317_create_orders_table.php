@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->string('post_code')->nullable();
             $table->mediumText('remarks');
+            $table->integer('shipping')->default(0);
             $table->integer('total');
             $table->timestamps();
         });

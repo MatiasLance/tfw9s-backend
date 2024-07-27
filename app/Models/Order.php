@@ -50,14 +50,14 @@ class Order extends Model
         return $totalGST;
     }
 
-    public function getTotalAttribute()
-    {
-        $total = 0;
-        foreach ($this->items as $item) {
-            $total += $item->total;
-        }
-        return $total;
-    }
+    // public function getTotalAttribute()
+    // {
+    //     $total = 0;
+    //     foreach ($this->items as $item) {
+    //         $total += $item->total;
+    //     }
+    //     return $total;
+    // }
 
     public function items()
     {

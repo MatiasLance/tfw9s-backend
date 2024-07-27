@@ -16,6 +16,8 @@ use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Order\OrderServiceInterface;
 use App\Modules\Payment\PaymentServiceInterface;
 use Illuminate\Http\Request;
+use App\Models\Tax;
+use App\Models\ToggleTaxControl;
 
 class OrderController extends Controller
 {
@@ -108,6 +110,10 @@ class OrderController extends Controller
         $discountcode = $request->input('discountcode');
         $res = DiscountCode::where('code', $discountcode)->first();
 
+        $paymentIntent = $request->input('paymentIntent');
+        $paymentMethod = $request->input('payment_method');
+
+
         $lineItems = [];
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
@@ -143,8 +149,48 @@ class OrderController extends Controller
 
         $totalshipping = $this->calculateTotal($discountcode, $lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
 
+        $tax = Tax::find(1);
+        $master = ToggleTaxControl::find(1);
+        $taxAmount = 0;
+        $totalPrice = 0;
+
+        $addTax = $tax->addTaxValue;
+        $includeTax = $tax->includeTaxValue;
+        $isInclusive = $master->toggleControl2;
+
+        if (!$isInclusive) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
+            $totalPrice = intval($totalshipping['totalProduct'] + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive) {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
+            $totalPrice = intval($totalshipping['totalProduct'] );
+            $isInclusive = true;
+        } else {
+            $totalPrice = intval($totalshipping['totalProduct']);
+            $isInclusive = true;
+        }
+
+        $totalshipping['taxAmount'] = $taxAmount;
+
+        $response = [];
+
+        $itemSubtotal = $totalPrice + $totalshipping['totalShipping'];
+        $total = $itemSubtotal;
+
+        $updateParams = [
+            'amount' => $total,
+        ];
+
+        if ($paymentIntent) {
+            $response = $this->paymentService->updateAmount($paymentIntent, $updateParams, $paymentMethod);
+        }
+
         return response()->json([
-               'shippingCalculation' => $totalshipping
+               'shippingCalculation' => $totalshipping,
+               'paymentIntent' => $response
         ]);
 
     }
@@ -191,7 +237,7 @@ class OrderController extends Controller
 
         return [
            'totalProduct' => $total,
-           'totalShipping' => $tot
+           'totalShipping' => $tot,
         ];
 
     }

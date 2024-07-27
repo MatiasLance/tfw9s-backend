@@ -47,6 +47,7 @@ interface OrderRepositoryInterface
         ?string $address,
         ?string $postCode,
         ?string $remarks,
+        int $shippiing,
         int $total,
         array $items
     );

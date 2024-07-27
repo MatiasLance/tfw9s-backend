@@ -28,6 +28,7 @@ interface PaymentServiceInterface
      */
     public function createOrder($discountcode, string $gateway, array $items, array $metadata = [], $currency = null);
 
+
     /**
      * Verify a payment intent and check its status.
      *
@@ -45,15 +46,6 @@ interface PaymentServiceInterface
     public function createindividualregistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null);
 
     /**
-     * Update a payment intent
-     *
-     * @param string $paymentIntent ID to use
-     * @param array $seriesItem
-     * @param string gateway
-     */
-    public function updateAmount(string $paymentIntent, array $seriesItem, string $gateway);
-
-    /**
      * Verify a payment intent and check its status.
      *
      * @param string $gateway Payment gateway to use
@@ -68,6 +60,15 @@ interface PaymentServiceInterface
      * @param string $transactionId
      */
     public function verifyTeamRegistration(string $gateway, string $transactionId);
+
+    /**
+     * Update a payment intent
+     *
+     * @param string $paymentIntent ID to use
+     * @param array $updateParams
+     * @param string gateway
+     */
+    public function updateAmount(string $paymentIntent, array $updateParams, string $gateway);
 
     /**
      * Refund Registered request

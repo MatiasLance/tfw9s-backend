@@ -47,6 +47,7 @@ interface OrderServiceInterface
         ?string $address,
         ?string $postCode,
         ?string $remarks,
+        int $shipping,
         int $total,
         array $items
     );
