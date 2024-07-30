@@ -63,9 +63,9 @@ class TeamService implements TeamServiceInterface
         return $this->teamRepository->trashedTeams($filters);
     }
 
-    public function refundTeam(int $id): bool
+    public function refundTeam(int $id, int $amount): bool
     {
-        return $this->teamRepository->refundTeam($id);
+        return $this->teamRepository->refundTeam($id, $amount);
     }
 
     public function cancelrefTeam(int $id): bool

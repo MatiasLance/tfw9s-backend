@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('refund_id')->nullable();
             $table->string('payment_gateway');
             $table->integer('price');
+            $table->integer('refund')->default(0);
             $table->boolean('is_verified')->default(0);
             $table->timestamps();
         });

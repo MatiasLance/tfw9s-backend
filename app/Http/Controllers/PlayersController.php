@@ -179,9 +179,10 @@ class PlayersController extends Controller
         return $message->render();
     }
 
-    public function refund(Message $message, int $id)
+    public function refund(Request $request, Message $message, int $id)
     {
-        $refund = $this->playersService->refundPlayer($id);
+        $amount = $request->input('amount', null);
+        $refund = $this->playersService->refundPlayer($id, $amount);
 
         $message->setContent(200, 'Player refunded', '', [
             'refund' => $refund
