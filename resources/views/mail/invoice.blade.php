@@ -198,34 +198,12 @@
                                     <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #bbbbbb; margin-top: -5px;">
                                         <tbody>
                                             <tr>
-                                                <td rowspan="5" style="width: 55%;"></td>
+                                                <td rowspan="6" style="width: 55%;"></td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    Discount:
-                                                </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                <?php
-                                                    $itemtotal = $order->subTotal;
-                                                    $totalWithShipping = $order->total/100;
-                                                    $shipping = $order->shipping/100;
-                                                    $taxRate = $taxValue / 100;
-
-                                                    $discountedItemTotal = $taxToggle->toggleControl2 
-                                                    ? $totalWithShipping - $shipping
-                                                    : ($totalWithShipping - $shipping) / (1 + $taxRate);
-                                                    
-                                                    $totalWithShipping - $shipping;
-                                                    $discountAmount = $itemtotal - $discountedItemTotal;
-                                                    $discountRate = ($discountAmount / $itemtotal) * 100;
-                                                ?>
-                                                    {{ number_format($discountRate)}}%
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    Sub-Total:
+                                                    Sub-Total Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format($discountedItemTotal, 2) }}
+                                                    ${{ number_format($order->subTotal, 2) }}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -245,16 +223,40 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee;">
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
                                                     Tax Amount:
                                                 </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
                                                     <?php
                                                         $taxRate = $taxValue / 100;
-                                                        $calculatedTaxAmount = $discountedItemTotal * $taxRate;
+                                                        $calculatedTaxAmount = $order->subTotal * $taxRate;
                                                         $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
                                                     ?>
                                                     ${{ number_format($taxAmount, 2) }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                            <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee;">
+                                                    Discount:
+                                                </td>
+                                            <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
+                                                <?php
+                                                    $itemTotal = $order->subTotal;
+                                                    $discountedTotal = $order->total / 100;
+                                                    $shipping = $order->shipping / 100;
+                                                    $taxRate = $taxValue / 100;
+
+                                                    $taxAmount = $taxToggle->toggleControl2 ? 0 : ($itemTotal * $taxRate);
+
+                                                    $originalTotal = $taxToggle->toggleControl2 
+                                                        ? ($itemTotal + $shipping)
+                                                        : ($itemTotal + $shipping + $taxAmount);
+
+                                                    $discountAmount = $originalTotal - $discountedTotal;
+
+                                                    $discountRate = $originalTotal != 0 ? ($discountAmount / $originalTotal) * 100 : 0;
+                                                    ?>
+                                                    {{ number_format($discountRate) }}%
                                                 </td>
                                             </tr>
                                             <tr>
@@ -308,7 +310,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total, 2) }} is attached. Thank you for shopping with TFW Rugby League.
+                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total/100, 2) }} is attached. Thank you for shopping with TFW Rugby League.
                                                 </td>
                                             </tr>
                                         </tbody>
