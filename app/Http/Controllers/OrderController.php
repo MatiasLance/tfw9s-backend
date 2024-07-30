@@ -177,7 +177,13 @@ class OrderController extends Controller
 
         $response = [];
 
-        $itemSubtotal = $totalPrice + $totalshipping['totalShipping'];
+        if (!empty($discountcode)) {
+            $finalShipping = $totalshipping['totalShipping'] * (1 - $res->rate);
+        } else {
+            $finalShipping = $totalshipping['totalShipping'];
+        }
+
+        $itemSubtotal = $totalPrice + $finalShipping;
         $total = $itemSubtotal;
 
         $updateParams = [
@@ -190,7 +196,8 @@ class OrderController extends Controller
 
         return response()->json([
                'shippingCalculation' => $totalshipping,
-               'paymentIntent' => $response
+               'OverallTotal' => $total,
+               'paymentIntent' => $response,
         ]);
 
     }

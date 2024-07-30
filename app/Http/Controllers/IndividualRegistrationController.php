@@ -73,14 +73,16 @@ class IndividualRegistrationController extends Controller
             $taxRate = $addTax / 100;
             $price = $regularPrice * (1 - $res->rate);
             $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($price + $taxAmount);
+            $DiscountedTax = $price * $taxRate;
+            $totalPrice = intval($price + $DiscountedTax);
             $isInclusive = false;
         } elseif ($isInclusive && $hasDiscount) {
             $taxRate = $includeTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $price = $regularPrice * (1 - $res->rate);
             $totalPrice = intval($price);
-            $isInclusive = true; } elseif (!$isInclusive && !$hasDiscount) {
+            $isInclusive = true;
+        } elseif (!$isInclusive && !$hasDiscount) {
             $taxRate = $addTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice + $taxAmount);

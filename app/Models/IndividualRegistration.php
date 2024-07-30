@@ -21,6 +21,15 @@ class IndividualRegistration extends Model
         return $this->belongsTo(Series::class, 'item_id');
     }
 
+    public function getSubTotalAttribute()
+    {
+        $subtotal = 0;
+        foreach ($this->item as $item) {
+            $subtotal += $item->price;
+        }
+        return $subtotal;
+    }
+
     public function getOrderNumberAttribute()
     {
         return sprintf('%03d', $this->id);

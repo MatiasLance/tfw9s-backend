@@ -149,7 +149,15 @@
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    Tax Value:
+                                                    GST:
+                                                </td>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
+                                                    {{$taxToggle->toggleControl2 ? 'GST Inclusive' : 'GST Exclusive'}}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
+                                                    Tax Amount:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
                                                     <?php
@@ -162,20 +170,26 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666;  border-bottom: 1px solid #eeeeee;">
-                                                    Total GST:
-                                                </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                    GST Inclusive
-                                                    {{-- ${{ number_format($order->totalGST, 2) }} --}}
-                                                </td>
-                                            </tr>
-                                            <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee;">
                                                     Discount:
                                                 </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                    {{ number_format((($order->item->price - $order->price) / $order->item->price) * 100) }}%
+                                                <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; width: 130px; text-align: right;">
+                                                    <?php
+                                                        $itemtotal = $order->item->price/100;
+                                                        $taxRate = $taxValue / 100;
+                                                        $discountedTotal = $order->price / 100;
+
+                                                        $taxAmount = $taxToggle->toggleControl2 ? 0 : ($itemtotal * $taxRate);
+
+                                                        $originalTotal = $taxToggle->toggleControl2 
+                                                            ? ($itemtotal)
+                                                            : ($itemtotal + $taxAmount);
+    
+                                                        $discountAmount = $originalTotal - $discountedTotal;
+    
+                                                        $discountRate = $originalTotal != 0 ? ($discountAmount / $originalTotal) * 100 : 0;
+                                                    ?>
+                                                    {{ number_format($discountRate) }}%
                                                 </td>
                                             </tr>
                                             <tr>
@@ -183,7 +197,7 @@
                                                     Total payment
                                                 </td>
                                                 <td style="font-size: 14px; font-weight: bold; line-height: 18px; color: #666666; padding-top: 10px; text-align: right; padding-bottom: 10px;">
-                                                    ${{ number_format($order->price / 100, 2) }}
+                                                    ${{ number_format($discountedTotal, 2) }}
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -208,7 +222,7 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you for signing up with TFW Rugby League! Your registration has been successfully completed and confirmed. Attached is your invoice for ${{ number_format($order->total, 2) }}. We're grateful for your participation.
+                                                    Thank you for signing up with TFW Rugby League! Your registration has been successfully completed and confirmed. Attached is your invoice for ${{ number_format($discountedTotal, 2) }}. We're grateful for your participation.
                                                 </td>
                                             </tr>
                                         </tbody>
