@@ -112,10 +112,11 @@ interface PlayersServiceInterface
      * Refubnd an Player
      *
      * @param int $id
+     * @param int $amount
      *
      * @return Player
      */
-    public function refundPlayer(int $id): bool;
+    public function refundPlayer(int $id, int $amount): bool;
 
     /**
      * Cancel a Refund

@@ -100,9 +100,9 @@ class PlayersService implements PlayersServiceInterface
         return $this->playersRepository->trashedPlayers($filters);
     }
 
-    public function refundPlayer(int $id): bool
+    public function refundPlayer(int $id, int $amount): bool
     {
-        return $this->playersRepository->refundPlayer($id);
+        return $this->playersRepository->refundPlayer($id, $amount);
     }
 
     public function cancelrefPlayer(int $id): bool

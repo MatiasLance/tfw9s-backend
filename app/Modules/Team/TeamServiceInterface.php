@@ -90,10 +90,11 @@ interface TeamServiceInterface
      * Refubnd an Team
      *
      * @param int $id
+     * @param int $amount
      *
      * @return Team
      */
-    public function refundTeam(int $id): bool;
+    public function refundTeam(int $id, int $amount): bool;
 
     /**
      * Cancel a Refund

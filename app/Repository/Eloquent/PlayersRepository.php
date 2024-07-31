@@ -292,21 +292,21 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         return new Paginate($players, $maxPerPage, $filters['page'], 'players');
     }
 
-    public function refundPlayer(int $id): bool
+    public function refundPlayer(int $id, int $amount): bool
     {
         $player = $this->find($id);
 
-        return DB::transaction(function() use($player) {
+        return DB::transaction(function() use($player, $amount) {
 
             $playerregistration = IndividualRegistration::find($player->registration_id);
 
             $transaction_id = $player->registration->transaction_id;
-            $amount = $player->registration->price;
             $method = $player->registration->payment_gateway;
 
             $refund = $this->paymentService->registrationRefund($method, $transaction_id, $amount);  
 
             $playerregistration->refund_id = $refund; 
+            $playerregistration->refund = $amount; 
             $playerregistration->save();
 
             return $player->delete();

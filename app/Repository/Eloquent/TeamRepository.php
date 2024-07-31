@@ -356,16 +356,15 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         return new Paginate($teams, $maxPerPage, $filters['page'], 'teams');
     }
 
-    public function refundTeam(int $id): bool
+    public function refundTeam(int $id, int $amount): bool
     {
         $team = $this->find($id);
 
-        return DB::transaction(function() use($team) {
+        return DB::transaction(function() use($team, $amount) {
 
             $teamregistration = TeamRegistration::find($team->registration_id);
 
             $transaction_id = $team->registration->transaction_id;
-            $amount = $team->registration->price;
             $method = $team->registration->payment_gateway;
 
             $refund = $this->paymentService->registrationRefund($method, $transaction_id, $amount);  
@@ -374,7 +373,8 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
                 throw new \Exception("Refund failed, refund ID is null.");
             }
 
-            $teamregistration->refund_id = $refund; 
+            $teamregistration->refund_id = $refund;
+            $teamregistration->refund = $amount; 
             $teamregistration->save();
 
             // Decrement the team limit

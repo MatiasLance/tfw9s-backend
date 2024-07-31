@@ -213,9 +213,11 @@ class TeamController extends Controller
         return $message->render();
     }
 
-    public function refund(Message $message, int $id)
+    public function refund(Request $request, Message $message, int $id)
     {
-        $refund = $this->teamService->refundTeam($id);
+        $amount = $request->input('amount', null);
+
+        $refund = $this->teamService->refundTeam($id, $amount);
 
         $message->setContent(200, 'Team refunded', '', [
             'refund success:' => $refund
