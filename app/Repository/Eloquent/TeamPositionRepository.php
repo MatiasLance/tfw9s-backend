@@ -119,10 +119,15 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
         if (!is_null($filters['series']) || !is_null($filters['agegroup'])) {
             $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
                 if (!is_null($filters['series'])) {
-                    $q->where('series_id', 'LIKE', '%' . $filters['series'] . '%');
+                    $q->where('series_id', '=', $filters['series']);
                 }
+            });
+        }
+
+        if (!is_null($filters['agegroup']) || !is_null($filters['agegroup'])) {
+            $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
                 if (!is_null($filters['agegroup'])) {
-                    $q->where('agegroup_id', 'LIKE', '%' . $filters['agegroup'] . '%');
+                    $q->where('agegroup_id', '=', $filters['agegroup']);
                 }
             });
         }
