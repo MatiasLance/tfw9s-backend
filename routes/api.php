@@ -149,10 +149,6 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
         });
 
-        Route::prefix("eventmatches")->group(function() {
-            Route::post('/{id}', 'App\Http\Controllers\EventMatchController@result');
-        });
-
     });
 });
 

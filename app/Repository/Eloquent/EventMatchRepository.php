@@ -179,42 +179,47 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id) {
             $eventMatch->save();
 
-            $t1OldScore = $eventMatch->team1_oldScore;
-            $t2OldScore = $eventMatch->team2_oldScore;
-            $t1score = $eventMatch->team1_score;
-            $t2score = $eventMatch->team2_score;
-            $updatedFor1 = $t1OldScore - $t1score;
-            $updatedFor2 = $t2OldScore - $t2score;
-
-            $addWinCount1 = 'win + ' . 0;
-            $addWinCount2 = 'win + ' . 0;
-            $addLoseCount1 = 'loss + ' . 0;
-            $addLoseCount2 = 'loss + ' . 0;
-            $addDrawCount1 = 'draw + ' . 0;
-            $addDrawCount2 = 'draw + ' . 0;
-
             if ($eventMatch->submitted) {
+                
+                $t1OldScore = $eventMatch->team1_oldScore;
+                $t2OldScore = $eventMatch->team2_oldScore;
+                $t1score = $eventMatch->team1_score;
+                $t2score = $eventMatch->team2_score;
+                $updatedFor1 = $t1score - $t1OldScore;
+                $updatedFor2 = $t2score - $t2OldScore;
+
+                $addWinCount1 = 'win + ' . 0;
+                $addWinCount2 = 'win + ' . 0;
+                $addLoseCount1 = 'loss + ' . 0;
+                $addLoseCount2 = 'loss + ' . 0;
+                $addDrawCount1 = 'draw + ' . 0;
+                $addDrawCount2 = 'draw + ' . 0;
 
                 if ($team1_score > $team2_score) {
                     if ($t1OldScore > $t2OldScore) {
-                        $addWinCount1 = 'win - ' . 1;
-                        $addWinCount2 = 'win + ' . 1;
-                        $addLoseCount1 = 'loss + ' . 1;
-                        $addLoseCount2 = 'loss - ' . 1;
+                        $addWinCount1 = 'win + ' . 0;
+                        $addWinCount2 = 'win + ' . 0;
+                        $addLoseCount1 = 'loss + ' . 0;
+                        $addLoseCount2 = 'loss + ' . 0;
                         $addDrawCount1 = 'draw + ' . 0;
                         $addDrawCount2 = 'draw + ' . 0;
-                    }
-
-                    if ($t2OldScore > $t1OldScore) {
+                    } elseif ($t1OldScore < $t2OldScore) {
                         $addWinCount1 = 'win + ' . 1;
                         $addWinCount2 = 'win - ' . 1;
                         $addLoseCount1 = 'loss - ' . 1;
                         $addLoseCount2 = 'loss + ' . 1;
                         $addDrawCount1 = 'draw + ' . 0;
                         $addDrawCount2 = 'draw + ' . 0;
+                    } else {
+                        $addWinCount1 = 'win + ' . 1;
+                        $addWinCount2 = 'win + ' . 0;
+                        $addLoseCount1 = 'loss + ' . 0;
+                        $addLoseCount2 = 'loss + ' . 1;
+                        $addDrawCount1 = 'draw - ' . 1;
+                        $addDrawCount2 = 'draw - ' . 1;
                     }
 
-                } elseif ($team2_score > $team1_score) {
+                } elseif ($team1_score < $team2_score) {
                      if ($t1OldScore > $t2OldScore) {
                         $addWinCount1 = 'win - ' . 1;
                         $addWinCount2 = 'win + ' . 1;
@@ -222,53 +227,14 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
                         $addLoseCount2 = 'loss - ' . 1;
                         $addDrawCount1 = 'draw + ' . 0;
                         $addDrawCount2 = 'draw + ' . 0;
-                    }
-
-                    if ($t2OldScore > $t1OldScore) {
-                        $addWinCount1 = 'win + ' . 1;
-                        $addWinCount2 = 'win - ' . 1;
-                        $addLoseCount1 = 'loss - ' . 1;
-                        $addLoseCount2 = 'loss + ' . 1;
-                        $addDrawCount1 = 'draw + ' . 0;
-                        $addDrawCount2 = 'draw + ' . 0;
-                    }
-                } else {
-                    $addWinCount1 = 'win + ' . 0;
-                    $addWinCount2 = 'win + ' . 0;
-                    $addLoseCount1 = 'loss + ' . 0;
-                    $addLoseCount2 = 'loss + ' . 0;
-                    $addDrawCount1 = 'draw + ' . 0;
-                    $addDrawCount2 = 'draw + ' . 0;
-                }
-
-                if ($t1OldScore == $t1score) {
-                    $addWinCount1 = 'win + ' . 0;
-                    $addWinCount2 = 'win + ' . 0;
-                    $addLoseCount1 = 'loss + ' . 0;
-                    $addLoseCount2 = 'loss + ' . 0;
-                    $addDrawCount1 = 'draw + ' . 0;
-                    $addDrawCount2 = 'draw + ' . 0;
-                }
-
-                if ($t2OldScore == $t2score) {
-                    $addWinCount1 = 'win + ' . 0;
-                    $addWinCount2 = 'win + ' . 0;
-                    $addLoseCount1 = 'loss + ' . 0;
-                    $addLoseCount2 = 'loss + ' . 0;
-                    $addDrawCount1 = 'draw + ' . 0;
-                    $addDrawCount2 = 'draw + ' . 0;
-                }
-
-                if ($t1OldScore == $t2OldScore) {
-                    if ($t1score > $t2score) {
-                        $addWinCount1 = 'win + ' . 1;
+                    } elseif ($t1OldScore < $t2OldScore) {
+                        $addWinCount1 = 'win + ' . 0;
                         $addWinCount2 = 'win + ' . 0;
                         $addLoseCount1 = 'loss + ' . 0;
-                        $addLoseCount2 = 'loss + ' . 1;
-                        $addDrawCount1 = 'draw - ' . 1;
-                        $addDrawCount2 = 'draw - ' . 1;
-                    }
-                    if ($t2score > $t1score) {
+                        $addLoseCount2 = 'loss + ' . 0;
+                        $addDrawCount1 = 'draw + ' . 0;
+                        $addDrawCount2 = 'draw + ' . 0;
+                    } else {
                         $addWinCount1 = 'win + ' . 0;
                         $addWinCount2 = 'win + ' . 1;
                         $addLoseCount1 = 'loss + ' . 1;
@@ -276,9 +242,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
                         $addDrawCount1 = 'draw - ' . 1;
                         $addDrawCount2 = 'draw - ' . 1;
                     }
-                }
-
-                if ($t1score == $t2score) {
+                } else {
                     if ($t1OldScore > $t2OldScore) {
                         $addWinCount1 = 'win - ' . 1;
                         $addWinCount2 = 'win + ' . 0;
@@ -286,37 +250,20 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
                         $addLoseCount2 = 'loss - ' . 1;
                         $addDrawCount1 = 'draw + ' . 1;
                         $addDrawCount2 = 'draw + ' . 1;
-                    }
-
-                    if ($t2OldScore > $t1OldScore) {
+                    } elseif ($t1OldScore < $t2OldScore) {
                         $addWinCount1 = 'win + ' . 0;
                         $addWinCount2 = 'win - ' . 1;
                         $addLoseCount1 = 'loss - ' . 1;
                         $addLoseCount2 = 'loss + ' . 0;
                         $addDrawCount1 = 'draw + ' . 1;
                         $addDrawCount2 = 'draw + ' . 1;
-                    }
-
-                    if ($t1OldScore == $t2OldScore) {
-                        if ($t1score == $t2score) {
-                            if($t1OldScore > $t1score) {
-                                $addWinCount1 = 'win + ' . 0;
-                                $addWinCount2 = 'win + ' . 0;
-                                $addLoseCount1 = 'loss + ' . 0;
-                                $addLoseCount2 = 'loss + ' . 0;
-                                $addDrawCount1 = 'draw + ' . 0;
-                                $addDrawCount2 = 'draw + ' . 0;
-                            }
-
-                            if($t2OldScore > $t2score) {
-                                $addWinCount1 = 'win + ' . 0;
-                                $addWinCount2 = 'win + ' . 0;
-                                $addLoseCount1 = 'loss + ' . 0;
-                                $addLoseCount2 = 'loss + ' . 0;
-                                $addDrawCount1 = 'draw + ' . 0;
-                                $addDrawCount2 = 'draw + ' . 0;
-                            }
-                        }
+                    } else {
+                        $addWinCount1 = 'win + ' . 0;
+                        $addWinCount2 = 'win + ' . 0;
+                        $addLoseCount1 = 'loss + ' . 0;
+                        $addLoseCount2 = 'loss + ' . 0;
+                        $addDrawCount1 = 'draw + ' . 0;
+                        $addDrawCount2 = 'draw + ' . 0;
                     }
                 }
 
@@ -326,9 +273,9 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
                         'win' => DB::raw($addWinCount1),
                         'loss' => DB::raw($addLoseCount1),
                         'draw' => DB::raw($addDrawCount1),
-                        'for' => DB::raw('`for` - ' . $updatedFor1),
-                        'against' => DB::raw('`against` - ' . $updatedFor2),
-                        'difference' => DB::raw('(`for` - ' . $updatedFor1 . ') - (`against` - ' . $updatedFor1 . ')'),
+                        'for' => DB::raw('`for` + ' . $updatedFor1),
+                        'against' => DB::raw('`against` + ' . $updatedFor2),
+                        'difference' => DB::raw('(`for` + ' . $updatedFor1 . ') - (`against` + ' . $updatedFor2 . ')'),
                         'points' => DB::raw('(win * 2) + (draw * 1)'),
                     ]);
 
@@ -338,9 +285,9 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
                         'win' => DB::raw($addWinCount2),
                         'loss' => DB::raw($addLoseCount2),
                         'draw' => DB::raw($addDrawCount2),
-                        'for' => DB::raw('`for` - ' . $updatedFor2),
-                        'against' => DB::raw('`against` - ' . $updatedFor1),
-                        'difference' => DB::raw('(`for` - ' . $updatedFor2 . ') - (`against` - ' . $updatedFor2 . ')'),
+                        'for' => DB::raw('`for` + ' . $updatedFor2),
+                        'against' => DB::raw('`against` + ' . $updatedFor1),
+                        'difference' => DB::raw('(`for` + ' . $updatedFor2 . ') - (`against` + ' . $updatedFor1 . ')'),
                         'points' => DB::raw('(win * 2) + (draw * 1)'),
                     ]);
             }
