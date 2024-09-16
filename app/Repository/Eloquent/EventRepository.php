@@ -109,6 +109,26 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
         $filters = array_merge($this->defaultEventListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
+        if (!is_null($filters['q'])) {
+            $events = $events->where(function ($query) use ($filters) {
+                $query->whereHas('eventmatch', function ($q) use ($filters) {
+                    $q->whereHas('team1', function ($query) use ($filters) {
+                        $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
+                    })
+                    ->orWhereHas('team2', function ($query) use ($filters) {
+                        $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
+                    });
+                })
+                ->orWhereHas('series', function ($query) use ($filters) {
+                    $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
+                })
+                ->orWhereHas('agegroup', function ($query) use ($filters) {
+                    $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
+                });
+            });
+        }
+        
+
         // Event Date Filter
         if (!is_null($filters['event_date'])) {
             $events = $events->where(function ($q) use($filters) {
