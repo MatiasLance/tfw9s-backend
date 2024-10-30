@@ -13,6 +13,7 @@ use App\Repository\EventMatchRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class EventMatchRepository extends BaseRepository implements EventMatchRepositoryInterface
 {
@@ -299,6 +300,10 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
     {
         $eventMatch = $this->find($id);
         $event_id = $eventMatch->event_id;
+
+        if($eventMatch->submitted){
+            return false;
+        }
 
         $eventMatch->team1_oldScore = $eventMatch->team1_score;
         $eventMatch->team2_oldScore = $eventMatch->team2_score;
