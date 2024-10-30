@@ -74,7 +74,7 @@ class EventMatchController extends Controller
         if ($isSuccess) {
             $message->setContent(200, 'Result updated');
         } else {
-            $message->setContent(400, 'Result not updated');
+            $message->setContent(400, 'The result has already been submitted.');
         }
 
         return $message->render();
