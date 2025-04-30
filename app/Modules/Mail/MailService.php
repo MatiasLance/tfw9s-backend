@@ -11,6 +11,9 @@ use App\Models\Order;
 use App\Models\IndividualRegistration;
 use App\Models\TeamRegistration;
 use GuzzleHttp\Client;
+use App\Mail\RegistrationLink;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class MailService implements MailServiceInterface
 {
@@ -76,6 +79,17 @@ class MailService implements MailServiceInterface
         $this->send([$userEmail], $subject, $content);
     }
 
+    public function sendCoachSeriesNotification(string $coachEmail, string $seriesName, string $link)
+    {
+        $mail = new RegistrationLink($seriesName, $link);
+        $content = $mail->render();
+
+        $subject = 'New Series Created: ' . $seriesName;
+
+        $this->send([$coachEmail], $subject, $content);
+        // Mail::to($coachEmail)->send($mail);
+    }
+
     /**
      * Sends the mail to the email relay server.
      *
@@ -100,6 +114,11 @@ class MailService implements MailServiceInterface
                 'attachments' => [],
             ],
         ]);
+
+        // Log::info('SMTP relay response', [
+        //     'status' => $response->getStatusCode(),
+        //     'body' => $response->getBody()->getContents()
+        // ]);
 
         return $response->getStatusCode() === 200;
     }

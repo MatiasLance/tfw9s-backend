@@ -27,6 +27,7 @@ use App\Modules\Payment\PaymentGateway;
 use App\Modules\Payment\PaymentStatus;
 use Stripe\PaymentIntent;
 use Stripe\StripeClient;
+use App\Models\IndividualRegistration;
 
 class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -299,7 +300,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             $registrationInformation = $paymentIntent->metadata;
 
             $lineItem = json_decode($registrationInformation->line_item, true);
-
+            
             $seriesRegistered = $this->individualRegistrationService->create(
                                             $paymentIntent->id,
                                             self::GATEWAY,
@@ -319,6 +320,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
             if (!$seriesRegistered->is_verified) {
                 $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+                $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
 
                 $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
             }
@@ -581,4 +583,19 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         }
     }
     
+    private function incrementMaxRegistrationIfAllowed(int $seriesId): void
+    {
+        $series = Series::with('ageGroup')->findOrFail($seriesId);
+    
+        if ($series->type !== 'weekly' || !$series->ageGroup) {
+            return;
+        }
+    
+        $maxAge = $series->ageGroup->max_age;
+        $cap = ($maxAge <= 9) ? 12 : 15;
+    
+        if ($series->max_registration < $cap) {
+            $series->increment('max_registration');
+        }
+    }    
 }

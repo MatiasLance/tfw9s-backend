@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use DateTime;
+use App\Modules\Mail\MailService;
 
 class SeriesRepository extends BaseRepository implements seriesRepositoryInterface
 {
@@ -24,6 +25,8 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
     protected StorageInterface $storageService;
 
     protected TeamLimitServiceInterface $teamLimitService;
+
+    protected MailService $mailService;
 
     /**
      * Default filters for retrieving list of series
@@ -88,16 +91,17 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         'is_paused' => null,
     ];
 
-    public function __construct(Series $series, StorageInterface $storageService, TeamLimitServiceInterface $teamLimitService)
+    public function __construct(Series $series, StorageInterface $storageService, TeamLimitServiceInterface $teamLimitService, MailService $mailService)
     {
         parent::__construct($series);
         $this->storageService = $storageService;
         $this->teamLimitService = $teamLimitService;
+        $this->mailService = $mailService;
     }
 
     public function listSeries(array $userFilters = []): Paginate
     {
-        $series = $this->model->query();
+        $series = $this->model->query()->with('ageGroup');
 
         $filters = array_merge($this->defaultSeriesListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -147,16 +151,17 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         }
 
         $maxPerPage = is_null($userFilters['max_series_per_page']) ? $series->count() : $filters['max_series_per_page'];
-
+        
         return new Paginate($series, $maxPerPage, $filters['page'], 'series');
     }
 
     public function retrieveSeries(int $id): Series
     {
-        return Series::find($id);
-    }
+        $series = Series::with('ageGroup')->where('id', $id)->first();
+        return $series;
+    }    
 
-    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): Series
+    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media, string $coachEmail, ?int $ageGroup): Series
     {
         $series = new Series();
         $series->name = $name;
@@ -166,6 +171,8 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->start = $start;
         $series->end = $end;
         $series->price = $price;
+        $series->coach_email = $coachEmail;
+        $series->agegroup_id = $ageGroup;
 
         return DB::transaction(function() use($series, $media, $type) {
             $series->save();
@@ -182,11 +189,19 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                 }
             }
 
+            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price);
+
+            $this->mailService->sendCoachSeriesNotification(
+                coachEmail: $series->coach_email,
+                seriesName: $series->name,
+                link: $link
+            );
+
             return $series;
         });
     }
 
-    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): bool
+    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media, string $coachEmail, ?int $ageGroup): bool
     {
         $series = $this->find($id);
         $series->name = $name;
@@ -196,6 +211,8 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->start = $start;
         $series->end = $end;
         $series->price = $price;
+        $series->coach_email = $coachEmail;
+        $series->agegroup_id = $ageGroup;
 
         return DB::transaction(function() use($series, $media) {
 
@@ -224,6 +241,14 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     $series->media()->save($Image);
                 }
             }
+
+            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price);
+
+            $this->mailService->sendCoachSeriesNotification(
+                coachEmail: $series->coach_email,
+                seriesName: $series->name,
+                link: $link
+            );
 
             return $series->save();
         });
