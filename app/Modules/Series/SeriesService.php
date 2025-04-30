@@ -33,14 +33,14 @@ class SeriesService implements SeriesServiceInterface
         return $this->seriesRepository->retrieveSeries($id);
     }
 
-    public function createSeries($name, $type, $description, $address, $start, $end, $price, $media): Series
+    public function createSeries($name, $type, $description, $address, $start, $end, $price, $media, $coachEmail, $ageGroup): Series
     {
-        return $this->seriesRepository->createSeries($name, $type, $description, $address, $start, $end, $price, $media);
+        return $this->seriesRepository->createSeries($name, $type, $description, $address, $start, $end, $price, $media, $coachEmail, $ageGroup);
     }
 
-    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): bool
+    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media, string $coachEmail, ?int $ageGroup): bool
     {
-        return $this->seriesRepository->updateSeries($id, $name, $type, $description, $address, $start, $end, $price, $media);
+        return $this->seriesRepository->updateSeries($id, $name, $type, $description, $address, $start, $end, $price, $media, $coachEmail, $ageGroup);
     }
 
     public function deleteSeries(User $initiator, Series $series): bool

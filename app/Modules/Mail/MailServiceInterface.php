@@ -43,4 +43,12 @@ interface MailServiceInterface
      * @param string $userEmail
      */
     public function sendPasswordResetLink(array $data, string $userEmail);
+
+    /**
+     * Send the coach a notification about the series
+     *
+     * @param string $seriesName
+     * @param string $link
+     */
+     public function sendCoachSeriesNotification(string $coachEmail, string $seriesName, string $link);
 }

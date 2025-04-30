@@ -66,12 +66,14 @@ class SeriesController extends Controller
         $startdatestring = $request->input('start');
         $enddatestring = $request->input('end');
         $price = $request->input('price');
-
+        $coachEmail = $request->input('coach_email') ?? '';
+        $ageGroup = $request->input('agegroup_id');
+        // dd($ageGroup);
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
         $media = $request->file('photo') ?? [];
 
-        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end, $price, $media);
+        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end, $price, $media, $coachEmail, $ageGroup);
 
         if ($series instanceof Series) {
             $message->setContent(201, 'Series created', '', [
@@ -93,6 +95,8 @@ class SeriesController extends Controller
         $startdatestring = $request->input('start');
         $enddatestring = $request->input('end');
         $price = $request->input('price');
+        $coachEmail = $request->input('coach_email') ?? '';
+        $ageGroup = $request->input('agegroup_id');
 
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
@@ -117,7 +121,7 @@ class SeriesController extends Controller
             $media = null;
         }
 
-        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end, $price, $media);
+        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end, $price, $media, $coachEmail, $ageGroup);
 
         if ($isSuccess) {
             $message->setContent(200, 'Series updated');

@@ -60,6 +60,11 @@ class Series extends Model
         return $this->hasMany(TeamRegistration::class);
     }
 
+    public function ageGroup()
+    {
+        return $this->belongsTo(AgeGroup::class, 'agegroup_id');
+    }
+
     public function getThumbnailAttribute()
     {
         $media = $this->media;
