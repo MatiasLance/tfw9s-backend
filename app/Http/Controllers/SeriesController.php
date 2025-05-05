@@ -68,7 +68,7 @@ class SeriesController extends Controller
         $price = $request->input('price');
         $coachEmail = $request->input('coach_email') ?? '';
         $ageGroup = $request->input('agegroup_id');
-        // dd($ageGroup);
+
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
         $media = $request->file('photo') ?? [];

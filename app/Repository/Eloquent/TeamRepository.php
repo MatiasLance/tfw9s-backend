@@ -161,7 +161,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         return Team::find($id);
     }
 
-    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): Team
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type): Team
     {
         $team = new Team();
         $team->name = $name;
@@ -174,12 +174,18 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_mobile = $manager['mobile'];
         $team->manager_email = $manager['email'];
 
-
-        $teamLimit = TeamLimit::where('series_id', $series_id)
-            ->whereHas('ageGroups', function ($query) use ($agegroup_id) {
-            $query->where('agegroup_id', $agegroup_id);
-        })
-        ->first();
+        $teamLimit = null;
+        if (in_array($type, ['tournament', 'cost'])) {
+            $teamLimit = TeamLimit::where('series_id', $series_id)
+                ->whereHas('ageGroups', function ($query) use ($agegroup_id) {
+                    $query->where('agegroup_id', $agegroup_id);
+                })
+                ->first();
+    
+            if (!$teamLimit) {
+                throw new \Exception("Team limit not found for this series and age group.");
+            }
+        }    
 
         return DB::transaction(function() use($team, $media, $teamLimit) {
             $team->save();
@@ -192,8 +198,10 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
                 }
             }
 
-            $teamLimit->teamcount += 1;
-            $teamLimit->save();
+            if ($teamLimit) {
+                $teamLimit->teamcount += 1;
+                $teamLimit->save();
+            }
 
             return $team;
         });

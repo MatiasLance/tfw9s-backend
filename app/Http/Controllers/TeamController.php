@@ -57,6 +57,7 @@ class TeamController extends Controller
         $name = $request->input('name');
         $agegroup_id = $request->input('agegroup_id');
         $series_id = $request->input('series_id');
+        $type = $request->input('type');
 
         $coach_name = $request->input('coach_name');
         $coach_mobile = $request->input('coach_mobile');
@@ -80,7 +81,7 @@ class TeamController extends Controller
 
         $media = $request->file('photo') ?? [];
 
-        $team = $this->teamService->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media);
+        $team = $this->teamService->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media, $type);
 
         // $team = $this->teamService->createTeam($name, $field_id, $agegroup_id, $media);
 
