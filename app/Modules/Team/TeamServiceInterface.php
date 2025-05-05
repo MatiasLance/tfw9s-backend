@@ -41,7 +41,7 @@ interface TeamServiceInterface
      */
 
     /*public function createTeam(string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): Team; */
-    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): Team;
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type): Team;
 
     /**
      * Update an existing Team
