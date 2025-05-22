@@ -55,9 +55,10 @@ class TeamController extends Controller
     public function store(Request $request, Message $message)
     {
         $name = $request->input('name');
-        $agegroup_id = $request->input('agegroup_id');
+        $agegroup_id = (int)$request->input('agegroup_id');
         $series_id = $request->input('series_id');
-        $type = $request->input('type');
+        $region_id = $request->input('region_id');
+        $type = $request->input('type', 'default');
 
         $coach_name = $request->input('coach_name');
         $coach_mobile = $request->input('coach_mobile');
@@ -81,7 +82,7 @@ class TeamController extends Controller
 
         $media = $request->file('photo') ?? [];
 
-        $team = $this->teamService->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media, $type);
+        $team = $this->teamService->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media, $type, $region_id);
 
         // $team = $this->teamService->createTeam($name, $field_id, $agegroup_id, $media);
 
@@ -101,6 +102,7 @@ class TeamController extends Controller
         $name = $request->input('name');
         $agegroup_id = $request->input('agegroup_id');
         $series_id = $request->input('series_id');
+        $region_id = $request->input('region_id');
 
         $coach_name = $request->input('coach_name');
         $coach_mobile = $request->input('coach_mobile');
@@ -142,7 +144,7 @@ class TeamController extends Controller
             $media = null;
         }
 
-        $isSuccess = $this->teamService->updateTeam($id, $name, $agegroup_id, $series_id, $coach, $manager, $media);
+        $isSuccess = $this->teamService->updateTeam($id, $name, $agegroup_id, $series_id, $coach, $manager, $media, $region_id);
 
         if ($isSuccess) {
             $message->setContent(200, 'Team updated');
@@ -238,5 +240,3 @@ class TeamController extends Controller
         return $message->render();
     }
 }
-
-
