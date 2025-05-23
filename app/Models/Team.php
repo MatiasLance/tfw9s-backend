@@ -21,7 +21,8 @@ class Team extends Model
         'media',
         'field',
         'agegroup',
-        'series'
+        'series',
+        'region'
     ];
 
     public function series()
@@ -48,4 +49,24 @@ class Team extends Model
     {
         return $this->belongsTo(TeamRegistration::class);
     }
+        public function region()
+    {
+        return $this->belongsTo(Region::class, 'region_id');
+    }
+    public function listTeams(array $filter)
+{
+    $query = Team::query()
+        ->with(['agegroup', 'series', 'region', 'field', 'media'])
+        ->orderBy('name');
+
+    if (!empty($filter['q'])) {
+        $query->where('name', 'like', '%'.$filter['q'].'%');
+    }
+
+    if (!empty($filter['max_team_per_page'])) {
+        return $query->paginate($filter['max_team_per_page']);
+    }
+
+    return $query->get();
+}
 }

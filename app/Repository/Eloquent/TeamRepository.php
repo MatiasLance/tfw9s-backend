@@ -161,7 +161,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         return Team::find($id);
     }
 
-    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type): Team
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id): Team
     {
         $team = new Team();
         $team->name = $name;
@@ -173,6 +173,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_name = $manager['name'];
         $team->manager_mobile = $manager['mobile'];
         $team->manager_email = $manager['email'];
+        $team->region_id = $region_id;
 
         $teamLimit = null;
         if (in_array($type, ['tournament', 'cost'])) {
@@ -207,11 +208,12 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         });
     }
 
-    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media): bool
+    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id): bool
     {
         $team = $this->find($id);
         $oldAgegroupId = $team->agegroup_id;
         $oldSeriesId = $team->series_id;
+        $oldRegionId = $team->region_id;
 
         $team->name = $name;
         $team->agegroup_id = $agegroup_id;
@@ -222,8 +224,9 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_name = $manager['name'];
         $team->manager_mobile = $manager['mobile'];
         $team->manager_email = $manager['email'];
+        $team->region_id = $region_id;
 
-        return DB::transaction(function() use($team, $media, $oldAgegroupId, $oldSeriesId) {
+        return DB::transaction(function() use($team, $media, $oldAgegroupId, $oldSeriesId, $oldRegionId) {
             if (!is_null($media)) {
                 $newMedia = array_filter($media, function ($file) {
                     return $file instanceof UploadedFile;

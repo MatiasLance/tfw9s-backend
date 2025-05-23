@@ -26,6 +26,7 @@ class TeamPositionController extends Controller
         $year = $request->query('year', null);
         $agegroup = $request->query('agegroup', null);
         $series = $request->query('series', null);
+        $region = $request->query('region', null);
 
         $filter = [
             'q' => $query,
@@ -36,6 +37,7 @@ class TeamPositionController extends Controller
             'year' => $year,
             'agegroup' => $agegroup,
             'series' => $series,
+            'region' => $region,
         ];
 
         $teamPositions = $this->teamPositionService->listTeamPositions($filter);
@@ -57,6 +59,3 @@ class TeamPositionController extends Controller
     }
 
 }
-
-
-
