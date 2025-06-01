@@ -50,11 +50,17 @@ class IndivRegistrationInvoice extends Mailable
         $toggleTax = ToggleTaxControl::firstOrFail();
 
         $taxValue = $toggleTax->toggleControl1 ? $tax->addTaxValue : $tax->includeTaxValue;
+        $payload = [];
+        $payload['target'] = $this->individualRegistration->id;
+        $payload['type'] = $this->individualRegistration->item->type;
+        $encryptedToken = encrypt($payload);
+        $url = env('APP_URL') . '/transaction/?key=' . $encryptedToken;
 
         return $this
                 ->subject('Invoice')
                 ->view('mail.registrationInvoice')
                 ->with([
+                    'url' => $url,
                     'order' => $this->individualRegistration,
                     'taxValue' => $taxValue,
                     'taxToggle' => $toggleTax,

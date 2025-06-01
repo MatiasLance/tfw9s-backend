@@ -31,6 +31,14 @@ class IndividualRegistrationController extends Controller
         $paymentMethod = $request->input('payment_method');
         $discountcode = $request->input('discountcode');
 
+            $photo = null;
+    if ($request->hasFile('photo')) {
+        $photo = [
+            'file' => $request->file('photo'),
+            'type' => 'photo'
+        ];
+    }
+
         return $this->paymentService->createIndividualRegistration($discountcode, $paymentMethod, $item, $metadata);
     }
 

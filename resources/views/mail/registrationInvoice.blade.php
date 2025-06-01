@@ -225,6 +225,24 @@
                                                     Thank you for signing up with TFW Rugby League! Your registration has been successfully completed and confirmed. Attached is your invoice for ${{ number_format($discountedTotal, 2) }}. We're grateful for your participation.
                                                 </td>
                                             </tr>
+                                            <tr>
+                                                <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
+                                                    <a
+                                                    href="{{ $url }}"
+                                                    style="display: inline-block;
+                                                        font-size: 16px;
+                                                        font-weight: bold;
+                                                        color: white;
+                                                        background-color: green;
+                                                        padding: 8px 16px;
+                                                        text-decoration: none;
+                                                        border-radius: 5px;"
+                                                    class="button"
+                                                    target="_blank">
+                                                        Show Registration
+                                                    </a>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </td>

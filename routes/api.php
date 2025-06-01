@@ -96,6 +96,11 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
 });
 
 Route::prefix('v1')->group(function () { // API v1 Endpoints
+    Route::prefix('transaction')->group(function () { // Item API Endpoints
+        Route::get('/retrieve/{key}', 'App\Http\Controllers\TransactionController@retrieve');
+        Route::post('/generate', 'App\Http\Controllers\TransactionController@generate');
+    });
+
     Route::prefix('items')->group(function () { // Item API Endpoints
         Route::get('/', 'App\Http\Controllers\ItemController@list');
         Route::get('/{itemId}', 'App\Http\Controllers\ItemController@retrieve');
@@ -315,5 +320,4 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/{id}', 'App\Http\Controllers\HomePageInformationController@retrieve');
         Route::post('/update/{id}', 'App\Http\Controllers\HomePageInformationController@update');
     });
-
 });
