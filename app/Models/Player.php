@@ -25,6 +25,7 @@ class Player extends Model
 
     protected $with = [
         'agegroup',
+        'media',
     ];
 
     public function registration()
@@ -34,6 +35,11 @@ class Player extends Model
     public function agegroup()
     {
         return $this->belongsTo(AgeGroup::class, 'agegroup_id')->withTrashed();
+    }
+
+    public function media()
+    {
+        return $this->morphMany('App\Models\Media', 'imageable');
     }
 
 }

@@ -50,7 +50,7 @@ interface IndividualRegistrationServiceInterface
         string $ageGroup,
         int $amount,
         int $item_id
-    );
+        );
 
     /**
      * Mark order as verified

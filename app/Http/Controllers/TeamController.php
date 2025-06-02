@@ -21,6 +21,7 @@ class TeamController extends Controller
         $query = $request->query('q', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
+        $region = $request->query('region', null);
         $seriestype = $request->query('seriestype', null);
         $maxTeamsPerPage = $request->query('maxTeamsPerPage', null);
         $isRegistered = $request->query('isRegistered', null);
@@ -29,6 +30,7 @@ class TeamController extends Controller
             'q' => $query,
             'sort' => $sort,
             'page' => $page,
+            'region' => $region,
             'seriestype' => $seriestype,
             'max_team_per_page' => $maxTeamsPerPage,
             'isRegistered' => $isRegistered,

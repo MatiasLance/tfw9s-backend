@@ -52,10 +52,17 @@ class TeamRegistrationInvoice extends Mailable
 
         $taxValue = $toggleTax->toggleControl1 ? $tax->addTaxValue : $tax->includeTaxValue;
 
+        $payload = [];
+        $payload['target'] = $this->teamRegistration->id;
+        $payload['type'] = $this->teamRegistration->item->type;
+        $encryptedToken = encrypt($payload);
+        $url = env('APP_URL') . '/transaction/?key=' . $encryptedToken;
+
         return $this
                 ->subject('Invoice')
                 ->view('mail.registrationInvoice')
                 ->with([
+                    'url' => $url,
                     'order' => $this->teamRegistration,
                     'taxValue' => $taxValue,
                     'taxToggle' => $toggleTax,

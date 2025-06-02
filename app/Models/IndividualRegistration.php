@@ -54,4 +54,8 @@ class IndividualRegistration extends Model
             return $description;
         }
     }
+        public function media()
+    {
+        return $this->morphMany('App\Models\Media', 'imageable');
+    }
 }

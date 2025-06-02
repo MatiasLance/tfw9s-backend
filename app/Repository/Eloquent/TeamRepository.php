@@ -81,6 +81,12 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
          */
         'email' => null,
 
+        /**
+         * Region Filter
+         * When this value is null, this filter is skipped.
+         */
+        'region' => null,
+
                 /**
          * Email keyword
          * When this value is null, this filter is skipped.
@@ -116,10 +122,23 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             });
         }
 
-        if (!is_null($filters['seriestype'])) {
-            $teams->whereHas('series', function ($q) use ($filters) {
-                $q->where('type', 'LIKE', '%' . $filters['seriestype'] . '%');
+        if (!is_null($filters['region'])) {
+            $teams->whereHas('region', function ($q) use ($filters) {
+                $q->where('id', $filters['region']);
             });
+        }
+
+        if (!is_null($filters['seriestype'])) {
+            // If it's numeric, filter by ID
+        if (is_numeric($filters['seriestype'])) {
+            $teams->where('series_id', $filters['seriestype']);
+            } 
+            // Otherwise filter by type
+            else {
+            $teams->whereHas('series', function ($q) use ($filters) {
+            $q->where('type', 'LIKE', '%' . $filters['seriestype'] . '%');
+            });
+        }
         }
 
         if (!is_null($filters['isRegistered'])) {
