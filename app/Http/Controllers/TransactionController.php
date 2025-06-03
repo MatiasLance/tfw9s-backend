@@ -17,10 +17,10 @@ class TransactionController extends Controller
         $payload = decrypt($key);
 
         if ($payload['type'] === 'weekly') {
-            $data = IndividualRegistration::with('players')->find($payload['target']);
+            $data = IndividualRegistration::with('players', 'item')->find($payload['target']);
         }
         else {
-            $data = TeamRegistration::with('teams')->find($payload['target']);
+            $data = TeamRegistration::with('teams', 'item')->find($payload['target']);
         }
 
         $message->setContent(200, 'Transaction retrieved', '', [
