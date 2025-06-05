@@ -131,7 +131,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         }
 
         if (!is_null($filters['agegroup'])) {
-            $players = $players->where('agegroup', $filters['agegroup']);
+            $players = $players->where('agegroup_id', $filters['agegroup']);
         }
 
         if (!is_null($filters['isRegistered'])) {
