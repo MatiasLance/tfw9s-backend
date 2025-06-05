@@ -105,8 +105,8 @@ class MailService implements MailServiceInterface
 
         $response = $guzzle->request('POST', 'http://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
             'form_params' => [
-                //'from' => 'noreply@tfw9s.com.au',
-                'from' => 'noreply@thedrumhq.com.au',
+                'from' => 'noreply@tfw9s.com.au',
+                /* 'from' => 'noreply@thedrumhq.com.au', */
                 'recipients' => $to,
                 'cc' => [],
                 'bcc' => [],
