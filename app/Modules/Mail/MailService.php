@@ -50,7 +50,6 @@ class MailService implements MailServiceInterface
         $customerSubject = 'Here is the invoice for your recent payment on tfw9s.com.au - INVOICE #: ' . $teamRegistration->id;
 
         $this->send([env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au')], $adminSubject, $content);
-        // $this->send([$teamRegistration->coach_email, $teamRegistration->manager_email], $customerSubject, $content);
         $this->send([$teamRegistration->coach_email], $customerSubject, $content);
         $this->send([$teamRegistration->manager_email], $customerSubject, $content);
     }
@@ -87,7 +86,6 @@ class MailService implements MailServiceInterface
         $subject = 'New Series Created: ' . $seriesName;
 
         $this->send([$coachEmail], $subject, $content);
-        // Mail::to($coachEmail)->send($mail);
     }
 
     /**
@@ -106,7 +104,6 @@ class MailService implements MailServiceInterface
         $response = $guzzle->request('POST', 'http://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
             'form_params' => [
                 'from' => 'noreply@tfw9s.com.au',
-                /* 'from' => 'noreply@thedrumhq.com.au', */
                 'recipients' => $to,
                 'cc' => [],
                 'bcc' => [],
@@ -115,11 +112,6 @@ class MailService implements MailServiceInterface
                 'attachments' => [],
             ],
         ]);
-
-        // Log::info('SMTP relay response', [
-        //     'status' => $response->getStatusCode(),
-        //     'body' => $response->getBody()->getContents()
-        // ]);
 
         return $response->getStatusCode() === 200;
     }
