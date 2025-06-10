@@ -27,7 +27,7 @@ class OrderService implements OrderServiceInterface
         return $this->orderRepository->findByTransactionId($transactionId);
     }
 
-    public function create(string $paymentIntentId, PaymentGateway $gateway, string $firstname, string $lastname, string $phoneNumber, string $email, string $shippingType, ?string $address, ?string $postCode, ?string $remarks, int $shipping, int $total, array $items)
+    public function create(string $paymentIntentId, PaymentGateway $gateway, string $firstname, string $lastname, string $phoneNumber, string $email, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
     {
         return $this->orderRepository->create(
             $paymentIntentId,
@@ -36,11 +36,9 @@ class OrderService implements OrderServiceInterface
             $lastname,
             $phoneNumber,
             $email,
-            $shippingType,
             $address,
             $postCode,
             $remarks,
-            $shipping,
             $total,
             $items
         );

@@ -43,11 +43,9 @@ interface OrderServiceInterface
         string $lastname,
         string $phoneNumber,
         string $email,
-        string $shippingType,
         ?string $address,
         ?string $postCode,
         ?string $remarks,
-        int $shipping,
         int $total,
         array $items
     );

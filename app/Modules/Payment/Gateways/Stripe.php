@@ -145,16 +145,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             array_push($lineItems, $lineItem);
         }
 
-
-        $shippingchoicecalc = $metadata['shippingChoiceCalc'];
-
-        $shippingoptions = $metadata['shippingOptions']['selected'] ?? $metadata['shippingOptions'];
-
-        $registeredpost = in_array('Registered Value', $shippingoptions);
-        $expresspost = in_array('Express Value', $shippingoptions);
-        $addinsurance = in_array('Insurance Value', $shippingoptions);
-
-        $totalshipping = $this->calculateTotal($discountcode, $lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
+        $totalshipping = $this->calculateTotal($discountcode, $lineItems);
 
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
@@ -180,15 +171,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             $isInclusive = true;
         }
 
-        $itemSubtotal = $totalPrice + $totalshipping['totalShipping'];
-
-        $total = $itemSubtotal;
-
-        $metadata['shipping'] = $totalshipping['totalShipping'];
+        $total = $totalPrice;
 
         $metadata['line_items'] = json_encode($lineItems);
-
-        unset($metadata['shippingOptions']);
 
         $productValue = [
             'amount' => $total,
@@ -203,14 +188,11 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         $responseValues = [
             'totalProduct' => $totalshipping['totalProduct'],
-            'totalShipping' => $totalshipping['totalShipping'],
             'stripeToken' => $paymentIntent->client_secret,
             'paymentIntentId' => $paymentIntent->id
         ];
 
         return response()->json($responseValues);
-
-        // return $paymentIntent->client_secret;
     }  
 
     public function verify(string $paymentIntentId): PaymentStatus
@@ -229,11 +211,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                                             $shippingInformation->lastName,
                                             $shippingInformation->phoneNumber,
                                             $shippingInformation->email,
-                                            $shippingInformation->shippingType,
                                             $shippingInformation->address ?? null,
                                             $shippingInformation->postCode ?? null,
                                             $shippingInformation->remarks,
-                                            $shippingInformation->shipping,
                                             $paymentIntent->amount,
                                             $lineItems,
                                         );
@@ -288,8 +268,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         ];
 
         return response()->json($responseValues);
-
-        // return $paymentIntent->client_secret;
     }
 
     public function verifyIndividualRegistration(string $paymentIntentId): PaymentStatus
@@ -383,50 +361,13 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
      *
      * @return int
      */
-    protected function calculateTotal($discountcode, array $items, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance): array
+    protected function calculateTotal($discountcode, array $items): array
     {
         $total = 0;
-        $tot = 0;
         foreach ($items as $item) {
            $total += $this->calculateItemTotal($discountcode, $item['item_id'], $item['quantity']);
         }
-
-        $data = [
-           "Own Country" => NewShipping::latest()->first(),
-           "Own State" => StateShipping::latest()->first(),
-           "Own City" => CityShipping::latest()->first(),
-           "Other Country" => OtherCountryShipping::latest()->first(),
-           "Other State" => OtherStateShipping::latest()->first(),
-           "Other City" => OtherCityShipping::latest()->first()
-        ];
-
-        if(isset($data[$shippingchoicecalc])) {
-           $price_data = $data[$shippingchoicecalc];
-           $tot += intval($price_data->shippingCentPrice());
-
-           if($registeredpost){
-              $rv = $price_data->registeredCentPrice();
-              $tot += intval($rv);
-           }
-           if($expresspost){
-              $ev = $price_data->expressCentPrice();
-              $tot += intval($ev);
-           }
-           if($addinsurance){
-              $iv = $price_data->insuranceCentPrice();
-              $tot += intval($iv);
-           }
-        }
-
-        $max_shipping_value = MasterShippingSetting::latest()->first()->maxshipping_value;
-        if($total > 100 && isset($max_shipping_value)) {
-           $total += intval($max_shipping_value);
-        }
-
-        return [
-            'totalProduct' => $total,
-            'totalShipping' => $tot
-        ];
+        return ['totalProduct' => $total];
     }
 
 
