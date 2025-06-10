@@ -43,11 +43,9 @@ interface OrderRepositoryInterface
         string $lastname,
         string $phoneNumber,
         string $email,
-        string $shippingType,
         ?string $address,
         ?string $postCode,
         ?string $remarks,
-        int $shippiing,
         int $total,
         array $items
     );

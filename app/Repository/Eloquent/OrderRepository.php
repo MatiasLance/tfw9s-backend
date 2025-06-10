@@ -24,7 +24,7 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         return $this->model->where('transaction_id', $transactionId)->first();
     }
 
-    public function create(string $paymentIntentId, PaymentGateway $gateway, string $firstname, string $lastname, string $phoneNumber, string $email, string $shippingType, ?string $address, ?string $postCode, ?string $remarks, int $shipping, int $total, array $items)
+    public function create(string $paymentIntentId, PaymentGateway $gateway, string $firstname, string $lastname, string $phoneNumber, string $email, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
     {
         $existingOrder = $this->findByTransactionId($paymentIntentId);
 
@@ -39,25 +39,10 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         $order->lastname = $lastname;
         $order->phone_number = $phoneNumber;
         $order->email = $email;
-        $order->shipping_type = $shippingType;
         $order->is_verified = false;
-
-        if (ShippingType::DELIVERY === ShippingType::tryFrom($shippingType)) {
-
-            if (
-                !isset($address) ||
-                empty($address) ||
-                !isset($postCode) ||
-                empty($postCode)
-            ) {
-                report(new AddressCannotBeEmptyException('Recorded a finished delivery order but without a shipping address'));
-            }
-
-            $order->address = $address;
-            $order->post_code = $postCode;
-        }
+        $order->address = $address;
+        $order->post_code = $postCode;
         $order->remarks = $remarks;
-        $order->shipping = $shipping;
         $order->total = $total;
 
         DB::transaction(function() use($order, $items) {

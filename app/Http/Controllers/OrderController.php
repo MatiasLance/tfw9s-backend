@@ -139,15 +139,8 @@ class OrderController extends Controller
             ];
             array_push($lineItems, $lineItem);
         }
-        // Added from WPI
-            $shippingchoicecalc = $metadata['shippingChoiceCalc'];
-        $shippingoptions = $metadata['shippingOptions']['selected'] ?? $metadata['shippingOptions'];
 
-        $registeredpost = in_array('Registered Value', $shippingoptions);
-        $expresspost = in_array('Express Value', $shippingoptions);
-        $addinsurance = in_array('Insurance Value', $shippingoptions);
-
-        $totalshipping = $this->calculateTotal($discountcode, $lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
+        $totalProduct = $this->calculateTotal($discountcode, $lineItems);
 
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
@@ -160,31 +153,24 @@ class OrderController extends Controller
 
         if (!$isInclusive) {
             $taxRate = $addTax / 100;
-            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
-            $totalPrice = intval($totalshipping['totalProduct'] + $taxAmount);
+            $taxAmount = $totalProduct['totalProduct'] * $taxRate;
+            $totalPrice = intval($totalProduct['totalProduct'] + $taxAmount);
             $isInclusive = false;
         } elseif ($isInclusive) {
             $taxRate = $includeTax / 100;
-            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
-            $totalPrice = intval($totalshipping['totalProduct'] );
+            $taxAmount = $totalProduct['totalProduct'] * $taxRate;
+            $totalPrice = intval($totalProduct['totalProduct'] );
             $isInclusive = true;
         } else {
-            $totalPrice = intval($totalshipping['totalProduct']);
+            $totalPrice = intval($totalProduct['totalProduct']);
             $isInclusive = true;
         }
 
-        $totalshipping['taxAmount'] = $taxAmount;
+        $totalProduct['taxAmount'] = $taxAmount;
 
         $response = [];
 
-        if (!empty($discountcode)) {
-            $finalShipping = $totalshipping['totalShipping'] * (1 - $res->rate);
-        } else {
-            $finalShipping = $totalshipping['totalShipping'];
-        }
-
-        $itemSubtotal = $totalPrice + $finalShipping;
-        $total = $itemSubtotal;
+        $total = $totalPrice;
 
         $updateParams = [
             'amount' => $total,
@@ -195,58 +181,20 @@ class OrderController extends Controller
         }
 
         return response()->json([
-               'shippingCalculation' => $totalshipping,
-               'OverallTotal' => $total,
-               'paymentIntent' => $response,
+            'OverallTotal' => $total,
+            'paymentIntent' => $response,
         ]);
 
     }
 
-    protected function calculateTotal($discountcode, array $items, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance): array
+    protected function calculateTotal($discountcode, array $items): array
     {
         $total = 0;
-        $tot = 0;
         foreach ($items as $item) {
            $total += $this->calculateItemTotal($discountcode, $item['item_id'], $item['quantity']);
         }
 
-        $data = [
-           "Own Country" => NewShipping::latest()->first(),
-           "Own State" => StateShipping::latest()->first(),
-           "Own City" => CityShipping::latest()->first(),
-           "Other Country" => OtherCountryShipping::latest()->first(),
-           "Other State" => OtherStateShipping::latest()->first(),
-           "Other City" => OtherCityShipping::latest()->first()
-        ];
-
-        if(isset($data[$shippingchoicecalc])) {
-           $price_data = $data[$shippingchoicecalc];
-           $tot += intval($price_data->shippingCentPrice());
-
-           if($registeredpost){
-              $rv = $price_data->registeredCentPrice();
-              $tot += intval($rv);
-           }
-           if($expresspost){
-              $ev = $price_data->expressCentPrice();
-              $tot += intval($ev);
-           }
-           if($addinsurance){
-              $iv = $price_data->insuranceCentPrice();
-              $tot += intval($iv);
-           }
-        }
-
-        $max_shipping_value = MasterShippingSetting::latest()->first()->maxshipping_value;
-        if($total > 100 && isset($max_shipping_value)) {
-           $total += intval($max_shipping_value);
-        }
-
-        return [
-           'totalProduct' => $total,
-           'totalShipping' => $tot,
-        ];
-
+        return ['totalProduct' => $total];
     }
 
     protected function calculateItemTotal($discountcode, int $itemId, int $quantity): float
