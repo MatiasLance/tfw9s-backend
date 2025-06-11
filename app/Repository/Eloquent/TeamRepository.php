@@ -87,8 +87,14 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
          */
         'region' => null,
 
-                /**
-         * Email keyword
+        /**
+         * Series Filter
+         * When this value is null, this filter is skipped.
+         */
+        'series' => null,
+
+        /**
+         * Series Type keyword
          * When this value is null, this filter is skipped.
          */
         'seriestype' => null,
@@ -125,6 +131,12 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         if (!is_null($filters['region'])) {
             $teams->whereHas('region', function ($q) use ($filters) {
                 $q->where('id', $filters['region']);
+            });
+        }
+        
+        if (!is_null($filters['series'])) {
+            $teams->whereHas('series', function ($q) use ($filters) {
+                $q->where('id', $filters['series']);
             });
         }
 
@@ -180,7 +192,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         return Team::find($id);
     }
 
-    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id): Team
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id, int $player_limit): Team
     {
         $team = new Team();
         $team->name = $name;
@@ -193,6 +205,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_mobile = $manager['mobile'];
         $team->manager_email = $manager['email'];
         $team->region_id = $region_id;
+        $team->player_limit = $player_limit;
 
         $teamLimit = null;
         if (in_array($type, ['tournament', 'cost'])) {
@@ -227,7 +240,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         });
     }
 
-    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id): bool
+    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id, $player_limit): bool
     {
         $team = $this->find($id);
         $oldAgegroupId = $team->agegroup_id;
@@ -244,6 +257,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_mobile = $manager['mobile'];
         $team->manager_email = $manager['email'];
         $team->region_id = $region_id;
+        $team->player_limit = $player_limit;
 
         return DB::transaction(function() use($team, $media, $oldAgegroupId, $oldSeriesId, $oldRegionId) {
             if (!is_null($media)) {

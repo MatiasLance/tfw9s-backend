@@ -183,6 +183,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
 
     Route::prefix("agegroups")->group(function() {
         Route::get('/', 'App\Http\Controllers\AgeGroupController@list');
+        Route::get('/all', 'App\Http\Controllers\AgeGroupController@all');
         Route::get('/{id}', 'App\Http\Controllers\AgeGroupController@retrieve');
         Route::post('/', 'App\Http\Controllers\AgeGroupController@store');
         Route::post('/{id}', 'App\Http\Controllers\AgeGroupController@update');
@@ -266,12 +267,15 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix("series")->group(function() {
         Route::get('/', 'App\Http\Controllers\SeriesController@list');
         Route::get('/{id}', 'App\Http\Controllers\SeriesController@retrieve');
+        Route::get('/token/{key}', 'App\Http\Controllers\SeriesController@decrypt');
         Route::post('/', 'App\Http\Controllers\SeriesController@store');
         Route::post('/{id}', 'App\Http\Controllers\SeriesController@update');
         Route::delete('/{id}', 'App\Http\Controllers\SeriesController@delete');
         Route::post('/resume/{id}', 'App\Http\Controllers\SeriesController@resumeSeries');
         Route::post('/pause/{id}', 'App\Http\Controllers\SeriesController@pauseSeries');
         Route::post('/edit/thumbnail', 'App\Http\Controllers\SeriesController@editThumbnail');
+        Route::post('/notify/{id}', 'App\Http\Controllers\SeriesController@sendRegistration');
+
 
     });
 

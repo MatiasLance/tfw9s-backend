@@ -30,7 +30,7 @@ interface IndividualRegistrationRepositoryInterface
      * @param string $dob
      * @param string $playerFirstName
      * @param string $playerLastName
-     * @param string $teamName
+     * @param int $team
      * @param string $agegroup
      * @param int $item_id
      *
@@ -46,7 +46,7 @@ interface IndividualRegistrationRepositoryInterface
         string $playerFirstName,
         string $playerLastName,
         string $dob,
-        string $teamName,
+        int $team,
         string $ageGroup,
         int $amount,
         int $item_id

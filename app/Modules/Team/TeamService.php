@@ -31,21 +31,15 @@ class TeamService implements TeamServiceInterface
     {
         return $this->teamRepository->retrieveTeam($id);
     }
-    /*
-    public function createTeam($name, $description, $field_id, $event_id, $coach, $manager, $media): Team
-    {
-        return $this->teamRepository->createTeam($name, $description, $field_id, $event_id, $coach, $manager, $media);
-    }
-    */
 
-    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id): Team
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id, int $player_limit): Team
     {
-        return $this->teamRepository->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media, $type, $region_id);
+        return $this->teamRepository->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media, $type, $region_id, $player_limit);
     }
 
-    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id): bool
+    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id, int $player_limit): bool
     {
-        return $this->teamRepository->updateTeam($id, $name, $agegroup_id, $series_id, $coach, $manager, $media, $region_id);
+        return $this->teamRepository->updateTeam($id, $name, $agegroup_id, $series_id, $coach, $manager, $media, $region_id, $player_limit);
     }
 
     public function deleteTeam(User $initiator, Team $team): bool

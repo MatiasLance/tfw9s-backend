@@ -38,7 +38,7 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
         string $playerFirstName,
         string $playerLastName,
         string $dob,
-        string $teamName,
+        int $team,
         string $ageGroup,
         int $amount,
         int $item_id
@@ -54,7 +54,7 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
           $playerFirstName,
           $playerLastName,
           $dob,
-          $teamName,
+          $team,
           $ageGroup,
           $amount,
           $item_id
