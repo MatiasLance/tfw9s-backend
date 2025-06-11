@@ -90,23 +90,6 @@
                                 <td style="padding-top: 0;">
                                     <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #bbbbbb;">
                                         <tbody>
-                                            <tr style="padding-top: 2rem; padding-bottom: 10px;">
-                                                <td style="font-size: 16px; line-height: 18px; color: #666666; padding-bottom: 5px;" colspan="2">
-                                                    <span>
-                                                        <b>Shipping Type:</b>
-                                                    </span>
-                                                    <span>
-                                                        {{ ucfirst($order->shipping_type) }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            <tr style="padding-top: 2rem; padding-bottom: 10px;">
-                                                <td style="font-size: 16px; line-height: 18px; color: #666666;" colspan="2">
-                                                    <span>
-                                                        {!! $order->shippingNote !!}
-                                                    </span>
-                                                </td>
-                                            </tr>
                                             <tr>
                                                 <td colspan="2">
                                                     &nbsp;
@@ -208,14 +191,6 @@
                                             </tr>
                                             <tr>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    Shipping Fee:
-                                                </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format(($order->shipping/100), 2) }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
                                                     GST:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
@@ -227,11 +202,11 @@
                                                     Tax Amount:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    <?php
+                                                    @php
                                                         $taxRate = $taxValue / 100;
                                                         $calculatedTaxAmount = $order->subTotal * $taxRate;
                                                         $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
-                                                    ?>
+                                                    @endphp
                                                     ${{ number_format($taxAmount, 2) }}
                                                 </td>
                                             </tr>
@@ -240,22 +215,21 @@
                                                     Discount:
                                                 </td>
                                             <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                <?php
+                                                @php
                                                     $itemTotal = $order->subTotal;
                                                     $discountedTotal = $order->total / 100;
-                                                    $shipping = $order->shipping / 100;
                                                     $taxRate = $taxValue / 100;
 
                                                     $taxAmount = $taxToggle->toggleControl2 ? 0 : ($itemTotal * $taxRate);
 
                                                     $originalTotal = $taxToggle->toggleControl2 
-                                                        ? ($itemTotal + $shipping)
-                                                        : ($itemTotal + $shipping + $taxAmount);
+                                                        ? ($itemTotal)
+                                                        : ($itemTotal + $taxAmount);
 
                                                     $discountAmount = $originalTotal - $discountedTotal;
 
                                                     $discountRate = $originalTotal != 0 ? ($discountAmount / $originalTotal) * 100 : 0;
-                                                    ?>
+                                                    @endphp
                                                     {{ number_format($discountRate) }}%
                                                 </td>
                                             </tr>

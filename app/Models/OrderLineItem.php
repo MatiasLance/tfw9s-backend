@@ -35,7 +35,7 @@ class OrderLineItem extends Model
         if (count($itemMedia) > 0) {
             $x = env('APP_URL') . '/storage/' . $itemMedia[0]->path;
         } else {
-            $x = env('APP_URL') . '/storage/media/default/' . ItemRepositoryInterface::PLACEHOLDER_IMAGE;
+            $x = env('APP_URL') . '/storage/media/default/' . ItemRepositoryInterface::PLACEHOLDER_IMAGE;   
         }
 
         return $x;

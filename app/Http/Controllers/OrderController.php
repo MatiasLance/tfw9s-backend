@@ -176,14 +176,7 @@ class OrderController extends Controller
             'amount' => $total,
         ];
 
-        if ($paymentIntent) {
-            $response = $this->paymentService->updateAmount($paymentIntent, $updateParams, $paymentMethod);
-        }
-
-        return response()->json([
-            'OverallTotal' => $total,
-            'paymentIntent' => $response,
-        ]);
+        return response()->json(['OverallTotal' => $total]);
 
     }
 
