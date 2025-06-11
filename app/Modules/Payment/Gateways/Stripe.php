@@ -104,19 +104,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
      */
     public function createOrder($discountcode, array $items, array $metadata = [])
     {
-        // @todo remove !empty() and reevaluate code block
-        if (!empty($metadata) && $metadata['shippingType'] === ShippingType::DELIVERY) {
-            if (
-                !isset($metadata['address']) ||
-                empty($metadata['address']) ||
-                !isset($metadata['postCode']) ||
-                empty($metadata['postCode']) ||
-                !isset($metadata['shippingChoiceCalc']) ||
-                empty($metadata['shippingChoiceCalc'])
-            ) {
-                throw new AddressCannotBeEmptyException('Attempted to create a payment intent for delivery order without address');
-            }
-        }
         $res = DiscountCode::where('code', $discountcode)->first();
 
         $lineItems = [];
