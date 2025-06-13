@@ -123,8 +123,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         // Search Filter
         if (!is_null($filters['q'])) {
             $teams = $teams->where(function ($q) use($filters) {
-                $q
-                    ->where('name', 'LIKE', '%' . $filters['q'] . '%');
+                $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
             });
         }
 

@@ -72,7 +72,7 @@ class TeamController extends Controller
         $manager_mobile = $request->input('manager_mobile');
         $manager_email = $request->input('manager_email');
 
-        $player_limit = $request->input('player_limit');
+        $player_limit = $request->input('player_limit')??0;
 
         $coach = [
             'name' => $coach_name,
@@ -118,7 +118,7 @@ class TeamController extends Controller
         $manager_mobile = $request->input('manager_mobile');
         $manager_email = $request->input('manager_email');
 
-        $player_limit = $request->input('player_limit');
+        $player_limit = $request->input('player_limit')??0;
 
         $coach = [
             'name' => $coach_name,
