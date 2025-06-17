@@ -55,6 +55,12 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         'agegroup' => null,
 
         /**
+         * Team filter
+         * This filters the players by team. When this value is null, this filter is skipped.
+         */
+        'team' => null,
+
+        /**
          * withFixing filter
          * This filters the series by type. When this value is null, this filter is skipped.
          */
@@ -132,6 +138,12 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
         if (!is_null($filters['agegroup'])) {
             $players = $players->where('agegroup_id', $filters['agegroup']);
+        }
+
+        if (!is_null($filters['team'])) {
+            $players->whereHas('team', function ($q) use ($filters) {
+                $q->where('id', $filters['team']);
+            });
         }
 
         if (!is_null($filters['isRegistered'])) {
