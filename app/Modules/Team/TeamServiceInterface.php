@@ -37,12 +37,13 @@ interface TeamServiceInterface
      * @param array $manager
      * @param ?array $media
      * @param int $region_id
+     * @param int $player_limit
      *
      * @return Team
      */
 
     /*public function createTeam(string $name, string $description, int $field_id, int $event_id, array $coach, array $manager, ?array $media): Team; */
-    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id): Team;
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id, int $player_limit): Team;
 
     /**
      * Update an existing Team
@@ -55,10 +56,11 @@ interface TeamServiceInterface
      * @param array $manager
      * @param ?array $media
      * @param int $region_id
+     * @param int $player_limit
      *
      * @return bool
      */
-    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id): bool;
+    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id, int $player_limit): bool;
 
     /**
      * Delete an existing Team

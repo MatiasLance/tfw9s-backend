@@ -22,6 +22,7 @@ class TeamController extends Controller
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
         $region = $request->query('region', null);
+        $series = $request->query('series', null);
         $seriestype = $request->query('seriestype', null);
         $maxTeamsPerPage = $request->query('maxTeamsPerPage', null);
         $isRegistered = $request->query('isRegistered', null);
@@ -31,6 +32,7 @@ class TeamController extends Controller
             'sort' => $sort,
             'page' => $page,
             'region' => $region,
+            'series' => $series,
             'seriestype' => $seriestype,
             'max_team_per_page' => $maxTeamsPerPage,
             'isRegistered' => $isRegistered,
@@ -70,6 +72,8 @@ class TeamController extends Controller
         $manager_mobile = $request->input('manager_mobile');
         $manager_email = $request->input('manager_email');
 
+        $player_limit = $request->input('player_limit')??0;
+
         $coach = [
             'name' => $coach_name,
             'mobile' => $coach_mobile,
@@ -84,7 +88,7 @@ class TeamController extends Controller
 
         $media = $request->file('photo') ?? [];
 
-        $team = $this->teamService->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media, $type, $region_id);
+        $team = $this->teamService->createTeam($name, $agegroup_id, $series_id, $coach, $manager, $media, $type, $region_id, $player_limit);
 
         // $team = $this->teamService->createTeam($name, $field_id, $agegroup_id, $media);
 
@@ -113,6 +117,8 @@ class TeamController extends Controller
         $manager_name = $request->input('manager_name');
         $manager_mobile = $request->input('manager_mobile');
         $manager_email = $request->input('manager_email');
+
+        $player_limit = $request->input('player_limit')??0;
 
         $coach = [
             'name' => $coach_name,
@@ -146,7 +152,7 @@ class TeamController extends Controller
             $media = null;
         }
 
-        $isSuccess = $this->teamService->updateTeam($id, $name, $agegroup_id, $series_id, $coach, $manager, $media, $region_id);
+        $isSuccess = $this->teamService->updateTeam($id, $name, $agegroup_id, $series_id, $coach, $manager, $media, $region_id, $player_limit);
 
         if ($isSuccess) {
             $message->setContent(200, 'Team updated');

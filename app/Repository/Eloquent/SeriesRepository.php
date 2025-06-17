@@ -161,7 +161,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         return $series;
     }    
 
-    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media, string $coachEmail, ?int $ageGroup): Series
+    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): Series
     {
         $series = new Series();
         $series->name = $name;
@@ -171,8 +171,6 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->start = $start;
         $series->end = $end;
         $series->price = $price;
-        $series->coach_email = $coachEmail;
-        $series->agegroup_id = $ageGroup;
 
         return DB::transaction(function() use($series, $media, $type) {
             $series->save();
@@ -189,19 +187,11 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                 }
             }
 
-            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price);
-
-            $this->mailService->sendCoachSeriesNotification(
-                coachEmail: $series->coach_email,
-                seriesName: $series->name,
-                link: $link
-            );
-
             return $series;
         });
     }
 
-    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media, string $coachEmail, ?int $ageGroup): bool
+    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): bool
     {
         $series = $this->find($id);
         $series->name = $name;
@@ -211,8 +201,6 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         $series->start = $start;
         $series->end = $end;
         $series->price = $price;
-        $series->coach_email = $coachEmail;
-        $series->agegroup_id = $ageGroup;
 
         return DB::transaction(function() use($series, $media) {
 
@@ -241,14 +229,6 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     $series->media()->save($Image);
                 }
             }
-
-            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price);
-
-            $this->mailService->sendCoachSeriesNotification(
-                coachEmail: $series->coach_email,
-                seriesName: $series->name,
-                link: $link
-            );
 
             return $series->save();
         });
@@ -305,6 +285,35 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     }
                 }
                 $series->save();
+            }
+            return true;
+        });
+    }
+    
+    public function sendRegistrations(int $id): bool
+    {
+        $series = $this->find($id);
+
+        $seriesTeams = $series->team()->get();
+
+        return DB::transaction(function() use($series, $seriesTeams) {
+            foreach ($seriesTeams as $team) {
+
+                $payload = [];
+                $payload['series'] = $series->id;
+                $payload['team'] = $team->id;
+                $encryptedToken = encrypt($payload);
+        
+                $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+                $coach = $team->coach_email;
+
+                if ($coach) {
+                    $this->mailService->sendCoachSeriesNotification(
+                        coachEmail: $team->coach_email,
+                        seriesName: $series->name,
+                        link: $link
+                    );
+                }
             }
             return true;
         });

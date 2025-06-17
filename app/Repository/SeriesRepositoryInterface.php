@@ -56,7 +56,7 @@ interface SeriesRepositoryInterface
      *
      * @return series
      */
-    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media, string $coachEmail, ?int $ageGroup): Series;
+    public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): Series;
 
     /**
      * Update an existing series instance
@@ -72,7 +72,7 @@ interface SeriesRepositoryInterface
      *
      * @return bool
      */
-    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media, string $coachEmail, ?int $ageGroup): bool;
+    public function updateSeries(int $id, string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): bool;
 
     /**
      * Delete an existing series instance
@@ -109,5 +109,15 @@ interface SeriesRepositoryInterface
      * @return bool
      */
     public function editThumbnail(?array $media): bool;
+
+    /**
+     * Send registration link to every coach 
+     *
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function sendRegistrations(int $id): bool;
+    
 
 }

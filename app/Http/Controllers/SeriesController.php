@@ -6,6 +6,7 @@ use App\Modules\Http\Message;
 use App\Modules\Series\SeriesServiceInterface;
 use Illuminate\Http\Request;
 use App\Models\Series;
+use App\Models\Team;
 use DateTime;
 
 class SeriesController extends Controller
@@ -66,14 +67,12 @@ class SeriesController extends Controller
         $startdatestring = $request->input('start');
         $enddatestring = $request->input('end');
         $price = $request->input('price');
-        $coachEmail = $request->input('coach_email') ?? '';
-        $ageGroup = $request->input('agegroup_id');
 
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
         $media = $request->file('photo') ?? [];
 
-        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end, $price, $media, $coachEmail, $ageGroup);
+        $series = $this->seriesService->createSeries($name, $type, $description, $address, $start, $end, $price, $media);
 
         if ($series instanceof Series) {
             $message->setContent(201, 'Series created', '', [
@@ -95,8 +94,6 @@ class SeriesController extends Controller
         $startdatestring = $request->input('start');
         $enddatestring = $request->input('end');
         $price = $request->input('price');
-        $coachEmail = $request->input('coach_email') ?? '';
-        $ageGroup = $request->input('agegroup_id');
 
         $start = new DateTime($startdatestring);
         $end = new DateTime($enddatestring);
@@ -121,7 +118,7 @@ class SeriesController extends Controller
             $media = null;
         }
 
-        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end, $price, $media, $coachEmail, $ageGroup);
+        $isSuccess = $this->seriesService->updateSeries($id, $name, $type, $description, $address, $start, $end, $price, $media);
 
         if ($isSuccess) {
             $message->setContent(200, 'Series updated');
@@ -188,6 +185,36 @@ class SeriesController extends Controller
         } else {
             $message->setContent(400, 'Thumbnail not updated');
         }
+
+        return $message->render();
+    }
+
+    public function sendRegistration(Message $message, int $id)
+    {
+
+        $isSuccess = $this->seriesService->sendRegistrations($id);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Series tean coaches notified');
+        } else {
+            $message->setContent(400, 'Series coaches notification failed');  
+        }
+
+        return $message->render();
+    }
+
+    public function decrypt(Message $message, string $key)
+    {
+
+        $payload = decrypt($key);
+
+        $series = Series::find($payload['series']);
+        $team = Team::find($payload['team']);
+
+        $message->setContent(200, 'Token decrypted...', '', [
+            'series' => $series,
+            'team' => $team
+        ]);
 
         return $message->render();
     }

@@ -28,10 +28,20 @@ class Player extends Model
         'media',
     ];
 
+    protected $appends = [
+        'team_name',
+    ];
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
+
     public function registration()
     {
         return $this->belongsTo(IndividualRegistration::class);
     }
+
     public function agegroup()
     {
         return $this->belongsTo(AgeGroup::class, 'agegroup_id')->withTrashed();
@@ -40,6 +50,11 @@ class Player extends Model
     public function media()
     {
         return $this->morphMany('App\Models\Media', 'imageable');
+    }
+
+    public function getTeamNameAttribute()
+    {
+        return $this->team ? $this->team->name : 'Unknown';
     }
 
 }

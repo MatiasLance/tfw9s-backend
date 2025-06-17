@@ -24,7 +24,7 @@ class IndividualRegistrationRepository extends BaseRepository implements Individ
     return $this->model->where('transaction_id', $transactionId)->first();
     }
 
-    public function create(string $paymentIntentId, PaymentGateway $gateway, string $contactEmail, string $contactFirstName, string $contactLastName, string $contactPhoneNumber, string $playerFirstName, string $playerLastName, string $dob, string $teamName, string $ageGroup, int $amount, int $item_id)
+    public function create(string $paymentIntentId, PaymentGateway $gateway, string $contactEmail, string $contactFirstName, string $contactLastName, string $contactPhoneNumber, string $playerFirstName, string $playerLastName, string $dob, int $team, string $ageGroup, int $amount, int $item_id)
     {
         $existingRegistration = $this->findByTransactionId($paymentIntentId);
 
@@ -41,13 +41,13 @@ class IndividualRegistrationRepository extends BaseRepository implements Individ
         $reg->is_verified = false;
 
         $player = new Player();
+        $player->team_id = $team;
         $player->email = $contactEmail;
         $player->contact_firstname = $contactFirstName;
         $player->contact_lastname = $contactLastName;
         $player->phone_number = $contactPhoneNumber;
         $player->player_firstname = $playerFirstName;
         $player->player_lastname = $playerLastName;
-        $player->team_name = $teamName;
         $player->dob = $dob;
         $player->agegroup_id = $ageGroup;
 

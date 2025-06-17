@@ -24,6 +24,7 @@ class PlayersController extends Controller
         $page = $request->query('page', null);
         $type = $request->query('type', null);
         $agegroup = $request->query('agegroup', null);
+        $team = $request->query('team', null);
         $withPlayers = $request->query('withPlayers', null);
         $maxPlayersPerPage = $request->query('maxPlayersPerPage', null);
         $isRegistered = $request->query('isRegistered', null);
@@ -34,6 +35,7 @@ class PlayersController extends Controller
             'page' => $page,
             'type' => $type,
             'agegroup' => $agegroup,
+            'team' => $team,
             'withPlayers' => $withPlayers,
             'max_players_per_page' => $maxPlayersPerPage,
             'isRegistered' => $isRegistered,

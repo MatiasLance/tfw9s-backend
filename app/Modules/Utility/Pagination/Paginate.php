@@ -36,6 +36,13 @@ class Paginate
     protected string $label = 'data';
 
     /**
+     * Attributes to append to the paginated items.
+     * 
+     * @var array $appends
+     */
+    protected array $appends = [];
+
+    /**
      * @param Builder|Model $builder The data to paginate
      * @param null|int $itemsPerPage
      * @param null|int $page
@@ -43,7 +50,7 @@ class Paginate
      * 
      * @return void
      */
-    public function __construct($builder, ?int $itemsPerPage = null, ?int $page = 1, ?string $label = null)
+    public function __construct($builder, ?int $itemsPerPage = null, ?int $page = 1, ?string $label = null, ?array $appends = [])
     {
         if ($builder instanceof Builder) {
             $this->builder = $builder;
@@ -61,6 +68,10 @@ class Paginate
 
         if (!is_null($label)) {
             $this->label = $label;
+        }
+
+        if (!is_null($appends)) {
+            $this->appends = $appends;
         }
     }
 
@@ -120,10 +131,12 @@ class Paginate
         $itemsToSkip = ($this->currentPage - 1) * $this->itemsPerPage;
         $numberOfPages = $this->getNumberOfPages($totalItems);
         $itemRange = $this->getItemRange($totalItems);
+        $appends = $this->appends;
         $items = $this->builder
                             ->skip($itemsToSkip)
                             ->take($this->itemsPerPage)
-                            ->get();
+                            ->get()
+                            ->append($appends);
         return [
             'current_page' => $this->currentPage,
             'last_page' => $numberOfPages,

@@ -25,6 +25,14 @@ class Team extends Model
         'region'
     ];
 
+    protected $appends = [
+        'registered_players_count',
+    ];
+
+    public function players() {
+        return $this->hasMany(Player::class);
+    }
+
     public function series()
     {
         return $this->belongsTo(Series::class);
@@ -53,20 +61,29 @@ class Team extends Model
     {
         return $this->belongsTo(Region::class, 'region_id');
     }
+
     public function listTeams(array $filter)
-{
-    $query = Team::query()
-        ->with(['agegroup', 'series', 'region', 'field', 'media'])
-        ->orderBy('name');
+    {
+        $query = Team::query()
+            ->with(['agegroup', 'series', 'region', 'field', 'media'])
+            ->orderBy('name');
 
-    if (!empty($filter['q'])) {
-        $query->where('name', 'like', '%'.$filter['q'].'%');
+        if (!empty($filter['q'])) {
+            $query->where('name', 'like', '%'.$filter['q'].'%');
+        }
+
+        if (!empty($filter['max_team_per_page'])) {
+            return $query->paginate($filter['max_team_per_page']);
+        }
+
+        return $query->get();
     }
 
-    if (!empty($filter['max_team_per_page'])) {
-        return $query->paginate($filter['max_team_per_page']);
+    public function getRegisteredPlayersCountAttribute()
+    {
+        return $this->players()->whereHas('registration', function ($query) {
+            $query->whereNull('refund_id');
+        })->count();
     }
 
-    return $query->get();
-}
 }
