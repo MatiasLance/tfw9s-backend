@@ -4,12 +4,26 @@ namespace App\Http\Controllers;
 use App\Models\IndividualRegistration;
 use App\Models\TeamRegistration;
 use App\Modules\Http\Message;
-
 use Illuminate\Http\Request;
+use App\Modules\Storage\StorageInterface;
+use Illuminate\Support\Facades\DB;
 use App\Models\AgeGroup;
 
 class TransactionController extends Controller
 {
+
+    /**
+     * Storage Module
+     *
+     * @var StorageInterface $storageService
+     */
+    protected StorageInterface $storageService;
+
+     public function __construct(StorageInterface $storageService)
+    {
+        $this->storageService = $storageService;
+    }
+
 
     public function retrieve(Message $message, string $key)
     {
@@ -54,6 +68,71 @@ class TransactionController extends Controller
         return $message->render();
     }
 
+    public function saveMedia(Request $request, Message $message)
+    {
+        $type = $request->input('type');
+        $transaction = $request->input('transaction');
+        $media = $request->file('photo');
+
+        $result = DB::transaction(function () use ($type, $transaction, $media) {
+            if (!$type) {
+                return 'Missing `type` parameter.';
+            }
+
+            if (!$transaction) {
+                return 'Missing `transaction` ID.';
+            }
+
+            if (!$media) {
+                return 'Missing `photo` file.';
+            }
+
+            if ($type === 'weekly') {
+                $registration = IndividualRegistration::with('players')
+                    ->where('transaction_id', $transaction)
+                    ->first();
+                $target = $registration?->players?->first();
+            } else {
+                $registration = TeamRegistration::with('teams')
+                    ->where('transaction_id', $transaction)
+                    ->first();
+                $target = $registration?->teams?->first();
+            }
+
+            if (!$target) {
+                return 'Target not found from registration.';
+            }
+
+            $mediaData = $this->storageService->store($media);
+
+            if (!$mediaData) {
+                return 'Failed to store media.';
+            }
+
+            // Keep one image only for the target
+            foreach ($target->media as $existingMedia) {
+                $this->storageService->delete($existingMedia);
+                $existingMedia->delete();
+            }
+
+            $saved = $target->media()->save($mediaData);
+
+
+            if (!$saved) {
+                return 'Failed to save media to target.';
+            }
+
+            return 'success';
+        });
+
+        if ($result === 'success') {
+            $message->setContent(200, 'Target image uploaded!');
+        } else {
+            $message->setContent(400, $result);
+        }
+
+        return $message->render();
+    }
 }
 
 
