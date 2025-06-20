@@ -99,6 +99,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     Route::prefix('transaction')->group(function () { // Item API Endpoints
         Route::get('/retrieve/{key}', 'App\Http\Controllers\TransactionController@retrieve');
         Route::post('/generate', 'App\Http\Controllers\TransactionController@generate');
+        Route::post('/savemedia', 'App\Http\Controllers\TransactionController@saveMedia');
     });
 
     Route::prefix('items')->group(function () { // Item API Endpoints
