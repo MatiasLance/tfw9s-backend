@@ -24,12 +24,12 @@ enum PaymentGateway: String
     /**
      * Square payment gateway
      */
-    // case SQUARE = 'square';
+    case SQUARE = 'square';
 
     /**
      * Afterpay payment gateway
      */
-    // case AFTERPAY = 'afterpay';
+    case AFTERPAY = 'afterpay';
 
 
     /**
@@ -43,8 +43,8 @@ enum PaymentGateway: String
         {
             self::STRIPE => Stripe::class,
             self::PAYPAL => Paypal::class,
-            // self::SQUARE => Square::class,
-            // self::AFTERPAY => Afterpay::class,
+            self::SQUARE => Square::class,
+            self::AFTERPAY => Afterpay::class,
         };
     }
 }

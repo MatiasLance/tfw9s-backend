@@ -2,13 +2,13 @@
 
 namespace App\Modules\Payment\Gateways;
 
-use App\Models\NewShipping;
-use App\Models\StateShipping;
-use App\Models\CityShipping;
-use App\Models\OtherCountryShipping;
-use App\Models\OtherStateShipping;
-use App\Models\OtherCityShipping;
+use App\Models\Series;
 use App\Models\Item;
+use App\Models\DiscountCode;
+use App\Models\Tax;
+use App\Models\ToggleTaxControl;
+use App\Modules\IndividualRegistration\IndividualRegistrationServiceInterface;
+use App\Modules\TeamRegistration\TeamRegistrationServiceInterface;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Mail\MailServiceInterface;
@@ -21,6 +21,7 @@ use Ramsey\Uuid\Uuid;
 use Square\Models\CreatePaymentRequest;
 use Square\Models\Money;
 use Square\SquareClient;
+use Square\Models\RefundPaymentRequest as SquareRefundRequest;
 
 class Square extends BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -53,34 +54,63 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
     protected OrderServiceInterface $orderService;
 
     /**
+     * Individual Registration Service
+     *
+     * @var IndividualRegistrationServiceInterface $individualRegistrationService
+     */
+    protected IndividualRegistrationServiceInterface $individualRegistrationService;
+
+    /**
+     * Team Registration Service
+     *
+     * @var TeamRegistrationServiceInterface $teamRegistrationService
+     */
+    protected TeamRegistrationServiceInterface $teamRegistrationService;
+
+    /**
      * Payment gateway code
      * 
      * @var PaymentGateway GATEWAY
      */
     public const GATEWAY = PaymentGateway::SQUARE;
 
-    public function __construct(MailServiceInterface $mailService, OrderServiceInterface $orderService, ItemServiceInterface $itemService, array $config = [])
+    public function __construct(MailServiceInterface $mailService, OrderServiceInterface $orderService, ItemServiceInterface $itemService, IndividualRegistrationServiceInterface $individualRegistrationService, TeamRegistrationServiceInterface $teamRegistrationService, array $config = [])
     {
         $this->mailService = $mailService;
         $this->orderService = $orderService;
         $this->itemService = $itemService;
-
+        $this->individualRegistrationService = $individualRegistrationService;
+        $this->teamRegistrationService = $teamRegistrationService;
         $this->client = new SquareClient([
             'accessToken' => env('SQUARE_ACCESS_TOKEN'),
             'environment' => $this->retrieveClientEnvironment()
         ]);
+        $this->locationId = env('SQUARE_LOCATION_ID');
 
         parent::__construct($config);
     }
 
-    public function createOrder(array $items, array $metadata = [])
+    public function createOrder($discountcode, array $items, array $metadata = [])
     {
 
         $lineItems = [];
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
+            $onSale = $currentItem->isOnSale();
+            $hasDiscount = !empty($res);
+            $salePrice = $currentItem->centSalePrice();
+            $regularPrice = $currentItem->centPrice();
 
+            if ($onSale && $hasDiscount) {
+                $price = $salePrice * (1 - $res->rate);
+            } elseif ($onSale && !$hasDiscount) {
+                $price = $salePrice;
+            } elseif (!$onSale && $hasDiscount) {
+                $price = $regularPrice * (1 - $res->rate);
+            } else {
+                $price = $regularPrice;
+            }
             $lineItem = [
                 'item_id' => $currentItem->id,
                 'price' => $currentItem->centPrice(),
@@ -89,34 +119,35 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
             array_push($lineItems, $lineItem);
         }
 
-        // Added from WPI
-        $shippingchoicecalc = $metadata['shippingChoiceCalc'];
-        $shippingoptions = $metadata['shippingOptions']['selected'];
+        $metadata['line_item'] = json_encode($lineItems);
 
-        $registeredpost = in_array('Registered Value', $shippingoptions);
-        $expresspost = in_array('Express Value', $shippingoptions);
-        $addinsurance = in_array('Insurance Value', $shippingoptions);
+        $totalshipping = $this->calculateTotal($discountcode, $lineItems);
 
-        $totalshipping = $this->calculateTotal($lineItems, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance);
-        $itemSubtotal = $totalshipping['totalProduct'] + $totalshipping['totalShipping'];
-        $total = intval(($itemSubtotal * 0.1) + $itemSubtotal); // gst
+        $tax = Tax::find(1);
+        $master = ToggleTaxControl::find(1);
+        $taxAmount = 0;
+        $totalPrice = 0;
 
-        $metadata['line_items'] = json_encode($lineItems);
+        $addTax = $tax->addTaxValue;
+        $includeTax = $tax->includeTaxValue;
+        $isInclusive = $master->toggleControl2;
 
-        unset($metadata['shippingOptions']);
+        if (!$isInclusive) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
+            $totalPrice = intval($totalshipping['totalProduct'] + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive) {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
+            $totalPrice = intval($totalshipping['totalProduct'] );
+            $isInclusive = true;
+        } else {
+            $totalPrice = intval($totalshipping['totalProduct']);
+            $isInclusive = true;
+        }
 
-        
-        // Add GST
-        //$total = ($total * $this->gst) + $total;
-
-        // $total = $this->calculateTotal(
-        //     $lineItems,
-        //     $shippingchoicecalc,
-        //     $shippingoptions,
-        //     $registeredpost,
-        //     $expresspost,
-        //     $addinsurance
-        // );
+        $total = $totalPrice;
 
         $money = new Money();
         $money->setAmount($total);
@@ -142,6 +173,44 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
                 $metadata['remarks'] ?? '',
                 $total,
                 $lineItems
+            );
+
+            return $paymentId;
+        } else {
+            throw new PaymentFailedException('Transaction failed');
+        }
+    }
+
+    public function createIndividualRegistration($discountcode, string $item, array $metadata = [])
+    {
+
+        $total = $metadata['price'];
+
+        $money = new Money();
+        $money->setAmount($total);
+        $money->setCurrency(strtoupper($this->currency));
+
+        $createPaymentRequest = new CreatePaymentRequest($metadata['card_token'], Uuid::uuid4(), $money);
+        $paymentsApi = $this->client->getPaymentsApi();
+        $response = $paymentsApi->createPayment($createPaymentRequest);
+
+        if ($response->isSuccess()) {
+            $this->incrementMaxRegistrationIfAllowed($seriesItem['item_id']);
+            $paymentId = $response->getResult()->getPayment()->getId();
+
+            $this->individualRegistrationService->create(
+                $paymentId,
+                self::GATEWAY,
+                $metadata['contactFirstName'],
+                $metadata['contactLastName'],
+                $metadata['contactPhoneNumber'],
+                $metadata['contactEmail'],
+                $metadata['playerFirstName'],
+                $metadata['playerLastName'],
+                $metadata['teamName'],
+                $metadata['dob'],
+                $metadata['ageGroup'],
+                $metadata['price']
             );
 
             return $paymentId;
@@ -193,6 +262,139 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
         return $orderStatus;
     }
 
+    public function verifyIndividualRegistration(string $paymentIntentId): PaymentStatus
+    {
+        $paymentsApi = $this->client->getPaymentsApi();
+        $response = $paymentsApi->getPayment($transactionId);
+
+        if ($response->isSuccess()) {
+            $orderStatus = $this->matchStatus(
+                $response
+                    ->getResult()
+                    ->getPayment()
+                    ->getStatus()
+            );
+        } else {
+            return PaymentStatus::FAILED;
+        }
+
+        if (PaymentStatus::COMPLETE === $orderStatus) {
+            $seriesRegistered = $this->seriesRegistered->findByTransactionId(
+                                                $response
+                                                    ->getResult()
+                                                    ->getPayment()
+                                                    ->getId()
+                                            );
+            if (!$seriesRegistered->is_verified) {
+                $this->seriesRegistered->markAsVerified($seriesRegistered->transaction_id);
+                $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
+            }
+        }
+
+        return $orderStatus;
+    }
+
+    public function verifyTeamRegistration(string $paymentIntentId): PaymentStatus
+    {
+        $paymentsApi = $this->client->getPaymentsApi();
+        $response = $paymentsApi->getPayment($transactionId);
+
+        if ($response->isSuccess()) {
+            $orderStatus = $this->matchStatus(
+                $response
+                    ->getResult()
+                    ->getPayment()
+                    ->getStatus()
+            );
+        } else {
+            return PaymentStatus::FAILED;
+        }
+
+        if (PaymentStatus::COMPLETE === $orderStatus) {
+            $seriesRegistered = $this->teamRegistrationService->findByTransactionId(
+                                                $response
+                                                    ->getResult()
+                                                    ->getPayment()
+                                                    ->getId()
+                                            );
+            if (!$seriesRegistered->is_verified) {
+                $this->teamRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+                $this->mailService->sendTeamRegistrationInvoice($seriesRegistered);
+            }
+        }
+
+        return $orderStatus;
+    }
+
+    public function registrationRefund(string $transaction_id, int $amount): ?string
+    {
+        $paymentsApi = $this->client->getRefundsApi();
+
+        $money = new Money();
+        $money->setAmount($amount * 100);
+        $money->setCurrency(strtoupper($this->currency));
+
+        $refundRequest = new SquareRefundRequest(
+            $transaction_id,
+            $money
+        );
+
+        try {
+            $response = $paymentsApi->refundPayment($this->locationId, $refundRequest);
+
+            if ($response->isSuccess()) {
+                return response()->json([
+                    'success' => true,
+                    'refund' => $response->getResult(),
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'error' => $response->getErrors(),
+                ], 500);
+            }
+        } catch (ApiException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getErrors(),
+            ], 500);
+        }
+
+    }
+
+    public function cancelRefund(string $refund_id): ?string
+    {
+        return response()->json(['message' => 'No cancellation refund.']);
+    }
+
+    public function updateAmount(string $paymentIntent, array $updateParams)
+    {
+        try {
+            $money = new Money();
+            $money->setAmount((int) round($updateParams['price'] * 100));
+            $money->setCurrency($currency);
+
+            $body = new UpdatePaymentRequest($money);
+            $body->setIdempotencyKey(uniqid());
+
+            $apiResponse = $this->client->getPayments()->updatePayment($paymentIntent, $body);
+
+            if ($apiResponse->isSuccess()) {
+                return true;
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $apiResponse->getErrors()
+                ], 400);
+            }
+        } catch (ApiException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getErrors()
+            ], 500);
+        }
+    }
+
     /**
      * Calculate the total amount to be paid
      * 
@@ -200,130 +402,14 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
      * 
      * @return float
      */
-    protected function calculateTotal(array $items, $shippingchoicecalc, $registeredpost, $expresspost, $addinsurance): array
+    protected function calculateTotal($discountcode, array $items): array
     {
         $total = 0;
-        $tot = 0;
         foreach ($items as $item) {
-
-            if($shippingchoicecalc == "Own Country"){
-                $data = NewShipping::latest()->first();
-
-                $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
-                if($registeredpost){
-                    $rv = $data->registeredCentPrice();
-                    $tot += intval($rv);
-                
-                }
-                if($expresspost){
-                    $ev = $data->expressCentPrice();
-                    $tot += intval($ev);
-                }
-                if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
-                    $tot += intval($iv);
-                }
-
-            }elseif($shippingchoicecalc == "Own State"){
-                $data = StateShipping::latest()->first();
-
-                $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
-
-                if($registeredpost){
-                    $rv = $data->registeredCentPrice();
-                    $tot += intval($rv);
-                }
-                if($expresspost){
-                    $ev = $data->expressCentPrice();
-                    $tot += intval($ev);
-                }
-                if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
-                    $tot += intval($iv);
-                }
-            }elseif($shippingchoicecalc == "Own City"){
-                $data = CityShipping::latest()->first();
-
-                $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
-
-                if($registeredpost){
-                    $rv = $data->registeredCentPrice();
-                    $tot += intval($rv);
-                }
-                if($expresspost){
-                    $ev = $data->expressCentPrice();
-                    $tot += intval($ev);
-                }
-                if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
-                    $tot += intval($iv);
-                }
-            }elseif($shippingchoicecalc == "Other Country"){
-                $data = OtherCountryShipping::latest()->first();
-
-                $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
-
-                if($registeredpost){
-                    $rv = $data->registeredCentPrice();
-                    $tot += intval($rv);
-                }
-                if($expresspost){
-                    $ev = $data->expressCentPrice();
-                    $tot += intval($ev);
-                }
-                if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
-                    $tot += intval($iv);
-                }
-            }elseif($shippingchoicecalc == "Other State"){
-                $data = OtherStateShipping::latest()->first();
-
-                $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
-
-                if($registeredpost){
-                    $rv = $data->registeredCentPrice();
-                    $tot += intval($rv);
-                }
-                if($expresspost){
-                    $ev = $data->expressCentPrice();
-                    $tot += intval($ev);
-                }
-                if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
-                    $tot += intval($iv);
-                }
-            }elseif($shippingchoicecalc == "Other City"){
-                $data = OtherCityShipping::latest()->first();
-
-                $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
-                $tot += intval($data->shippingCentPrice());
-                
-                if($registeredpost){
-                    $rv = $data->registeredCentPrice();
-                    $tot += intval($rv);
-                }
-                if($expresspost){
-                    $ev = $data->expressCentPrice();
-                    $tot += intval($ev);
-                }
-                if($addinsurance){
-                    $iv = $data->insuranceCentPrice();
-                    $tot += intval($iv);
-                }
-            }
+            $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
         }
 
-        
-
-        return [
-            'totalProduct' => $total,
-            'totalShipping' => $tot
-        ];
+        return ['totalProduct' => $total];
     }
 
     /**
@@ -334,11 +420,98 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
      * 
      * @return float
      */
-    protected function calculateItemTotal(int $itemId, int $quantity): float
+    protected function calculateItemTotal($discountcode, int $item): float
     {
-        $item = $this->itemService->retrieveItem($itemId);
-        $price = $item->isOnSale() ? $item->centSalePrice() : $item->centPrice();
-        return $item->centPrice() * $quantity;
+        $tax = Tax::find(1);
+        $master = ToggleTaxControl::find(1);
+        $res = DiscountCode::where('code', $discountcode)->first();
+        $hasDiscount = !empty($res);
+
+        $addTax = $tax->addTaxValue;
+        $includeTax = $tax->includeTaxValue;
+        $isInclusive = $master->toggleControl2;
+
+        $currentItem = Item::find($item);
+        $regularPrice = $currentItem->centPrice();
+        $hasDiscount = !empty($discountcode);
+        $taxAmount = 0;
+
+        if (!$isInclusive && $hasDiscount) {
+            $taxRate = $addTax / 100;
+            $price = $regularPrice * (1 - $res->rate);
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($price + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive && $hasDiscount) {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $price = $regularPrice * (1 - $res->rate);
+            $totalPrice = intval($price);
+            $isInclusive = true;
+        } elseif (!$isInclusive && !$hasDiscount) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } else {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice);
+            $isInclusive = true;
+        }
+
+        return [
+            'currentItem' => $currentItem,
+            'regularPrice' => $regularPrice,
+            'totalPrice' => $totalPrice
+        ];
+    }
+
+        protected function calculateTotalRegistration($discountcode, int $item): array
+    {
+        $tax = Tax::find(1);
+        $master = ToggleTaxControl::find(1);
+        $res = DiscountCode::where('code', $discountcode)->first();
+        $hasDiscount = !empty($res);
+
+        $addTax = $tax->addTaxValue;
+        $includeTax = $tax->includeTaxValue;
+        $isInclusive = $master->toggleControl2;
+
+        $currentItem = Series::find($item);
+        $regularPrice = $currentItem->centPrice();
+        $hasDiscount = !empty($discountcode);
+        $taxAmount = 0;
+
+        if (!$isInclusive && $hasDiscount) {
+            $taxRate = $addTax / 100;
+            $price = $regularPrice * (1 - $res->rate);
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($price + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive && $hasDiscount) {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $price = $regularPrice * (1 - $res->rate);
+            $totalPrice = intval($price);
+            $isInclusive = true;
+        } elseif (!$isInclusive && !$hasDiscount) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } else {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice);
+            $isInclusive = true;
+        }
+
+        return [
+            'currentItem' => $currentItem,
+            'regularPrice' => $regularPrice,
+            'totalPrice' => $totalPrice
+        ];
     }
 
     /**
@@ -385,4 +558,20 @@ class Square extends BasePaymentGateway implements PaymentGatewayInterface
                 break;
         }
     }
+
+    protected function incrementMaxRegistrationIfAllowed(int $seriesId): void
+    {
+        $series = Series::with('ageGroup')->findOrFail($seriesId);
+    
+        if ($series->type !== 'weekly' || !$series->ageGroup) {
+            return;
+        }
+    
+        $maxAge = $series->ageGroup->max_age;
+        $cap = ($maxAge <= 9) ? 12 : 15;
+    
+        if ($series->max_registration < $cap) {
+            $series->increment('max_registration');
+        }
+    }  
 }
