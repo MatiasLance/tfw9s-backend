@@ -10,9 +10,16 @@ class DiscountCode extends Model
     use HasFactory;
 
     protected $fillable = [
+        'team_id',
         'code',
         'rate',
         'description',
-        'amountapplied'
+        'amountapplied',
+        'usage_limit'
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
     ];
 }

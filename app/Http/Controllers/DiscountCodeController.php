@@ -86,8 +86,10 @@ class DiscountCodeController extends Controller
             'code' => 'required|max:20',
             'rate' => 'required',
             'description' => 'required|max:255',
-            'amountapplied' => 'required'
+            'amountapplied' => 'required',
+            'usage_limit' => 'required'
         ]);
+        
         $createData = DiscountCode::create($validate);
         if (!is_null($createData)) {
             return $message->successMessage();
@@ -106,6 +108,7 @@ class DiscountCodeController extends Controller
         $updateData->rate = $request->input('rate');
         $updateData->description = $request->input('description');
         $updateData->amountapplied = $request->input('amountapplied');
+        $updateData->usage_limit = $request->input('usage_limit');
         $updateData->save();
 
         if (!is_null($validate)) {
