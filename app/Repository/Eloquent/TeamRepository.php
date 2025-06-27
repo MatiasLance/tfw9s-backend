@@ -13,6 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use App\Models\TeamLimit;
 use App\Models\TeamRegistration;
+use App\Models\DiscountCode;
 use App\Modules\Payment\PaymentServiceInterface;
 
 class TeamRepository extends BaseRepository implements teamRepositoryInterface
@@ -160,7 +161,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
         
 
-        $teams = $teams->with('registration');
+        $teams = $teams->with(['registration']);
 
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
@@ -191,9 +192,10 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         return Team::find($id);
     }
 
-    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id, int $player_limit): Team
+    public function createTeam(string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, string $type, int $region_id, int $player_limit, int $discount_id): Team
     {
         $team = new Team();
+        $team->discount_codes_id = $discount_id;
         $team->name = $name;
         $team->agegroup_id = $agegroup_id;
         $team->series_id = $series_id;
@@ -205,6 +207,8 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_email = $manager['email'];
         $team->region_id = $region_id;
         $team->player_limit = $player_limit;
+        
+        $discountCodes = DiscountCode::where('id', $discount_id)->get();
 
         $teamLimit = null;
         if (in_array($type, ['tournament', 'cost'])) {
@@ -219,7 +223,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             }
         }    
 
-        return DB::transaction(function() use($team, $media, $teamLimit) {
+        return DB::transaction(function() use($team, $media, $teamLimit, $discountCodes) {
             $team->save();
 
             foreach ($media as $file) {
@@ -235,17 +239,28 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
                 $teamLimit->save();
             }
 
+            // Update discount code usage limit
+            foreach($discountCodes as $discountCode){
+                if($discountCode->usage_count < $discountCode->usage_limit){
+                    $discountCode->usage_count += 1;
+                    $discountCode->save();
+                }else{
+                    throw new \Exception("Discount code usage limit reached.");
+                }
+            }
+
             return $team;
         });
     }
 
-    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id, $player_limit): bool
+    public function updateTeam(int $id, string $name, int $agegroup_id, int $series_id, array $coach, array $manager, ?array $media, int $region_id, $player_limit, int $discount_id): bool
     {
         $team = $this->find($id);
         $oldAgegroupId = $team->agegroup_id;
         $oldSeriesId = $team->series_id;
         $oldRegionId = $team->region_id;
 
+        $team->discount_codes_id = $discount_id;
         $team->name = $name;
         $team->agegroup_id = $agegroup_id;
         $team->series_id = $series_id;
@@ -258,7 +273,10 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->region_id = $region_id;
         $team->player_limit = $player_limit;
 
-        return DB::transaction(function() use($team, $media, $oldAgegroupId, $oldSeriesId, $oldRegionId) {
+        $discountCodes = DiscountCode::where('id', $discount_id)->get();
+        
+
+        return DB::transaction(function() use($team, $media, $oldAgegroupId, $oldSeriesId, $oldRegionId, $discountCodes) {
             if (!is_null($media)) {
                 $newMedia = array_filter($media, function ($file) {
                     return $file instanceof UploadedFile;

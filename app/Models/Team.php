@@ -57,9 +57,15 @@ class Team extends Model
     {
         return $this->belongsTo(TeamRegistration::class);
     }
-        public function region()
+
+    public function region()
     {
         return $this->belongsTo(Region::class, 'region_id');
+    }
+
+    public function discountCode()
+    {
+        return $this->hasOne(DiscountCode::class);
     }
 
     public function listTeams(array $filter)
