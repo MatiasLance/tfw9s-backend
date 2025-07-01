@@ -65,7 +65,7 @@ class Team extends Model
 
     public function discountCode()
     {
-        return $this->hasOne(DiscountCode::class);
+        return $this->belongsTo(DiscountCode::class, 'discount_codes_id', 'id');
     }
 
     public function listTeams(array $filter)

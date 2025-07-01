@@ -84,6 +84,8 @@ class DiscountRepository extends BaseRepository implements DiscountRepositoryInt
                 break;
         }
         
+        $discount = $discount->with('teams');
+
         $maxPerPage = is_null($filters['max_discount_per_page']) ? $discount->count() : $filters['max_discount_per_page'];
 
         return new Paginate($discount, $maxPerPage, $filters['page'], 'discount');

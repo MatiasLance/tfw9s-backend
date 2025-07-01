@@ -74,7 +74,11 @@ class TeamController extends Controller
 
         $player_limit = $request->input('player_limit')??0;
 
-        $discountId = $request->input('discount_code_id');
+        if($request->input('discount_code_id') == 'undefined'){
+            $discountId = 0;
+        }else{
+            $discountId = $request->input('discount_code_id');
+        }
 
         $coach = [
             'name' => $coach_name,

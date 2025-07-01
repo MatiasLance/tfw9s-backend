@@ -22,4 +22,9 @@ class DiscountCode extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function teams()
+    {
+        return $this->hasMany(Team::class, 'discount_codes_id');
+    }
 }
