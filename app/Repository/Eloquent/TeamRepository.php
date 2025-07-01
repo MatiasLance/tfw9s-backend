@@ -161,7 +161,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
         
 
-        $teams = $teams->with(['registration']);
+        $teams = $teams->with(['registration', 'discountCode']);
 
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
@@ -207,7 +207,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $team->manager_email = $manager['email'];
         $team->region_id = $region_id;
         $team->player_limit = $player_limit;
-        
+
         $discountCodes = DiscountCode::where('id', $discount_id)->get();
 
         $teamLimit = null;
