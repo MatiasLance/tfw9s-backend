@@ -128,6 +128,12 @@ class TeamController extends Controller
 
         $discountId = $request->input('discount_code_id');
 
+        if($request->input('discount_code_id') == 'undefined'){
+            $discountId = 0;
+        }else{
+            $discountId = $request->input('discount_code_id');
+        }
+
         $coach = [
             'name' => $coach_name,
             'mobile' => $coach_mobile,
