@@ -188,7 +188,8 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
 
     public function createIndividualRegistration($discountcode, string $item, array $metadata = [])
     {
-        $calculatedTotal = $this->calculateTotalRegistration($discountcode, $item);
+        
+        $calculatedTotal = $this->calculateTotalRegistration($metadata['discountCodeId'], $item);
 
         $total = $calculatedTotal['totalPrice'] / 100;
 
@@ -488,8 +489,9 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
     {
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
-        $res = DiscountCode::where('code', $discountcode)->first();
-        $hasDiscount = !empty($res);
+        $discountCode = DiscountCode::where('id', $discountcode)->first();
+        $discountAmount = (int) $discountCode->amountapplied;
+        $discountRate = floatval($discountCode->rate);
 
         $addTax = $tax->addTaxValue;
         $includeTax = $tax->includeTaxValue;
@@ -497,22 +499,37 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
 
         $currentItem = Series::find($item);
         $regularPrice = $currentItem->centPrice();
-        $hasDiscount = !empty($discountcode);
         $taxAmount = 0;
 
-        if (!$isInclusive && $hasDiscount) {
+        if (!$isInclusive && $discountAmount != 0) {
             $taxRate = $addTax / 100;
-            $price = $regularPrice * (1 - $res->rate);
+            $price = ($regularPrice / $discountAmount) * 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($price + $taxAmount);
             $isInclusive = false;
-        } elseif ($isInclusive && $hasDiscount) {
+        } elseif ($isInclusive && $discountAmount !== 0) {
             $taxRate = $includeTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $price = $regularPrice * (1 - $res->rate);
+            $price = ($regularPrice / $discountAmount) * 100;
             $totalPrice = intval($price);
             $isInclusive = true;
-        } elseif (!$isInclusive && !$hasDiscount) {
+        } elseif (!$isInclusive && $discountAmount === 0) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } elseif (!$isInclusive && $discountRate != 0.0) {
+            $taxRate = $addTax / 100;
+            $price = $regularPrice * (1 - $discountRate);
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive && $discountRate != 0.0) {
+            $taxRate = $addTax / 100;
+            $price = $regularPrice * (1 - $discountRate);
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($price);
+            $isInclusive = true;
+        } elseif (!$isInclusive && $discountRate === 0.0) {
             $taxRate = $addTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice + $taxAmount);

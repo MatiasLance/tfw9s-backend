@@ -195,7 +195,7 @@ class SeriesController extends Controller
         $isSuccess = $this->seriesService->sendRegistrations($id);
 
         if ($isSuccess) {
-            $message->setContent(200, 'Series tean coaches notified');
+            $message->setContent(200, 'Series team coaches notified');
         } else {
             $message->setContent(400, 'Series coaches notification failed');  
         }
