@@ -502,16 +502,31 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
         $taxAmount = 0;
 
         if (!$isInclusive && $discountAmount != 0) {
-            $taxRate = $addTax / 100;
-            $price = ($regularPrice / $discountAmount) * 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($price + $taxAmount);
-            $isInclusive = false;
+            $seriesPrice = $regularPrice / 100;
+            if($discountAmount > $seriesPrice){
+                $taxRate = $addTax / 100;
+                $taxAmount = $regularPrice * $taxRate;
+                $totalPrice = intval($regularPrice + $taxAmount);
+                $isInclusive = false;
+            }else{
+                $taxRate = $addTax / 100;
+                $discountRate = ($discountAmount / $regularPrice) * 100;
+                $price = $regularPrice * (1 - $discountRate);
+                $taxAmount = $regularPrice * $taxRate;
+                $totalPrice = intval($price + $taxAmount);
+                $isInclusive = false;
+            }
         } elseif ($isInclusive && $discountAmount !== 0) {
-            $taxRate = $includeTax / 100;
-            $price = ($regularPrice / $discountAmount) * 100;
-            $totalPrice = intval($price);
-            $isInclusive = true;
+            $seriesPrice = $regularPrice / 100;
+            if($discountAmount > $seriesPrice){
+                $totalPrice = intval($regularPrice);
+                $isInclusive = true;
+            }else{
+                $discountRate = ($discountAmount / $regularPrice) * 100;
+                $price = $regularPrice * (1 - $discountRate);
+                $totalPrice = intval($price);
+                $isInclusive = true;
+            }
         } elseif (!$isInclusive && $discountAmount === 0) {
             $taxRate = $addTax / 100;
             $taxAmount = $regularPrice * $taxRate;
@@ -524,9 +539,7 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
             $totalPrice = intval($regularPrice + $taxAmount);
             $isInclusive = false;
         } elseif ($isInclusive && $discountRate != 0.0) {
-            $taxRate = $addTax / 100;
             $price = $regularPrice * (1 - $discountRate);
-            $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($price);
             $isInclusive = true;
         } elseif (!$isInclusive && $discountRate === 0.0) {
@@ -535,8 +548,6 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
             $totalPrice = intval($regularPrice + $taxAmount);
             $isInclusive = false;
         } else {
-            $taxRate = $includeTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice);
             $isInclusive = true;
         }

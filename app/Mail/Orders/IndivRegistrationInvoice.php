@@ -58,7 +58,7 @@ class IndivRegistrationInvoice extends Mailable
 
         return $this
                 ->subject('Invoice')
-                ->view('mail.registrationInvoice')
+                ->view('mail.individual-registration-invoice')
                 ->with([
                     'url' => $url,
                     'order' => $this->individualRegistration,
