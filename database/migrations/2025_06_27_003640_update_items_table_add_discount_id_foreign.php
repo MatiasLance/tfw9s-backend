@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('teams', function (Blueprint $table) {
-            $table->unsignedBigInteger('discount_codes_id')->after('id');
+            $table->unsignedBigInteger('discount_codes_id')->after('id')->default(0);
         });
     }
 

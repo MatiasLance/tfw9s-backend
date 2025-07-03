@@ -60,7 +60,7 @@ class TeamRegistrationInvoice extends Mailable
 
         return $this
                 ->subject('Invoice')
-                ->view('mail.registrationInvoice')
+                ->view('mail.team-registration-invoice')
                 ->with([
                     'url' => $url,
                     'order' => $this->teamRegistration,
