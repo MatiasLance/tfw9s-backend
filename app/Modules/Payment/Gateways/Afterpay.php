@@ -189,7 +189,51 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
     public function createIndividualRegistration($discountcode, string $item, array $metadata = [])
     {
         
-        $calculatedTotal = $this->calculateTotalRegistration($metadata['discountCodeId'], $item);
+        $calculatedTotal = $this->calculateTotalIndividualRegistration($metadata['discountCodeId'], $item);
+
+        $total = $calculatedTotal['totalPrice'] / 100;
+
+        $metadata['total_price'] = $total * 100;
+        $metadata['item_id'] = $calculatedTotal['currentItem']->id;
+
+        $money = new Money();
+        $money->setAmount((int) round($total * 100));
+        $money->setCurrency(strtoupper($this->currency));
+
+        $createPaymentRequest = new CreatePaymentRequest($metadata['card_token'], Uuid::uuid4(), $money);
+        $paymentsApi = $this->client->getPaymentsApi();
+        $response = $paymentsApi->createPayment($createPaymentRequest);
+
+        if ($response->isSuccess()) {
+            $this->incrementMaxRegistrationIfAllowed($calculatedTotal['currentItem']->id);
+            $paymentId = $response->getResult()->getPayment()->getId();
+
+            $this->individualRegistrationService->create(
+                $paymentId,
+                self::GATEWAY,
+                $metadata['contactFirstName'],
+                $metadata['contactLastName'],
+                $metadata['contactPhoneNumber'],
+                $metadata['contactEmail'],
+                $metadata['playerFirstName'],
+                $metadata['playerLastName'],
+                $metadata['dob'],
+                $metadata['teamName'],
+                $metadata['ageGroup'],
+                $metadata['total_price'],
+                $metadata['item_id']
+            );
+
+            return $paymentId;
+        } else {
+            throw new PaymentFailedException('Transaction failed');
+        }
+    }
+
+    public function createTeamRegistration($discountcode, string $item, array $metadata = [])
+    {
+        
+        $calculatedTotal = $this->calculateTotalTeamRegistration($item);
 
         $total = $calculatedTotal['totalPrice'] / 100;
 
@@ -485,12 +529,11 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
      *
      * @return array
      */
-    protected function calculateTotalRegistration($discountcode, int $item): array
+    protected function calculateTotalIndividualRegistration($discountcode, int $item): array
     {
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
         $discountCode = DiscountCode::where('id', $discountcode)->first();
-        $discountAmount = (int) $discountCode->amountapplied;
         $discountRate = floatval($discountCode->rate);
 
         $addTax = $tax->addTaxValue;
@@ -501,48 +544,55 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
         $regularPrice = $currentItem->centPrice();
         $taxAmount = 0;
 
-        if (!$isInclusive && $discountAmount != 0) {
-            $seriesPrice = $regularPrice / 100;
-            if($discountAmount > $seriesPrice){
-                $taxRate = $addTax / 100;
-                $taxAmount = $regularPrice * $taxRate;
-                $totalPrice = intval($regularPrice + $taxAmount);
-                $isInclusive = false;
-            }else{
-                $taxRate = $addTax / 100;
-                $discountRate = ($discountAmount / $regularPrice) * 100;
-                $price = $regularPrice * (1 - $discountRate);
-                $taxAmount = $regularPrice * $taxRate;
-                $totalPrice = intval($price + $taxAmount);
-                $isInclusive = false;
-            }
-        } elseif ($isInclusive && $discountAmount !== 0) {
-            $seriesPrice = $regularPrice / 100;
-            if($discountAmount > $seriesPrice){
-                $totalPrice = intval($regularPrice);
-                $isInclusive = true;
-            }else{
-                $discountRate = ($discountAmount / $regularPrice) * 100;
-                $price = $regularPrice * (1 - $discountRate);
-                $totalPrice = intval($price);
-                $isInclusive = true;
-            }
-        } elseif (!$isInclusive && $discountAmount === 0) {
-            $taxRate = $addTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice + $taxAmount);
-            $isInclusive = false;
-        } elseif (!$isInclusive && $discountRate != 0.0) {
+        if (!$isInclusive && $discountRate != 0.0) {
             $taxRate = $addTax / 100;
             $price = $regularPrice * (1 - $discountRate);
             $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice + $taxAmount);
+            $totalPrice = intval($price + $taxAmount);
             $isInclusive = false;
         } elseif ($isInclusive && $discountRate != 0.0) {
             $price = $regularPrice * (1 - $discountRate);
             $totalPrice = intval($price);
             $isInclusive = true;
         } elseif (!$isInclusive && $discountRate === 0.0) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } else {
+            $totalPrice = intval($regularPrice);
+            $isInclusive = true;
+        }
+
+        return [
+            'currentItem' => $currentItem,
+            'regularPrice' => $regularPrice,
+            'totalPrice' => $totalPrice
+        ];
+    }
+
+    protected function calculateTotalTeamRegistration(int $item): array
+    {
+        $tax = Tax::find(1);
+        $master = ToggleTaxControl::find(1);
+
+        $addTax = $tax->addTaxValue;
+        $includeTax = $tax->includeTaxValue;
+        $isInclusive = $master->toggleControl2;
+
+        $currentItem = Series::find($item);
+        $regularPrice = $currentItem->centPrice();
+        $taxAmount = 0;
+
+        if (!$isInclusive) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive) {
+            $totalPrice = intval($regularPrice);
+            $isInclusive = true;
+        } elseif (!$isInclusive) {
             $taxRate = $addTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice + $taxAmount);

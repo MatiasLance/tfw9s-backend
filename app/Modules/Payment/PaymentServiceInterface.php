@@ -43,7 +43,10 @@ interface PaymentServiceInterface
      * @param string $gateway Payment gateway to use
      * @param array $metadata Metadata about the order
      */
-    public function createindividualregistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null);
+    public function createIndividualRegistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null);
+
+    public function createTeamRegistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null);
+
 
     /**
      * Verify a payment intent and check its status.

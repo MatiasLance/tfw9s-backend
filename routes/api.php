@@ -136,8 +136,10 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/team/checkout', 'App\Http\Controllers\TeamRegistrationController@checkout');
         Route::post('/indiv/verify', 'App\Http\Controllers\IndividualRegistrationController@verify');
         Route::post('/team/verify', 'App\Http\Controllers\TeamRegistrationController@verify');
-        Route::post('/indiv/calculation', 'App\Http\Controllers\IndividualRegistrationController@calculation');
-        Route::post('/team/calculation', 'App\Http\Controllers\TeamRegistrationController@calculation');
+        Route::post('/indiv/stripe/calculation', 'App\Http\Controllers\IndividualRegistrationController@initialStripeCalculation');
+        Route::post('/indiv/afterpay/calculation', 'App\Http\Controllers\IndividualRegistrationController@initialAfterPayCalculation');
+        Route::post('/team/stripe/calculation', 'App\Http\Controllers\TeamRegistrationController@initialStripeCalculation');
+        Route::post('/team/afterpay/calculation', 'App\Http\Controllers\TeamRegistrationController@initialAfterPayCalculation');
     });
 
     // Discount Code API Endpoints

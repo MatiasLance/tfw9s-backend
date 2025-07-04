@@ -56,16 +56,59 @@ class IndividualRegistrationController extends Controller
         return $message->render();
     }
 
-    public function calculation(Request $request)
+    public function initialAfterPayCalculation(Request $request)
     {
-        $paymentIntent = $request->input('paymentIntent');
-        $paymentMethod = $request->input('paymentMethod');
-
-        $item = $request->input('item');
+        $amount = $request->input('amount');
+        $discountCodeID = $request->input('discountID');
+    
         $tax = Tax::find(1);
-        $discountcode = $request->input('discountcode');
-        $res = DiscountCode::where('code', $discountcode)->first();
         $master = ToggleTaxControl::find(1);
+        $discountCode = DiscountCode::where('id', $discountCodeID)->first();
+        $discountRate = floatval($discountCode->rate);
+
+        $addTax = $tax->addTaxValue;
+        $includeTax = $tax->includeTaxValue;
+        $isInclusive = $master->toggleControl2;
+
+        $taxAmount = 0;
+
+        if (!$isInclusive && $discountRate != 0.0) {
+            $taxRate = $addTax / 100;
+            $price = $amount * (1 - $discountRate);
+            $taxAmount = $amount * $taxRate;
+            $totalPrice = intval($price + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive && $discountRate != 0.0) {
+            $price = $amount * (1 - $discountRate);
+            $totalPrice = intval($price);
+            $isInclusive = true;
+        } elseif (!$isInclusive && $discountRate === 0.0) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $amount * $taxRate;
+            $totalPrice = intval($amount + $taxAmount);
+            $isInclusive = false;
+        } else {
+            $totalPrice = intval($amount);
+            $isInclusive = true;
+        }
+
+        return [
+            'totalPrice' => $totalPrice
+        ];
+    }
+
+    public function initialStripeCalculation(Request $request)
+    {
+        $item = $request->input('item');
+        $amount = $request->input('amount');
+        $discountCodeID = $request->input('discountID');
+
+        
+        $tax = Tax::find(1);
+        $master = ToggleTaxControl::find(1);
+        $discountCode = DiscountCode::where('id', $discountCodeID)->first();
+        $discountRate = floatval($discountCode->rate);
+        
 
         $addTax = $tax->addTaxValue;
         $includeTax = $tax->includeTaxValue;
@@ -73,59 +116,39 @@ class IndividualRegistrationController extends Controller
 
         $currentItem = Series::find($item);
         $regularPrice = $currentItem->centPrice();
-        $hasDiscount = !empty($discountcode);
-        $taxAmount = 0;
-        $price = 0;
 
-        if (!$isInclusive && $hasDiscount) {
+        $taxAmount = 0;
+
+        if (!$isInclusive && $discountRate != 0.0) {
             $taxRate = $addTax / 100;
-            $price = $regularPrice * (1 - $res->rate);
-            $taxAmount = $regularPrice * $taxRate;
-            $DiscountedTax = $price * $taxRate;
-            $totalPrice = intval($price + $DiscountedTax);
+            $price = $amount * (1 - $discountRate);
+            $taxAmount = $amount * $taxRate;
+            $totalPrice = intval($price + $taxAmount);
+            $subTotal = intval($totalPrice / 1.1);
             $isInclusive = false;
-        } elseif ($isInclusive && $hasDiscount) {
-            $taxRate = $includeTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $price = $regularPrice * (1 - $res->rate);
+        } elseif ($isInclusive && $discountRate != 0.0) {
+            $price = $amount * (1 - $discountRate);
             $totalPrice = intval($price);
+            $subTotal = intval($totalPrice);
             $isInclusive = true;
-        } elseif (!$isInclusive && !$hasDiscount) {
+        } elseif (!$isInclusive && $discountRate === 0.0) {
             $taxRate = $addTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice + $taxAmount);
+            $taxAmount = $amount * $taxRate;
+            $totalPrice = intval($amount + $taxAmount);
+            $subTotal = intval($totalPrice / 1.1);
             $isInclusive = false;
         } else {
-            $taxRate = $includeTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice);
+            $totalPrice = intval($amount);
+            $subTotal = intval($totalPrice);
             $isInclusive = true;
         }
 
         $taxAmount = intval(round($taxAmount));
 
-        $seriesItem = [
-            'item_id' => $currentItem->id,
-            'taxAmount' => $taxAmount,
-            'isInclusive' => $isInclusive,
-            'regularPrice' => $regularPrice,
-            'afterDiscount' => intval($price),
-            'totalPrice' => $totalPrice,
-        ];
-
-        $response = [];
-
-        $updateParams = [
-            'amount' => $seriesItem['totalPrice'],
-        ];
-
-        if ($paymentIntent) {
-            $response = $this->paymentService->updateAmount($paymentIntent, $updateParams, $paymentMethod);
-        }
-
         return response()->json([
-            'calculation' => $seriesItem,
-            'paymentIntent' => $response
+            'taxAmount' => $taxAmount,
+            'totalPrice' => $totalPrice * 100,
+            'subTotal' => $subTotal * 100
         ]);
     }
 

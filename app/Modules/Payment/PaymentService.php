@@ -35,6 +35,16 @@ class PaymentService implements PaymentServiceInterface
         return $paymentGateway->createIndividualRegistration($discountcode, $item, $metadata);
     }
 
+    public function createTeamRegistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null)
+    {
+        $config = [
+            'currency' => $currency
+        ];
+
+        $paymentGateway = $this->getGateway($gateway, $config);
+        return $paymentGateway->createTeamRegistration($discountcode, $item, $metadata);
+    }
+
     public function verifyIndividualRegistration(string $gateway, string $transactionId)
     {
         $paymentGateway = $this->getGateway($gateway);

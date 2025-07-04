@@ -221,8 +221,37 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
     public function createIndividualRegistration($discountcode, string $item, array $metadata = [])
     {
+        $calculatedTotal = $this->calculateTotalIndividualRegistration($metadata['discountCodeId'], $item);
 
-        $calculatedTotal = $this->calculateTotalRegistration($discountcode, $item);
+        $seriesItem = [
+            'item_id' => $calculatedTotal['currentItem']->id,
+            'price' => $calculatedTotal['regularPrice'],
+        ];
+
+        $metadata['line_item'] = json_encode($seriesItem);
+
+        $productValue = [
+            'amount' => $calculatedTotal['totalPrice'],
+            'currency' => $this->currency,
+            'automatic_payment_methods' => [
+                'enabled' => true,
+            ],
+            'metadata' => $metadata,
+        ];
+
+        $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+
+        $responseValues = [
+            'stripeToken' => $paymentIntent->client_secret,
+            'paymentIntentId' => $paymentIntent->id
+        ];
+
+        return response()->json($responseValues);
+    }
+
+    public function createTeamRegistration($discountcode, string $item, array $metadata = [])
+    {
+        $calculatedTotal = $this->calculateTotalTeamRegistration($item);
 
         $seriesItem = [
             'item_id' => $calculatedTotal['currentItem']->id,
@@ -358,12 +387,12 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
      *
      * @return array
      */
-    protected function calculateTotalRegistration($discountcode, int $item): array
+    protected function calculateTotalIndividualRegistration($discountCodeID, int $item): array
     {
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
-        $res = DiscountCode::where('code', $discountcode)->first();
-        $hasDiscount = !empty($res);
+        $discountCode = DiscountCode::where('id', $discountCodeID)->first();
+        $discountRate = floatval($discountCode->rate);
 
         $addTax = $tax->addTaxValue;
         $includeTax = $tax->includeTaxValue;
@@ -371,22 +400,22 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         $currentItem = Series::find($item);
         $regularPrice = $currentItem->centPrice();
-        $hasDiscount = !empty($discountcode);
+
         $taxAmount = 0;
 
-        if (!$isInclusive && $hasDiscount) {
+        if (!$isInclusive && $discountRate != 0.0) {
             $taxRate = $addTax / 100;
-            $price = $regularPrice * (1 - $res->rate);
+            $price = $regularPrice * (1 - $discountRate);
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($price + $taxAmount);
             $isInclusive = false;
-        } elseif ($isInclusive && $hasDiscount) {
+        } elseif ($isInclusive && $discountRate != 0.0) {
             $taxRate = $includeTax / 100;
             $taxAmount = $regularPrice * $taxRate;
-            $price = $regularPrice * (1 - $res->rate);
+            $price = $regularPrice * (1 - $discountRate);
             $totalPrice = intval($price);
             $isInclusive = true;
-        } elseif (!$isInclusive && !$hasDiscount) {
+        } elseif (!$isInclusive && $discountRate === 0.0) {
             $taxRate = $addTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice + $taxAmount);
@@ -395,6 +424,49 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             $taxRate = $includeTax / 100;
             $taxAmount = $regularPrice * $taxRate;
             $totalPrice = intval($regularPrice);
+            $isInclusive = true;
+        }
+
+        return [
+            'currentItem' => $currentItem,
+            'regularPrice' => $regularPrice,
+            'totalPrice' => $totalPrice
+        ];
+    }
+
+    protected function calculateTotalTeamRegistration(int $item): array
+    {
+        $tax = Tax::find(1);
+        $master = ToggleTaxControl::find(1);
+
+        $addTax = $tax->addTaxValue;
+        $includeTax = $tax->includeTaxValue;
+        $isInclusive = $master->toggleControl2;
+
+        $currentItem = Series::find($item);
+        $regularPrice = $currentItem->centPrice();
+
+        $taxAmount = 0;
+
+        if (!$isInclusive) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } elseif ($isInclusive) {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = true;
+        } elseif (!$isInclusive) {
+            $taxRate = $addTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
+            $isInclusive = false;
+        } else {
+            $taxRate = $includeTax / 100;
+            $taxAmount = $regularPrice * $taxRate;
+            $totalPrice = intval($regularPrice + $taxAmount);
             $isInclusive = true;
         }
 
