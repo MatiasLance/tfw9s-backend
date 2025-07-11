@@ -391,8 +391,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     {
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
-        $discountCode = DiscountCode::where('id', $discountCodeID)->first();
-        $discountRate = floatval($discountCode->rate);
 
         $addTax = $tax->addTaxValue;
         $includeTax = $tax->includeTaxValue;
@@ -403,35 +401,61 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         $taxAmount = 0;
 
-        if (!$isInclusive && $discountRate != 0.0) {
-            $taxRate = $addTax / 100;
-            $price = $regularPrice * (1 - $discountRate);
-            $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($price + $taxAmount);
-            $isInclusive = false;
-        } elseif ($isInclusive && $discountRate != 0.0) {
-            $taxRate = $includeTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $price = $regularPrice * (1 - $discountRate);
-            $totalPrice = intval($price);
-            $isInclusive = true;
-        } elseif (!$isInclusive && $discountRate === 0.0) {
-            $taxRate = $addTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice + $taxAmount);
-            $isInclusive = false;
-        } else {
-            $taxRate = $includeTax / 100;
-            $taxAmount = $regularPrice * $taxRate;
-            $totalPrice = intval($regularPrice);
-            $isInclusive = true;
-        }
+        if($discountCodeID !== 0){
+            $discountCode = DiscountCode::where('id', $discountCodeID)->first();
+            $discountRate = floatval($discountCode->rate);
 
-        return [
-            'currentItem' => $currentItem,
-            'regularPrice' => $regularPrice,
-            'totalPrice' => $totalPrice
-        ];
+            if (!$isInclusive && $discountRate != 0.0) {
+                $taxRate = $addTax / 100;
+                $price = $regularPrice * (1 - $discountRate);
+                $taxAmount = $regularPrice * $taxRate;
+                $totalPrice = intval($price + $taxAmount);
+                $isInclusive = false;
+            } elseif ($isInclusive && $discountRate != 0.0) {
+                $price = $regularPrice * (1 - $discountRate);
+                $totalPrice = intval($price);
+                $isInclusive = true;
+            } elseif (!$isInclusive && $discountRate === 0.0) {
+                $taxRate = $addTax / 100;
+                $taxAmount = $regularPrice * $taxRate;
+                $totalPrice = intval($regularPrice + $taxAmount);
+                $isInclusive = false;
+            } else {
+                $totalPrice = intval($regularPrice);
+                $isInclusive = true;
+            }
+
+            return [
+                'currentItem' => $currentItem,
+                'regularPrice' => $regularPrice,
+                'totalPrice' => $totalPrice
+            ];
+        }else{
+            if (!$isInclusive) {
+                $taxRate = $addTax / 100;
+                $price = $regularPrice;
+                $taxAmount = $regularPrice * $taxRate;
+                $totalPrice = intval($price + $taxAmount);
+                $isInclusive = false;
+            } elseif ($isInclusive) {
+                $totalPrice = intval($regularPrice);
+                $isInclusive = true;
+            } elseif (!$isInclusive) {
+                $taxRate = $addTax / 100;
+                $taxAmount = $regularPrice * $taxRate;
+                $totalPrice = intval($regularPrice + $taxAmount);
+                $isInclusive = false;
+            } else {
+                $totalPrice = intval($regularPrice);
+                $isInclusive = true;
+            }
+
+            return [
+                'currentItem' => $currentItem,
+                'regularPrice' => $regularPrice,
+                'totalPrice' => $totalPrice
+            ];
+        }
     }
 
     protected function calculateTotalTeamRegistration(int $item): array
@@ -590,5 +614,11 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         if ($series->max_registration < $cap) {
             $series->increment('max_registration');
         }
-    }    
+    }
+    
+    protected function hasDecimal($value)
+    {
+        // https://www.php.net/manual/en/function.fmod.php
+        return fmod((float)$value, 1) !== 0.0;
+    }
 }

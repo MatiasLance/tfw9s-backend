@@ -21,7 +21,7 @@ class IndividualRegistrationRepository extends BaseRepository implements Individ
 
     public function findByTransactionId(string $transactionId): ?IndividualRegistration
     {
-    return $this->model->where('transaction_id', $transactionId)->first();
+        return $this->model->where('transaction_id', $transactionId)->first();
     }
 
     public function create(string $paymentIntentId, PaymentGateway $gateway, string $contactEmail, string $contactFirstName, string $contactLastName, string $contactPhoneNumber, string $playerFirstName, string $playerLastName, string $dob, int $team, string $ageGroup, int $amount, int $item_id)

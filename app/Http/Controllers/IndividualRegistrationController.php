@@ -63,8 +63,6 @@ class IndividualRegistrationController extends Controller
     
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
-        $discountCode = DiscountCode::where('id', $discountCodeID)->first();
-        $discountRate = floatval($discountCode->rate);
 
         $addTax = $tax->addTaxValue;
         $includeTax = $tax->includeTaxValue;
@@ -72,29 +70,100 @@ class IndividualRegistrationController extends Controller
 
         $taxAmount = 0;
 
-        if (!$isInclusive && $discountRate != 0.0) {
-            $taxRate = $addTax / 100;
-            $price = $amount * (1 - $discountRate);
-            $taxAmount = $amount * $taxRate;
-            $totalPrice = intval($price + $taxAmount);
-            $isInclusive = false;
-        } elseif ($isInclusive && $discountRate != 0.0) {
-            $price = $amount * (1 - $discountRate);
-            $totalPrice = intval($price);
-            $isInclusive = true;
-        } elseif (!$isInclusive && $discountRate === 0.0) {
-            $taxRate = $addTax / 100;
-            $taxAmount = $amount * $taxRate;
-            $totalPrice = intval($amount + $taxAmount);
-            $isInclusive = false;
-        } else {
-            $totalPrice = intval($amount);
-            $isInclusive = true;
-        }
+        if($discountCodeID !== 0){
+            $discountCode = DiscountCode::where('id', $discountCodeID)->first();
+            $discountRate = floatval($discountCode->rate);
 
-        return [
-            'totalPrice' => $totalPrice
-        ];
+            if($this->hasDecimal($amount)){
+                if (!$isInclusive && $discountRate != 0.0) {
+                    $taxRate = $addTax / 100;
+                    $price = $amount * (1 - $discountRate);
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = floatval($price + $taxAmount);
+                    $isInclusive = false;
+                } elseif ($isInclusive && $discountRate != 0.0) {
+                    $price = $amount * (1 - $discountRate);
+                    $totalPrice = floatval($price);
+                    $isInclusive = true;
+                } elseif (!$isInclusive && $discountRate === 0.0) {
+                    $taxRate = $addTax / 100;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = floatval($amount + $taxAmount);
+                    $isInclusive = false;
+                } else {
+                    $totalPrice = floatval($amount);
+                    $isInclusive = true;
+                }
+
+                return ['totalPrice' => $totalPrice];
+            }else{
+                if (!$isInclusive && $discountRate != 0.0) {
+                    $taxRate = $addTax / 100;
+                    $price = $amount * (1 - $discountRate);
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = intval($price + $taxAmount);
+                    $isInclusive = false;
+                } elseif ($isInclusive && $discountRate != 0.0) {
+                    $price = $amount * (1 - $discountRate);
+                    $totalPrice = intval($price);
+                    $isInclusive = true;
+                } elseif (!$isInclusive && $discountRate === 0.0) {
+                    $taxRate = $addTax / 100;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = intval($amount + $taxAmount);
+                    $isInclusive = false;
+                } else {
+                    $totalPrice = intval($amount);
+                    $isInclusive = true;
+                }
+
+                return ['totalPrice' => $totalPrice];
+                }
+        }else{
+            if($this->hasDecimal($amount)){
+                if (!$isInclusive) {
+                    $taxRate = $addTax / 100;
+                    $price = $amount;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = floatval($price + $taxAmount);
+                    $isInclusive = false;
+                } elseif ($isInclusive) {
+                    $totalPrice = floatval($amount);
+                    $isInclusive = true;
+                } elseif (!$isInclusive) {
+                    $taxRate = $addTax / 100;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = floatval($amount + $taxAmount);
+                    $isInclusive = false;
+                } else {
+                    $totalPrice = floatval($amount);
+                    $isInclusive = true;
+                }
+
+                return ['totalPrice' => $totalPrice];
+            }else{
+                if (!$isInclusive) {
+                    $taxRate = $addTax / 100;
+                    $price = $amount;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = intval($price + $taxAmount);
+                    $isInclusive = false;
+                } elseif ($isInclusive) {
+                    $totalPrice = intval($amount);
+                    $isInclusive = true;
+                } elseif (!$isInclusive) {
+                    $taxRate = $addTax / 100;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = intval($amount + $taxAmount);
+                    $isInclusive = false;
+                } else {
+                    $totalPrice = intval($amount);
+                    $isInclusive = true;
+                }
+
+                return ['totalPrice' => $totalPrice];
+            }
+        }
     }
 
     public function initialStripeCalculation(Request $request)
@@ -102,14 +171,10 @@ class IndividualRegistrationController extends Controller
         $item = $request->input('item');
         $amount = $request->input('amount');
         $discountCodeID = $request->input('discountID');
-
         
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
-        $discountCode = DiscountCode::where('id', $discountCodeID)->first();
-        $discountRate = floatval($discountCode->rate);
         
-
         $addTax = $tax->addTaxValue;
         $includeTax = $tax->includeTaxValue;
         $isInclusive = $master->toggleControl2;
@@ -119,37 +184,148 @@ class IndividualRegistrationController extends Controller
 
         $taxAmount = 0;
 
-        if (!$isInclusive && $discountRate != 0.0) {
-            $taxRate = $addTax / 100;
-            $price = $amount * (1 - $discountRate);
-            $taxAmount = $amount * $taxRate;
-            $totalPrice = intval($price + $taxAmount);
-            $subTotal = intval($totalPrice / 1.1);
-            $isInclusive = false;
-        } elseif ($isInclusive && $discountRate != 0.0) {
-            $price = $amount * (1 - $discountRate);
-            $totalPrice = intval($price);
-            $subTotal = intval($totalPrice);
-            $isInclusive = true;
-        } elseif (!$isInclusive && $discountRate === 0.0) {
-            $taxRate = $addTax / 100;
-            $taxAmount = $amount * $taxRate;
-            $totalPrice = intval($amount + $taxAmount);
-            $subTotal = intval($totalPrice / 1.1);
-            $isInclusive = false;
-        } else {
-            $totalPrice = intval($amount);
-            $subTotal = intval($totalPrice);
-            $isInclusive = true;
+        if($discountCodeID !== 0){
+            $discountCode = DiscountCode::where('id', $discountCodeID)->first();
+            $discountRate = floatval($discountCode->rate);
+
+            if($this->hasDecimal($amount)){
+                if (!$isInclusive && $discountRate != 0.0) {
+                    $taxRate = $addTax / 100;
+                    $price = $amount * (1 - $discountRate);
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = floatval($price + $taxAmount);
+                    $subTotal = floatval($totalPrice / 1.1);
+                    $isInclusive = false;
+                } elseif ($isInclusive && $discountRate != 0.0) {
+                    $price = $amount * (1 - $discountRate);
+                    $totalPrice = floatval($price);
+                    $subTotal = floatval($totalPrice);
+                    $isInclusive = true;
+                } elseif (!$isInclusive && $discountRate === 0.0) {
+                    $taxRate = $addTax / 100;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = floatval($amount + $taxAmount);
+                    $subTotal = floatval($totalPrice / 1.1);
+                    $isInclusive = false;
+                } else {
+                    $totalPrice = floatval($amount);
+                    $subTotal = floatval($totalPrice);
+                    $isInclusive = true;
+                }
+
+                $taxAmount = floatval(round($taxAmount));
+
+                return response()->json([
+                    'taxAmount' => $taxAmount,
+                    'totalPrice' => $totalPrice * 100,
+                    'subTotal' => $subTotal * 100
+                ]);
+            }else{
+                if (!$isInclusive && $discountRate != 0.0) {
+                    $taxRate = $addTax / 100;
+                    $price = $amount * (1 - $discountRate);
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = intval($price + $taxAmount);
+                    $subTotal = intval($totalPrice / 1.1);
+                    $isInclusive = false;
+                } elseif ($isInclusive && $discountRate != 0.0) {
+                    $price = $amount * (1 - $discountRate);
+                    $totalPrice = intval($price);
+                    $subTotal = intval($totalPrice);
+                    $isInclusive = true;
+                } elseif (!$isInclusive && $discountRate === 0.0) {
+                    $taxRate = $addTax / 100;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = intval($amount + $taxAmount);
+                    $subTotal = intval($totalPrice / 1.1);
+                    $isInclusive = false;
+                } else {
+                    $totalPrice = intval($amount);
+                    $subTotal = intval($totalPrice);
+                    $isInclusive = true;
+                }
+
+                $taxAmount = intval(round($taxAmount));
+
+                return response()->json([
+                    'taxAmount' => $taxAmount,
+                    'totalPrice' => $totalPrice * 100,
+                    'subTotal' => $subTotal * 100
+                ]);
+            }
+        }else{
+            if($this->hasDecimal($amount)){
+                if (!$isInclusive) {
+                    $taxRate = $addTax / 100;
+                    $price = $amount;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = floatval($price + $taxAmount);
+                    $subTotal = floatval($totalPrice / 1.1);
+                    $isInclusive = false;
+                } elseif ($isInclusive) {
+                    $price = $amount;
+                    $totalPrice = floatval($price);
+                    $subTotal = floatval($totalPrice);
+                    $isInclusive = true;
+                } elseif (!$isInclusive) {
+                    $taxRate = $addTax / 100;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = floatval($amount + $taxAmount);
+                    $subTotal = floatval($totalPrice / 1.1);
+                    $isInclusive = false;
+                } else {
+                    $totalPrice = floatval($amount);
+                    $subTotal = floatval($totalPrice);
+                    $isInclusive = true;
+                }
+
+                $taxAmount = floatval(round($taxAmount));
+
+                return response()->json([
+                    'taxAmount' => $taxAmount,
+                    'totalPrice' => $totalPrice * 100,
+                    'subTotal' => $subTotal * 100
+                ]);
+            }else{
+                if (!$isInclusive) {
+                    $taxRate = $addTax / 100;
+                    $price = $amount;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = intval($price + $taxAmount);
+                    $subTotal = intval($totalPrice / 1.1);
+                    $isInclusive = false;
+                } elseif ($isInclusive) {
+                    $price = $amount;
+                    $totalPrice = intval($price);
+                    $subTotal = intval($totalPrice);
+                    $isInclusive = true;
+                } elseif (!$isInclusive) {
+                    $taxRate = $addTax / 100;
+                    $taxAmount = $amount * $taxRate;
+                    $totalPrice = intval($amount + $taxAmount);
+                    $subTotal = intval($totalPrice / 1.1);
+                    $isInclusive = false;
+                } else {
+                    $totalPrice = intval($amount);
+                    $subTotal = intval($totalPrice);
+                    $isInclusive = true;
+                }
+
+                $taxAmount = intval(round($taxAmount));
+
+                return response()->json([
+                    'taxAmount' => $taxAmount,
+                    'totalPrice' => $totalPrice * 100,
+                    'subTotal' => $subTotal * 100
+                ]);
+            }
         }
+    }
 
-        $taxAmount = intval(round($taxAmount));
-
-        return response()->json([
-            'taxAmount' => $taxAmount,
-            'totalPrice' => $totalPrice * 100,
-            'subTotal' => $subTotal * 100
-        ]);
+    protected function hasDecimal($value)
+    {
+        // https://www.php.net/manual/en/function.fmod.php
+        return fmod((float)$value, 1) !== 0.0;
     }
 
 }

@@ -35,10 +35,12 @@ class PlayersService implements PlayersServiceInterface
         string $email,
         string $player_firstname,
         string $player_lastname,
-        string $team_name,
+        int $team_id,
         DateTime $dob,
-        string $agegroup,
+        int $agegroup_id,
         string $description,
+        int $series_id,
+        ?array $media
     ): Player
 
     {
@@ -49,10 +51,12 @@ class PlayersService implements PlayersServiceInterface
             $email,
             $player_firstname,
             $player_lastname,
-            $team_name,
+            $team_id,
             $dob,
-            $agegroup,
+            $agegroup_id,
             $description,
+            $series_id,
+            $media
         );
     }
 
@@ -64,10 +68,12 @@ class PlayersService implements PlayersServiceInterface
         string $email,
         string $player_firstname,
         string $player_lastname,
-        string $team_name,
+        int $team_id,
         DateTime $dob,
-        string $agegroup,
+        int $agegroup_id,
         string $description,
+        int $series_id,
+        ?array $media
     ): bool
     {
         return $this->playersRepository->updatePlayers(
@@ -78,10 +84,12 @@ class PlayersService implements PlayersServiceInterface
             $email,
             $player_firstname,
             $player_lastname,
-            $team_name,
+            $team_id,
             $dob,
-            $agegroup,
+            $agegroup_id,
             $description,
+            $series_id,
+            $media
         );
     }
 

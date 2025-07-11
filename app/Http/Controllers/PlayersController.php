@@ -50,17 +50,18 @@ class PlayersController extends Controller
 
     public function store(Request $request, Message $message)
     {
-
         $contact_firstname = $request->input('contact_firstname');
         $contact_lastname = $request->input('contact_lastname');
         $phone_number = $request->input('phone_number');
         $email = $request->input('email');
         $player_firstname = $request->input('player_firstname');
         $player_lastname = $request->input('player_lastname');
-        $team_name = $request->input('team_name');
+        $team_id = $request->input('teamID');
         $dobstring = $request->input('dob');
-        $agegroup = $request->input('agegroup');
+        $agegroup_id = $request->input('agegroupID');
         $description = $request->input('description');
+        $series_id = $request->input('seriesID');
+        $media = $request->file('photo') ?? [];
 
         $dob = new DateTime($dobstring);
 
@@ -71,10 +72,12 @@ class PlayersController extends Controller
             $email,
             $player_firstname,
             $player_lastname,
-            $team_name,
+            $team_id,
             $dob,
-            $agegroup,
+            $agegroup_id,
             $description,
+            $series_id,
+            $media
         );
 
         if ($players instanceof Player) {
@@ -96,10 +99,12 @@ class PlayersController extends Controller
         $email = $request->input('email');
         $player_firstname = $request->input('player_firstname');
         $player_lastname = $request->input('player_lastname');
-        $team_name = $request->input('team_name');
+        $team_id = $request->input('teamID');
         $dobstring = $request->input('dob');
-        $agegroup = $request->input('agegroup');
+        $agegroup_id = $request->input('agegroupID');
         $description = $request->input('description');
+        $series_id = $request->input('seriesID');
+        $media = $request->file('photo') ?? [];
 
         $dob = new DateTime($dobstring);
 
@@ -111,10 +116,12 @@ class PlayersController extends Controller
             $email,
             $player_firstname,
             $player_lastname,
-            $team_name,
+            $team_id,
             $dob,
-            $agegroup,
+            $agegroup_id,
             $description,
+            $series_id,
+            $media
         );
 
         if ($isSuccess) {
