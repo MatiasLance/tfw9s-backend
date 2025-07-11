@@ -5,10 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Repository\SeriesRepositoryInterface;
+use App\Modules\Payment\PaymentGateway;
 
 class IndividualRegistration extends Model
 {
     use HasFactory;
+
+    protected $casts = [
+        'payment_gateway' => PaymentGateway::class,
+        'is_verified' => 'boolean'
+    ];
 
     protected const SNIPPET_LENGTH = 120;
 

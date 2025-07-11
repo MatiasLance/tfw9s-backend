@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use App\Models\IndividualRegistration;
 use App\Modules\Payment\PaymentServiceInterface;
+use Illuminate\Http\UploadedFile;
 use DateTime;
 
 class PlayersRepository extends BaseRepository implements PlayersRepositoryInterface
@@ -99,10 +100,11 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         'isRegistered' => null,
     ];
 
-    public function __construct(Player $players, PaymentServiceInterface $paymentService)
+    public function __construct(Player $players, PaymentServiceInterface $paymentService, StorageInterface $storageService)
     {
         parent::__construct($players);
         $this->paymentService = $paymentService;
+        $this->storageService = $storageService;
     }
 
     public function listPlayers(array $playersFilters = []): Paginate
@@ -125,7 +127,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
                      ->orWhere('email', 'like', '%' . $filters['q'] . '%')
                      ->orWhere('player_firstname', 'like', '%' . $filters['q'] . '%')
                      ->orWhere('player_lastname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('team_name', 'like', '%' . $filters['q'] . '%');
+                     ->orWhere('team_id', 'like', '%' . $filters['q'] . '%');
         }    
 
         if (!is_null($filters['type'])) {
@@ -179,10 +181,12 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         string $email,
         string $player_firstname,
         string $player_lastname,
-        string $team_name,
+        int $team_id,
         DateTime $dob,
-        string $agegroup,
+        int $agegroup_id,
         string $description,
+        int $series_id,
+        ?array $media
     ): Player
 
     {
@@ -193,13 +197,22 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $players->email = $email;
         $players->player_firstname = $player_firstname;
         $players->player_lastname = $player_lastname;
-        $players->team_name = $team_name;
+        $players->team_id = $team_id;
         $players->dob = $dob;
-        $players->agegroup_id = $agegroup;
+        $players->agegroup_id = $agegroup_id;
         $players->description = $description;
+        $players->series_id = $series_id;
 
-        return DB::transaction(function() use($players) {
+        return DB::transaction(function() use($players, $media) {
             $players->save();
+
+            foreach ($media as $file) {
+                if (!is_null($file)) {
+
+                    $Image = $this->storageService->store($file);
+                    $players->media()->save($Image);
+                }
+              }
 
             return $players;
         });
@@ -213,10 +226,12 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         string $email,
         string $player_firstname,
         string $player_lastname,
-        string $team_name,
+        int $team_id,
         DateTime $dob,
-        string $agegroup,
-        string $description
+        int $agegroup_id,
+        string $description,
+        int $series_id,
+        ?array $media
     ): bool
 
     {
@@ -227,12 +242,44 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $players->email = $email;
         $players->player_firstname = $player_firstname;
         $players->player_lastname = $player_lastname;
-        $players->team_name = $team_name;
+        $players->team_id = $team_id;
         $players->dob = $dob;
-        $players->agegroup_id = $agegroup;
+        $players->agegroup_id = $agegroup_id;
         $players->description = $description;
+        $players->series_id = $series_id;
 
-        return DB::transaction(function() use($players) {
+        return DB::transaction(function() use($players, $media) {
+
+            if (!is_null($media)) {
+                $newMedia = array_filter($media, function ($file) {
+                    return $file instanceof UploadedFile;
+                });
+
+                $oldMedia = array_filter($media, function ($file) {
+                    return !$file instanceof UploadedFile;
+                });
+
+                foreach ($players->media as $existingMedia) {
+                    if (
+                        $existingMedia->path !== 'media/default/' . self::PLACEHOLDER_IMAGE &&
+                        !in_array($existingMedia->hash, $oldMedia)
+                    ) {
+                        $this->storageService->delete($existingMedia);
+                        $existingMedia->delete();
+                    }
+                }
+
+                foreach ($newMedia as $newFile) {
+                    $image = $this->storageService->store($newFile);
+                    $players->media()->save($image);
+                }
+            } else {
+                foreach ($players->media as $existingMedia) {
+                    $this->storageService->delete($existingMedia);
+                    $existingMedia->delete();
+                }
+            }
+
             return $players->save();
         });
     }

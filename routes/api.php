@@ -252,7 +252,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/', 'App\Http\Controllers\TeamPositionController@list');
         Route::get('/{id}', 'App\Http\Controllers\TeamPositionController@retrieve');
         Route::post('/', 'App\Http\Controllers\TeamPositionController@store');
-        Route::post('/update/', 'App\Http\Controllers\TeamPositionController@update');
+        Route::post('/update', 'App\Http\Controllers\TeamPositionController@update');
         Route::delete('/{id}', 'App\Http\Controllers\TeamPositionController@delete');
     });
 

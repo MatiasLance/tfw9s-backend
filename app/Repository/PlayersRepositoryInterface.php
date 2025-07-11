@@ -58,10 +58,12 @@ interface PlayersRepositoryInterface
         string $email,
         string $player_firstname,
         string $player_lastname,
-        string $team_name,
+        int $team_id,
         DateTime $dob,
-        string $agegroup,
+        int $agegroup_id,
         string $description,
+        int $series_id,
+        ?array $media
     ): Player;
 
     /**
@@ -89,10 +91,12 @@ interface PlayersRepositoryInterface
         string $email,
         string $player_firstname,
         string $player_lastname,
-        string $team_name,
+        int $team_id,
         DateTime $dob,
-        string $agegroup,
-        string $description
+        int $agegroup_id,
+        string $description,
+        int $series_id,
+        ?array $media
     ): bool;
 
      /**

@@ -144,7 +144,7 @@
                                                     Sub-Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format($order->item->price / 100, 2) }}
+                                                    ${{ $taxToggle->toggleControl2 ? number_format($order->item->price / 100, 2) : number_format(($order->item->price / 100) / 1.1, 2)}}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -160,12 +160,12 @@
                                                     Tax Amount:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    <?php
+                                                    @php
                                                         $calculatedTaxAmount = $order->price - $order->item->price;
                                                         $taxRate = $taxValue / 100;
                                                         $calculatedTaxAmount = $order->item->price * $taxRate;
                                                         $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
-                                                    ?>
+                                                    @endphp
                                                     ${{ number_format($taxAmount / 100, 2) }}
                                                 </td>
                                             </tr>
@@ -174,7 +174,7 @@
                                                     Discount:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; width: 130px; text-align: right;">
-                                                    <?php
+                                                    @php
                                                         $itemtotal = $order->item->price/100;
                                                         $taxRate = $taxValue / 100;
                                                         $discountedTotal = $order->price / 100;
@@ -188,7 +188,7 @@
                                                         $discountAmount = $originalTotal - $discountedTotal;
     
                                                         $discountRate = $originalTotal != 0 ? ($discountAmount / $originalTotal) * 100 : 0;
-                                                    ?>
+                                                    @endphp
                                                     {{ number_format($discountRate) }}%
                                                 </td>
                                             </tr>
@@ -213,7 +213,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Payment Method ({{ ucfirst($order->payment_gateway) }})
+                                                    Payment Method ({{ ucfirst($order->payment_gateway->value) }})
                                                 </td>
                                             </tr>
                                             <tr>
