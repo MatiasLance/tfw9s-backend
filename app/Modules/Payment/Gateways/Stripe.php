@@ -21,6 +21,7 @@ use App\Modules\Payment\PaymentStatus;
 use Stripe\PaymentIntent;
 use Stripe\StripeClient;
 use App\Models\IndividualRegistration;
+use Ramsey\Uuid\Uuid;
 
 class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -226,27 +227,59 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         $seriesItem = [
             'item_id' => $calculatedTotal['currentItem']->id,
             'price' => $calculatedTotal['regularPrice'],
-        ];
+            ];
 
-        $metadata['line_item'] = json_encode($seriesItem);
+        if($calculatedTotal['totalPrice'] !== 0) {
+            $metadata['line_item'] = json_encode($seriesItem);
 
-        $productValue = [
-            'amount' => $calculatedTotal['totalPrice'],
-            'currency' => $this->currency,
-            'automatic_payment_methods' => [
-                'enabled' => true,
-            ],
-            'metadata' => $metadata,
-        ];
+            $productValue = [
+                'amount' => $calculatedTotal['totalPrice'],
+                'currency' => $this->currency,
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+                'metadata' => $metadata,
+            ];
 
-        $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+            $paymentIntent = $this->stripe->paymentIntents->create($productValue);
 
-        $responseValues = [
-            'stripeToken' => $paymentIntent->client_secret,
-            'paymentIntentId' => $paymentIntent->id
-        ];
+            $responseValues = [
+                'stripeToken' => $paymentIntent->client_secret,
+                'paymentIntentId' => $paymentIntent->id,
+                'amount' => $calculatedTotal['totalPrice']
+            ];
 
-        return response()->json($responseValues);
+            return response()->json($responseValues);
+        }else{
+            $paymentId = Uuid::uuid4()->toString();
+            $seriesRegistered = $this->individualRegistrationService->create(
+                $paymentId,
+                self::GATEWAY,
+                $metadata['contactFirstName'],
+                $metadata['contactLastName'],
+                $metadata['contactPhoneNumber'],
+                $metadata['contactEmail'],
+                $metadata['playerFirstName'],
+                $metadata['playerLastName'],
+                $metadata['dob'],
+                $metadata['teamName'],
+                $metadata['ageGroup'],
+                $calculatedTotal['totalPrice'],
+                $seriesItem['item_id']
+            );
+
+
+            if (!$seriesRegistered->is_verified) {
+                $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+                $this->incrementMaxRegistrationIfAllowed($seriesItem['item_id']);
+                $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
+            }
+
+            return response()->json([
+                'amount' => $calculatedTotal['totalPrice'],
+                'transactionId' => $seriesRegistered->transaction_id
+            ]);
+        }
     }
 
     public function createTeamRegistration($discountcode, string $item, array $metadata = [])
