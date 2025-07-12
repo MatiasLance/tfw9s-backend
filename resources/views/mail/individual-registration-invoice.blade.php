@@ -144,7 +144,7 @@
                                                     Sub-Total:
                                                 </td>
                                                 <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ $taxToggle->toggleControl2 ? number_format($order->item->price / 100, 2) : number_format(($order->item->price / 100) / 1.1, 2)}}
+                                                    ${{ $taxToggle->toggleControl2 ? number_format($order->price / 100, 2) : number_format(($order->price / 100) / 1.1, 2)}}
                                                 </td>
                                             </tr>
                                             <tr>
