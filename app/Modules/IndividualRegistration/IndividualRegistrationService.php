@@ -31,10 +31,10 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
     public function create(
         string $paymentIntentId,
         PaymentGateway $gateway,
-        string $contactEmail,
         string $contactFirstName,
         string $contactLastName,
         string $contactPhoneNumber,
+        string $contactEmail,
         string $playerFirstName,
         string $playerLastName,
         string $dob,
@@ -47,10 +47,10 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
         return $this->individualRegistrationRepository->create(
           $paymentIntentId,
           $gateway,
-          $contactEmail,
           $contactFirstName,
           $contactLastName,
           $contactPhoneNumber,
+          $contactEmail,
           $playerFirstName,
           $playerLastName,
           $dob,

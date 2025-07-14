@@ -14,6 +14,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use DateTime;
 use App\Modules\Mail\MailService;
+use App\Models\DiscountCode;
 
 class SeriesRepository extends BaseRepository implements seriesRepositoryInterface
 {
@@ -150,6 +151,8 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                 break;
         }
 
+        $series = $series->with(['team']);
+
         $maxPerPage = is_null($userFilters['max_series_per_page']) ? $series->count() : $filters['max_series_per_page'];
         
         return new Paginate($series, $maxPerPage, $filters['page'], 'series');
@@ -157,7 +160,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
     public function retrieveSeries(int $id): Series
     {
-        $series = Series::with('ageGroup')->where('id', $id)->first();
+        $series = Series::with(['ageGroup', 'team'])->where('id', $id)->first();
         return $series;
     }    
 
@@ -298,21 +301,45 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
         return DB::transaction(function() use($series, $seriesTeams) {
             foreach ($seriesTeams as $team) {
+                if($team->discount_codes_id !== 0){
+                    $discountCode = DiscountCode::find($team->discount_codes_id);
 
-                $payload = [];
-                $payload['series'] = $series->id;
-                $payload['team'] = $team->id;
-                $encryptedToken = encrypt($payload);
-        
-                $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
-                $coach = $team->coach_email;
+                    $payload = [];
+                    $payload['series'] = $series->id;
+                    $payload['team'] = $team->id;
+                    $encryptedToken = encrypt($payload);
+            
+                    $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+                    $coach = $team->coach_email;
 
-                if ($coach) {
-                    $this->mailService->sendCoachSeriesNotification(
-                        coachEmail: $team->coach_email,
-                        seriesName: $series->name,
-                        link: $link
-                    );
+                    if ($coach) {
+                        $this->mailService->sendCoachSeriesNotification(
+                            coachEmail: $team->coach_email,
+                            seriesName: $series->name,
+                            link: $link,
+                            coach: $team->coach_name,
+                            code: $discountCode->code
+                        );
+                    }
+                }else{
+
+                    $payload = [];
+                    $payload['series'] = $series->id;
+                    $payload['team'] = $team->id;
+                    $encryptedToken = encrypt($payload);
+            
+                    $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+                    $coach = $team->coach_email;
+
+                    if ($coach) {
+                        $this->mailService->sendCoachSeriesNotification(
+                            coachEmail: $team->coach_email,
+                            seriesName: $series->name,
+                            link: $link,
+                            coach: $team->coach_name,
+                            code: ''
+                        );
+                    }
                 }
             }
             return true;

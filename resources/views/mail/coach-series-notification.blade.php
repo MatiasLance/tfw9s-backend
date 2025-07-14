@@ -39,10 +39,12 @@
                             <!-- Content Section -->
                             <tr>
                                 <td style="padding: 0 20px 30px 20px; background-color: #ffffff; text-align: center;">
-                                    <p style="font-size: 18px; color: #333333; margin: 0 0 10px 0;">Hello Coach,</p>
+                                    <p style="font-size: 18px; color: #333333; margin: 0 0 10px 0;">Hello Coach, <strong>{{ $coach }}</strong>
+                                    </p>
                                     <p style="font-size: 16px; color: #666666; margin: 0 0 25px 0;">
                                         You have been assigned to the series: <strong style="color: #333333;">{{ $seriesName }}</strong>
                                     </p>
+                                    @if($code !== '')
                                     <a href="{{ $link }}" 
                                        style="background-color: #5ecb3e; 
                                               color: #ffffff; 
@@ -53,8 +55,22 @@
                                               font-size: 16px;
                                               display: inline-block;
                                               margin-bottom: 20px;">
-                                        This is your link for your players to register
+                                        This is your link to register, here is your discount code <p><code>{{ $code }}</code></p>
                                     </a>
+                                    @else
+                                    <a href="{{ $link }}" 
+                                       style="background-color: #5ecb3e; 
+                                              color: #ffffff; 
+                                              padding: 12px 30px; 
+                                              text-decoration: none; 
+                                              border-radius: 4px; 
+                                              font-weight: bold;
+                                              font-size: 16px;
+                                              display: inline-block;
+                                              margin-bottom: 20px;">
+                                        This is your link to register
+                                    </a>
+                                    @endif
                                 </td>
                             </tr>
                             <!-- Footer Section -->

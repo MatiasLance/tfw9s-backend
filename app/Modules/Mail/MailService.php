@@ -78,9 +78,9 @@ class MailService implements MailServiceInterface
         $this->send([$userEmail], $subject, $content);
     }
 
-    public function sendCoachSeriesNotification(string $coachEmail, string $seriesName, string $link)
+    public function sendCoachSeriesNotification(string $coachEmail, string $seriesName, string $link, string $coach, string $code)
     {
-        $mail = new RegistrationLink($seriesName, $link);
+        $mail = new RegistrationLink($seriesName, $link, $coach, $code);
         $content = $mail->render();
 
         $subject = 'New Series Created: ' . $seriesName;

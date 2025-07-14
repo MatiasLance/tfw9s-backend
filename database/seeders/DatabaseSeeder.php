@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
     {
 
         User::factory(11)->create()->each(function ($user) {
-            $role = Role::find(3); // Fetch role with ID 3
+            $role = Role::find(3);
 
             if ($role) {
                 $user->assignRole($role);
@@ -65,14 +65,6 @@ class DatabaseSeeder extends Seeder
             )
             ->create();
 
-            $this->call(RegionsSeeder::class);
-
-            $this->call(FieldsSeeder::class);
-
-            $this->call(AgeGroupsSeeder::class);
-
-            $this->call(VariantSeeder::class);
-
         News::factory()
             ->count(15)
             ->create();
@@ -85,20 +77,18 @@ class DatabaseSeeder extends Seeder
             ->count(5)
             ->create();
 
-            $this->call(SeriesSeeder::class);
-
-            //Commented to have some playground hehe - KenChickem
-
-            // $this->call(ManagersSeeder::class);
-
-            // $this->call(EventsSeeder::class);
-
-            // $this->call(TeamsSeeder::class);
-
-            // $this->call(EventMatchesSeeder::class);
-
-            // $this->call(TeamPositionSeeder::class);
-
-            // $this->call(TeamLimitSeeder::class);
+        $this->call([
+            SeriesSeeder::class,
+            ManagersSeeder::class,
+            EventsSeeder::class,
+            TeamsSeeder::class,
+            EventMatchesSeeder::class,
+            TeamPositionSeeder::class,
+            TeamLimitSeeder::class,
+            AgeGroupsSeeder::class,
+            RegionsSeeder::class,
+            FieldsSeeder::class,
+            VariantSeeder::class
+        ]);
     }
 }
