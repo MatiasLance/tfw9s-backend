@@ -50,5 +50,5 @@ interface MailServiceInterface
      * @param string $seriesName
      * @param string $link
      */
-     public function sendCoachSeriesNotification(string $coachEmail, string $seriesName, string $link);
+     public function sendCoachSeriesNotification(string $coachEmail, string $seriesName, string $link, string $coach, string $code);
 }

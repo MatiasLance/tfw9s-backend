@@ -39,10 +39,10 @@ interface IndividualRegistrationRepositoryInterface
     public function create(
         string $paymentIntentId,
         PaymentGateway $gateway,
-        string $contactEmail,
         string $contactFirstName,
         string $contactLastName,
         string $contactPhoneNumber,
+        string $contactEmail,
         string $playerFirstName,
         string $playerLastName,
         string $dob,
