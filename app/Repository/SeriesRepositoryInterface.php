@@ -119,5 +119,13 @@ interface SeriesRepositoryInterface
      */
     public function sendRegistrations(int $id): bool;
     
+    /**
+     * Return an array of the Series teams and their registration url
+     *
+     * @param int $id
+     *
+     * @return array
+     */
+    public function seriesTeamLinks(int $id): array;
 
 }

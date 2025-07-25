@@ -67,4 +67,9 @@ class SeriesService implements SeriesServiceInterface
     {
         return $this->seriesRepository->sendRegistrations($id);
     }
+
+    public function seriesTeamLinks(int $id): array
+    {
+        return $this->seriesRepository->seriesTeamLinks($id);
+    }
 }

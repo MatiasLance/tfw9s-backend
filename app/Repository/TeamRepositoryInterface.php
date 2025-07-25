@@ -123,4 +123,13 @@ interface TeamRepositoryInterface
      */
     public function cancelrefTeam(int $id): bool;
 
+    /**
+     * Generate Registration Link
+     *
+     * @param int $id
+     *
+     * @return string
+     */
+    public function generateUrl(int $id): string;
+
 }
