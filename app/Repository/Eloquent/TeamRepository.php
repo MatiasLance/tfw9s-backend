@@ -3,6 +3,7 @@
 namespace App\Repository\Eloquent;
 
 use App\Models\Team;
+use App\Models\Series;
 use App\Modules\Team\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
@@ -106,6 +107,13 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
          */
         'isRegistered' => null,
 
+        /**
+         * withDiscounts boolean
+         * Filters out teams with discounts when true, skipped if false.
+         */
+        'withDiscounts' => false,
+
+
     ];
 
     public function __construct(Team $team, StorageInterface $storageService, PaymentServiceInterface $paymentService)
@@ -159,9 +167,12 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             });
         }
 
-        
+        if ($filters['withDiscounts']) {
 
-        $teams = $teams->with(['registration', 'discountCode']);
+            $teams = $teams->with(['registration', 'discountCode']);
+            $teams = $teams->whereHas('discountCode');
+
+        }
 
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
@@ -482,6 +493,24 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             }
 
             return $team->restore();
+        });
+    }
+
+    public function generateUrl(int $id): string
+    {
+        $team = Team::withTrashed()->find($id);
+        $series = Series::withTrashed()->find($team->series_id);
+
+        return DB::transaction(function() use($team, $series) {
+
+            $payload = [];
+            $payload['series'] = $series->id;
+            $payload['team'] = $team->id;
+            $encryptedToken = encrypt($payload);
+    
+            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+
+            return $link;
         });
     }
 }

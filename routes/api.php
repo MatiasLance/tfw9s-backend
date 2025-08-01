@@ -207,6 +207,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/all', 'App\Http\Controllers\TeamController@all');
         Route::get('/trashed', 'App\Http\Controllers\TeamController@trashed');
         Route::get('/{id}', 'App\Http\Controllers\TeamController@retrieve');
+        Route::get('link/{id}', 'App\Http\Controllers\TeamController@generateUrl');
         Route::post('/', 'App\Http\Controllers\TeamController@store');
         Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
         Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
@@ -278,8 +279,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/pause/{id}', 'App\Http\Controllers\SeriesController@pauseSeries');
         Route::post('/edit/thumbnail', 'App\Http\Controllers\SeriesController@editThumbnail');
         Route::post('/notify/{id}', 'App\Http\Controllers\SeriesController@sendRegistration');
-
-
+        Route::post('/teamlinks/{id}', 'App\Http\Controllers\SeriesController@seriesTeamLinks');
     });
 
     Route::prefix("players")->group(function() {
@@ -291,6 +291,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::delete('/{id}', 'App\Http\Controllers\PlayersController@delete');
         Route::post('/refund/{id}', 'App\Http\Controllers\PlayersController@refund');
         Route::post('/cancelref/{id}', 'App\Http\Controllers\PlayersController@cancelref');
+        Route::post('/savemedia/{id}', 'App\Http\Controllers\PlayersController@savemedia');
     });
 
     Route::prefix("teamlimit")->group(function() {

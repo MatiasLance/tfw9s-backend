@@ -27,6 +27,9 @@ class TeamController extends Controller
         $maxTeamsPerPage = $request->query('maxTeamsPerPage', null);
         $isRegistered = $request->query('isRegistered', null);
 
+        $withDiscounts = $request->query('withDiscounts', null);
+        $withDiscounts = $withDiscounts === null ? false : filter_var($withDiscounts, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
         $filter = [
             'q' => $query,
             'sort' => $sort,
@@ -36,6 +39,7 @@ class TeamController extends Controller
             'seriestype' => $seriestype,
             'max_team_per_page' => $maxTeamsPerPage,
             'isRegistered' => $isRegistered,
+            'withDiscounts' => $withDiscounts,
         ];
 
         $teams = $this->teamService->listTeams($filter);
@@ -257,6 +261,17 @@ class TeamController extends Controller
 
         $message->setContent(200, 'Refund canceled', '', [
             'cancel success:' => $cancel
+        ]);
+
+        return $message->render();
+    }
+
+    public function generateUrl(Message $message, int $id)
+    {
+        $link = $this->teamService->generateUrl($id);
+
+        $message->setContent(200, 'Registration link generated', '', [
+            'url' => $link
         ]);
 
         return $message->render();

@@ -6,15 +6,25 @@ use App\Modules\Http\Message;
 use App\Modules\Players\PlayersServiceInterface;
 use Illuminate\Http\Request;
 use App\Models\Player;
+use App\Modules\Storage\StorageInterface;
+use Illuminate\Support\Facades\DB;
 use DateTime;
 
 class PlayersController extends Controller
 {
     protected PlayersServiceInterface $playersService;
 
-    public function __construct(PlayersServiceInterface $playersService)
+    /**
+     * Storage Module
+     *
+     * @var StorageInterface $storageService
+     */
+    protected StorageInterface $storageService;
+
+    public function __construct(PlayersServiceInterface $playersService, StorageInterface $storageService)
     {
         $this->playersService = $playersService;
+        $this->storageService = $storageService;
     }
 
     public function list(Request $request, Message $message)
@@ -209,6 +219,50 @@ class PlayersController extends Controller
         ]);
 
         return $message->render();
+    }
+
+    public function savemedia(Message $message, Request $request, int $id)
+    {
+        $media = $request->file('photo');
+
+        $result = DB::transaction(function () use ($id, $media) {
+            if (!$media) {
+                return 'Missing `photo` file.';
+            }
+
+            $player = Player::find($id);
+
+            if (!$player) {
+                return 'Player not found.';
+            }
+
+            $mediaData = $this->storageService->store($media);
+
+            if (!$mediaData) {
+                return 'Failed to store media.';
+            }
+
+            // Keep one image only for the target
+            foreach ($player->media as $existingMedia) {
+                $this->storageService->delete($existingMedia);
+                $existingMedia->delete();
+            }
+
+            $saved = $player->media()->save($mediaData);
+
+
+            if (!$saved) {
+                return 'Failed to save media to target.';
+            }
+
+            return 'success';
+        });
+
+        if ($result === 'success') {
+            $message->setContent(200, 'Player image uploaded!');
+        } else {
+            $message->setContent(400, $result);
+        }
     }
 
 

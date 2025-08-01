@@ -345,4 +345,42 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
             return true;
         });
     }
+
+    public function seriesTeamLinks(int $id): array
+    {
+        $series = $this->find($id);
+
+        $seriesTeams = $series->team()->get();
+
+        $data = [];
+
+        foreach ($seriesTeams as $team) {
+
+            $payload = [];
+            $payload['series'] = $series->id;
+            $payload['team'] = $team->id;
+            $encryptedToken = encrypt($payload);
+    
+            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+
+            $id = $team->id;
+            $name = $team->name;
+            $agegroup = $team->agegroup->name;
+            $discounted = $team->discount_codes_id?'Yes':'No';
+            $registered = $team->registered_players_count.' / '.$team->player_limit;
+    
+    
+            if (!isset($data[$id])) {
+                $data[$id] = [
+                    'Team Name' => $name,
+                    'Age Group' => $agegroup,
+                    'Discounted' => $discounted,
+                    'Registered' => $registered,
+                    'Team Url' => $link,
+                ];
+            }
+        }
+
+        return array_values($data);
+    }
 }

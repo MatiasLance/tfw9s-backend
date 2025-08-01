@@ -203,6 +203,22 @@ class SeriesController extends Controller
         return $message->render();
     }
 
+    public function seriesTeamLinks(Message $message, int $id)
+    {
+
+        $teamLinks = $this->seriesService->seriesTeamLinks($id);
+
+        if (is_array($teamLinks)) {
+            $message->setContent(201, 'Team links generated', '', [
+                'teamLinks' => $teamLinks
+            ]);
+        } else {
+            $message->setContent(400, 'Team links generation failed');  
+        }
+
+        return $message->render();
+    }
+
     public function decrypt(Message $message, string $key)
     {
 

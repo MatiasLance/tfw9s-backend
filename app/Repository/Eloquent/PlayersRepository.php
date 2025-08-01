@@ -383,7 +383,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             $method = $player->registration->payment_gateway;
             $refund_id = $player->registration->refund_id;
 
-            if ($refund === null) {
+            if ($refund_id === null) {
                 throw new \Exception("Refund failed, refund ID is null.");
             }
 
