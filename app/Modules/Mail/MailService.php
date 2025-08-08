@@ -101,18 +101,26 @@ class MailService implements MailServiceInterface
     {
         $guzzle = new Client();
 
-        $response = $guzzle->request('POST', 'http://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
-            'form_params' => [
-                'from' => 'noreply@tfw9s.com.au',
-                'recipients' => $to,
-                'cc' => [],
-                'bcc' => [],
-                'subject' => $subject,
-                'content' => $content,
-                'attachments' => [],
-            ],
-        ]);
+        try {
 
-        return $response->getStatusCode() === 200;
+            $response = $guzzle->request('POST', 'http://'. env('SMTP_RELAY_HOST') .'/api/v1/mail/send', [
+                'form_params' => [
+                    'from' => 'noreply@smtprelays.com',
+                    'recipients' => $to,
+                    'cc' => [],
+                    'bcc' => [],
+                    'subject' => $subject,
+                    'content' => $content,
+                    'attachments' => [],
+                ],
+            ]);
+
+        $statusCode = $response->getStatusCode() === 200;
+
+        } catch (\GuzzleHttp\Exception\ServiceException $e) {
+            dd(\GuzzleHttp\Psr7\Message::toString($e->getResponse()));
+        }
+
+        return $statusCode;
     }
 }
