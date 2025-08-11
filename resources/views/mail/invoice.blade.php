@@ -1,226 +1,400 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice</title>
-    <style type="text/css">
-        /* Reset Styles */
-        body, table, td, th {
-            margin: 0;
-            padding: 0;
-            border: 0;
-            outline: 0;
-            font-size: 100%;
-            vertical-align: top;
-            background: transparent;
-        }
-        table {
-            border-collapse: collapse;
-            border-spacing: 0;
-        }
-        .ReadMsgBody {
-            width: 100%;
-            background-color: #ffffff;
-        }
-        .ExternalClass {
-            width: 100%;
-            background-color: #ffffff;
-        }
-        body {
-            width: 100% !important;
-            -webkit-text-size-adjust: 100%;
-            -ms-text-size-adjust: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333333;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice</title>
+  <style>
+    /* Reset & Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        /* Responsive Container */
-        @media screen and (max-width: 600px) {
-            .devicewidth { width: 100% !important; }
-            .responsive-padding { padding-left: 15px !important; padding-right: 15px !important; }
-        }
-    </style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    /* Main Container */
+    .invoice-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    /* Header */
+    .invoice-header {
+      background: #00a878;
+      color: white;
+      padding: 30px;
+      text-align: center;
+      position: relative;
+    }
+
+    .invoice-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .invoice-header p {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    .invoice-logo {
+      position: absolute;
+      top: 20px;
+      left: 30px;
+      height: 50px;
+    }
+
+    /* Info Grid */
+    .invoice-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 30px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #eee;
+    }
+
+    .info-section h3 {
+      font-size: 1.1rem;
+      color: #00a878;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #00a878;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+
+    .info-section p {
+      font-size: 14px;
+      color: #555;
+      margin: 4px 0;
+    }
+
+    /* Items Table */
+    .invoice-items {
+      padding: 0 30px;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    .items-table th {
+      background: #00a878;
+      color: white;
+      text-align: left;
+      padding: 12px 8px;
+      border-radius: 6px 6px 0 0;
+    }
+
+    .items-table th:first-child {
+      border-radius: 6px 0 0 0;
+    }
+
+    .items-table th:last-child {
+      text-align: right;
+      border-radius: 0 6px 0 0;
+    }
+
+    .items-table td {
+      padding: 12px 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .items-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .items-table tr:hover {
+      background-color: #f8fdfb;
+    }
+
+    .items-table .text-right {
+      text-align: right;
+    }
+
+    .items-table .product-name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .items-table .description {
+      font-size: 13px;
+      color: #777;
+    }
+
+    /* Totals */
+    .invoice-totals {
+      padding: 0 30px 30px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .totals-card {
+      width: 100%;
+      max-width: 350px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .totals-row.total {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #333;
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 2px solid #00a878;
+    }
+
+    .totals-row.total span {
+      color: #00a878;
+    }
+
+    /* Remarks */
+    .invoice-remarks {
+      padding: 0 30px;
+      margin: 20px 0;
+    }
+
+    .invoice-remarks h3 {
+      font-size: 1.1rem;
+      color: #00a878;
+      margin-bottom: 10px;
+    }
+
+    .invoice-remarks p {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+      padding: 14px 18px;
+      background: #f7f7f7;
+      border-left: 4px solid #00a878;
+      border-radius: 6px;
+    }
+
+    /* Footer */
+    .invoice-footer {
+      text-align: center;
+      padding: 20px;
+      background: #f0f0f0;
+      color: #777;
+      font-size: 13px;
+      border-top: 1px solid #ddd;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .invoice-header {
+        padding: 20px;
+      }
+
+      .invoice-header h1 {
+        font-size: 1.6rem;
+      }
+
+      .invoice-logo {
+        height: 40px;
+        left: 20px;
+        top: 15px;
+      }
+
+      .invoice-info,
+      .invoice-totals {
+        padding: 20px;
+      }
+
+      .items-table th,
+      .items-table td {
+        padding: 10px 6px;
+      }
+
+      .totals-card {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      .invoice-container {
+        border-radius: 8px;
+      }
+
+      .invoice-header {
+        padding: 20px 15px;
+      }
+
+      .invoice-info,
+      .invoice-items,
+      .invoice-totals,
+      .invoice-remarks {
+        padding: 15px;
+      }
+
+      .items-table th,
+      .items-table td {
+        font-size: 13px;
+        padding: 8px 4px;
+      }
+
+      .invoice-remarks p {
+        font-size: 13px;
+        padding: 10px 12px;
+      }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+
+      .invoice-container {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .invoice-footer {
+        page-break-after: avoid;
+      }
+    }
+  </style>
 </head>
-<body style="margin:0; padding:0; background-color: #f4f4f4;">
-    <!-- Main Background Table -->
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="backgroundTable main-temp">
-        <tr>
-            <td align="center" style="padding: 20px 10px;">
-                <!-- Inner Container -->
-                <table width="600" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidth" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
-                    <tr>
-                        <td style="padding: 0;">
+<body>
 
-                            <!-- Header Section -->
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                                <tr>
-                                    <td style="padding: 20px 0;">
-                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align: center;">
-                                            <tr>
-                                                <td>
-                                                    <img
-                                                        src="https://imgur.com/ahNrz0Q.png"
-                                                        alt="TFW Rugby League Logo"
-                                                        style="height: 60px; display: inline-block;"
-                                                    />
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 20px 0;">
-                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #eeeeee;">
-                                            <tr>
-                                                <td style="font-size: 24px; font-weight: 700; color: #00A878; text-align: center;">Invoice</td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; color: #555555; text-align: center; padding-top: 10px;">{{ $order->orderNumber }} | {{ $order->created_at->toFormattedDateString() }}</td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+  <div class="invoice-container">
 
-                            <!-- Bill From & Bill To -->
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
-                                <tr>
-                                    <td style="padding: 0 20px;">
-                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                                            <tr>
-                                                <td style="font-size: 14px; color: #555555;">
-                                                    <strong style="color: #00A878; display: block; margin-bottom: 4px;">Bill From</strong>
-                                                    TFW Rugby League<br>
-                                                    Email: <a href="mailto:{{ env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au') }}">{{ env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au') }}</a>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; color: #555555; padding-top: 20px;">
-                                                    <strong style="color: #00A878; display: block; margin-bottom: 4px;">Bill To</strong>
-                                                    {{ $order->customerFullName }}<br>
-                                                    {{ $order->address }}<br>
-                                                    Email: <a href="mailto:{{ $order->email }}">{{ $order->email }}</a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+    <!-- Header -->
+    <div class="invoice-header">
+      <img src="https://imgur.com/ahNrz0Q.png" alt="Company Logo" class="invoice-logo">
+      <h1>Invoice</h1>
+      <p>{{ $order->orderNumber }} | {{ $order->created_at->toFormattedDateString() }}</p>
+    </div>
 
-                            <!-- Invoice Info -->
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
-                                <tr>
-                                    <td style="font-size: 14px; color: #555555;">
-                                        <strong style="color: #00A878; display: block; margin-bottom: 4px;">Invoice Info</strong>
-                                        Invoice Number: {{ $order->orderNumber }}<br>
-                                        Date: {{ $order->created_at->toFormattedDateString() }}
-                                    </td>
-                                </tr>
-                            </table>
+    <!-- Info Section -->
+    <div class="invoice-info">
+      <div class="info-section">
+        <h3>Bill From</h3>
+        <p><strong>TFW Rugby League</strong></p>
+        <p>Email: {{ env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au') }}</p>
+      </div>
+      @if(!is_null($order->address))
+      <div class="info-section">
+        <h3>Bill To</h3>
+        <p><strong>{{ $order->customerFullName }}</strong></p>
+        <p>Address: {{ $order->address }}</p>
+        <p>Email: {{ $order->email }}</p>
+      </div>
+      @else
+      <div class="info-section">
+        <h3>Bill To</h3>
+        <p><strong>{{ $order->customerFullName }}</strong></p>
+        <p>Email: {{ $order->email }}</p>
+      </div>
+      @endif
+      <div class="info-section">
+        <h3>Invoice Info</h3>
+        <p><strong>Invoice Number:</strong> {{ $order->orderNumber }}</p>
+        <p><strong>Date:</strong> {{ $order->created_at->toFormattedDateString() }}</p>
+      </div>
+    </div>
 
-                            <!-- Product Items -->
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
-                                <tr>
-                                    <td>
-                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #eeeeee;">
-                                            <thead>
-                                                <tr>
-                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: left; border-bottom: 1px solid #eeeeee;">Product</th>
-                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: left; border-bottom: 1px solid #eeeeee;">Description</th>
-                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">Qty</th>
-                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">Unit Price</th>
-                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($order->items as $lineItem)
-                                                <tr>
-                                                    <td style="padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{ $lineItem->item->name }}</td>
-                                                    <td style="padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{ $lineItem->item->snippet }}</td>
-                                                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">{{ $lineItem->quantity }}</td>
-                                                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">${{ number_format($lineItem->value, 2) }}</td>
-                                                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">${{ number_format($lineItem->total, 2) }}</td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
+    <!-- Items -->
+    <div class="invoice-items">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Description</th>
+            <th class="text-right">Qty</th>
+            <th class="text-right">Unit Price</th>
+            <th class="text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+        @foreach($order->items as $lineItem)
+          <tr>
+            <td class="product-name">{{ $lineItem->item->name }}</td>
+            <td class="description">{{ $lineItem->item->snippet }}</td>
+            <td class="text-right">{{ $lineItem->quantity }}</td>
+            <td class="text-right">${{ number_format($lineItem->value, 2) }}</td>
+            <td class="text-right">${{ number_format($lineItem->total, 2) }}</td>
+          </tr>
+        @endforeach
+        </tbody>
+      </table>
+    </div>
 
-                            <!-- Totals Section -->
-                            @php
-                                $itemTotal = $order->subTotal;
-                                $discountedTotal = $order->total / 100;
-                                $taxRate = $taxValue / 100;
+    <!-- Totals -->
+    @php
+        $itemTotal = $order->subTotal;
+        $discountedTotal = $order->total / 100;
+        $taxRate = $taxValue / 100;
 
-                                $taxAmount = $taxToggle->toggleControl2 ? 0 : ($itemTotal * $taxRate);
+        $taxAmount = $taxToggle->toggleControl2 ? 0 : ($itemTotal * $taxRate);
 
-                                $originalTotal = $taxToggle->toggleControl2 
-                                    ? ($itemTotal)
-                                    : ($itemTotal + $taxAmount);
+        $originalTotal = $taxToggle->toggleControl2 
+            ? ($itemTotal)
+            : ($itemTotal + $taxAmount);
 
-                                $discountAmount = $originalTotal - $discountedTotal;
+        $discountAmount = $originalTotal - $discountedTotal;
 
-                                $discountRate = $originalTotal != 0 ? ($discountAmount / $originalTotal) * 100 : 0;
+        $discountRate = $originalTotal != 0 ? ($discountAmount / $originalTotal) * 100 : 0;
 
-                                $taxRate = $taxValue / 100;
-                                $calculatedTaxAmount = $order->subTotal * $taxRate;
-                                $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
-                            @endphp
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
-                                <tr>
-                                    <td style="font-size: 14px; color: #555555; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">Subtotal:</td>
-                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">${{ number_format($order->subTotal, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-size: 14px; color: #555555; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">Tax Amount:</td>
-                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">${{ number_format($taxAmount, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-size: 14px; color: #555555; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">GST:</td>
-                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{$taxToggle->toggleControl2 ? 'GST Inclusive' : 'GST Exclusive'}}</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-size: 14px; color: #555555; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">Discount:</td>
-                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{ number_format($discountRate) }}%</td>
-                                </tr>
-                                <tr>
-                                    <td style="font-size: 18px; font-weight: 700; color: #333333; padding: 12px 8px;">Order Total:</td>
-                                    <td style="font-size: 18px; font-weight: 700; color: #00A878; text-align: right; padding: 12px 8px;">${{ number_format(($order->total/100), 2) }}</td>
-                                </tr>
-                            </table>
+        $taxRate = $taxValue / 100;
+        $calculatedTaxAmount = $order->subTotal * $taxRate;
+        $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
+    @endphp
+    <div class="invoice-totals">
+      <div class="totals-card">
+        <div class="totals-row"><span>Subtotal:</span>&nbsp;<span>${{ number_format($order->subTotal, 2) }}</span></div>
+        <div class="totals-row"><span>Tax Amount:</span>&nbsp;<span>${{ number_format($taxAmount, 2) }}</span></div>
+        <div class="totals-row"><span>GST:</span>&nbsp;<span>{{$taxToggle->toggleControl2 ? 'GST Inclusive' : 'GST Exclusive'}}</span></div>
+        <div class="totals-row"><span>Discount:</span>&nbsp;<span>{{ number_format($discountRate) }}%</span></div>
+        <div class="totals-row total"><span>Order Total:</span>&nbsp;<span>${{ number_format(($order->total/100), 2) }}</span></div>
+      </div>
+    </div>
 
-                            <!-- Remarks Section -->
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
-                                <tr>
-                                    <td>
-                                        <strong style="font-size: 16px; color: #333333; display: block; margin-bottom: 10px;">Remarks</strong>
-                                        <div style="font-size: 14px; color: #555555; line-height: 1.6; padding: 14px 18px; background-color: #f7f7f7; border-left: 4px solid #00A878; border-radius: 6px;">
-                                            {{ $order->remarks }}
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
+    <!-- Remarks -->
+    <div class="invoice-remarks">
+      <h3>Remarks</h3>
+      <p>{{ $order->remarks }}</p>
+    </div>
 
-                            <!-- Footer -->
-                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0; border-top: 1px solid #eeeeee;">
-                                <tr>
-                                    <td style="text-align: center; font-size: 13px; color: #888888;">
-                                        &copy; @php 2024-date("Y") @endphp TFW Rugby League. All rights reserved. | <a href="https://www.tfw9s.com.au" style="color: #00A878; text-decoration: none;">www.tfw9s.com.au</a>
-                                    </td>
-                                </tr>
-                            </table>
+    <!-- Footer -->
+    <div class="invoice-footer">
+      &copy; @php 2024-date("Y"); @endphp TFW Rugby League. All rights reserved. | www.tfw9s.com.au
+    </div>
 
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+  </div>
+
 </body>
 </html>
