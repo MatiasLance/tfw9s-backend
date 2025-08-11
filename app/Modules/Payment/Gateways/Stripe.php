@@ -96,25 +96,26 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
      *
      * @return string
      */
-    public function createOrder($discountcode, array $items, array $metadata = [])
+    public function createOrder($discountCode, array $items, array $metadata = [])
     {
-        $res = DiscountCode::where('code', $discountcode)->first();
-
         $lineItems = [];
+        $total = 0;
+
+        $discount = DiscountCode::where('code', $discountCode)->first();
+        $hasDiscount = !empty($discount);
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
             $onSale = $currentItem->isOnSale();
-            $hasDiscount = !empty($res);
             $salePrice = $currentItem->centSalePrice();
             $regularPrice = $currentItem->centPrice();
 
             if ($onSale && $hasDiscount) {
-                $price = $salePrice * (1 - $res->rate);
+                $price = $salePrice * (1 - $$discount->rate);
             } elseif ($onSale && !$hasDiscount) {
                 $price = $salePrice;
             } elseif (!$onSale && $hasDiscount) {
-                $price = $regularPrice * (1 - $res->rate);
+                $price = $regularPrice * (1 - $$discount->rate);
             } else {
                 $price = $regularPrice;
             }
@@ -126,7 +127,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             array_push($lineItems, $lineItem);
         }
 
-        $totalshipping = $this->calculateTotal($discountcode, $lineItems);
+        $totalshipping = $this->calculateTotal($discountCode, $lineItems);
 
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
@@ -152,7 +153,12 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             $isInclusive = true;
         }
 
-        $total = $totalPrice;
+        if($metadata['shipOption'] == ShippingType::DELIVERY->value) {
+            $withShippingTotal = ($totalPrice / 100) + 10;
+            $total = intval($withShippingTotal * 100);
+        }else{
+            $total = $totalPrice;
+        }
 
         $metadata['line_items'] = json_encode($lineItems);
 
@@ -192,6 +198,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                                             $shippingInformation->lastName,
                                             $shippingInformation->phoneNumber,
                                             $shippingInformation->email,
+                                            $shippingInformation->shipOption ?? null,
                                             $shippingInformation->address ?? null,
                                             $shippingInformation->postCode ?? null,
                                             $shippingInformation->remarks,

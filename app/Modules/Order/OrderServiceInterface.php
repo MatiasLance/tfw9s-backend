@@ -43,6 +43,7 @@ interface OrderServiceInterface
         string $lastname,
         string $phoneNumber,
         string $email,
+        ?string $shipOption,
         ?string $address,
         ?string $postCode,
         ?string $remarks,

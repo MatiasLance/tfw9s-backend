@@ -24,7 +24,7 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         return $this->model->where('transaction_id', $transactionId)->first();
     }
 
-    public function create(string $paymentIntentId, PaymentGateway $gateway, string $firstname, string $lastname, string $phoneNumber, string $email, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
+    public function create(string $paymentIntentId, PaymentGateway $gateway, string $firstname, string $lastname, string $phoneNumber, string $email, ?string $shipOption, ?string $address, ?string $postCode, ?string $remarks, int $total, array $items)
     {
         $existingOrder = $this->findByTransactionId($paymentIntentId);
 
@@ -39,6 +39,7 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         $order->lastname = $lastname;
         $order->phone_number = $phoneNumber;
         $order->email = $email;
+        $order->ship_option = $shipOption;
         $order->is_verified = false;
         $order->address = $address;
         $order->post_code = $postCode;
