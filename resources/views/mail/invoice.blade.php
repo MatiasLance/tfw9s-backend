@@ -1,315 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
     <style type="text/css">
-        #outlook a {
-            padding:0;
+        /* Reset Styles */
+        body, table, td, th {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            font-size: 100%;
+            vertical-align: top;
+            background: transparent;
         }
-        body{width:100% !important; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; margin:0; padding:0; font-family: Helvetica, arial, sans-serif;}
-        .ExternalClass {width:100%;}
-        .ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {line-height: 100%;}
-        .backgroundTable {margin:0; padding:0; width:100% !important; line-height: 100% !important;}
-        .main-temp table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; font-family: Helvetica, arial, sans-serif;}
-        .main-temp table td {border-collapse: collapse;}
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+        .ReadMsgBody {
+            width: 100%;
+            background-color: #ffffff;
+        }
+        .ExternalClass {
+            width: 100%;
+            background-color: #ffffff;
+        }
+        body {
+            width: 100% !important;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333333;
+        }
+
+        /* Responsive Container */
+        @media screen and (max-width: 600px) {
+            .devicewidth { width: 100% !important; }
+            .responsive-padding { padding-left: 15px !important; padding-right: 15px !important; }
+        }
     </style>
 </head>
-<body>
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="backgroundTable main-temp" style="background-color: #d5d5d5;">
-        <tbody>
-            <tr>
-                <td>
-                    <table width="600" align="center" cellpadding="15" cellspacing="0" border="0" class="devicewidth" style="background-color: #ffffff;">
-                        <tbody>
-                            <!-- Start header Section -->
-                            <tr>
-                                <td style="padding-top: 30px;">
-                                    <table width="560" align="center" cellpadding="15" cellspacing="0" border="0" class="devicewidth" style="background-color:#ffffff">
-                                        <tbody>
+<body style="margin:0; padding:0; background-color: #f4f4f4;">
+    <!-- Main Background Table -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="backgroundTable main-temp">
+        <tr>
+            <td align="center" style="padding: 20px 10px;">
+                <!-- Inner Container -->
+                <table width="600" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidth" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                    <tr>
+                        <td style="padding: 0;">
+
+                            <!-- Header Section -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="padding: 20px 0;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align: center;">
                                             <tr>
-                                                <td align="center">
-                                                    <a href="http://128.199.231.34/">
-                                                        <img
-                                                            style="padding: 5rem;"
-                                                            src="https://imgur.com/ahNrz0Q.png"
-                                                            alt="TFW Rugby League Logo"
-                                                        />
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                    <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #eeeeee; text-align: center;">
-                                        <tbody>
-                                            <tr align="left" width="100%">
-                                                <td width="30%">
-                                                    <h3 style="font-size:2rem; line-height: 18px; color: #666666;">
-                                                        Invoice
-                                                    </h3>
-                                                </td>
-                                                <td width="30%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
-                                                    <div><span style="font-weight: bold; display: block;">Order Number:</span>{{ $order->orderNumber }}</div>
-                                                    <div><span style="font-weight: bold; display: block;">Order Date:</span> {{ $order->created_at->toFormattedDateString() }}</div>
-                                                </td>
-                                                <td width="40%" style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 25px;">
-                                                    <div>
-                                                        <b>TFW Rugby League</b>
-                                                    </div>
-                                                    <div></div>
-                                                    <div></div>
-                                                    <div></div>
-                                                    <div style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                        <div>
-                                                            <span>
-                                                                <b>Email:</b>
-                                                            </span>
-                                                            <span>
-                                                                {{ env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au') }}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </td>
                                                 <td>
-                                                    <table>
-                                                        <tbody>
-                                                            <tr align="right">
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
+                                                    <img
+                                                        src="https://imgur.com/ahNrz0Q.png"
+                                                        alt="TFW Rugby League Logo"
+                                                        style="height: 60px; display: inline-block;"
+                                                    />
                                                 </td>
                                             </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- End header Section -->
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 20px 0;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom: 1px solid #eeeeee;">
+                                            <tr>
+                                                <td style="font-size: 24px; font-weight: 700; color: #00A878; text-align: center;">Invoice</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size: 14px; color: #555555; text-align: center; padding-top: 10px;">{{ $order->orderNumber }} | {{ $order->created_at->toFormattedDateString() }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
 
-                            <!-- Start address Section -->
-                            <tr>
-                                <td style="padding-top: 0;">
-                                    <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #bbbbbb;">
-                                        <tbody>
+                            <!-- Bill From & Bill To -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
+                                <tr>
+                                    <td style="padding: 0 20px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
-                                                <td colspan="2">
-                                                    &nbsp;
+                                                <td style="font-size: 14px; color: #555555;">
+                                                    <strong style="color: #00A878; display: block; margin-bottom: 4px;">Bill From</strong>
+                                                    TFW Rugby League<br>
+                                                    Email: <a href="mailto:{{ env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au') }}">{{ env('ADMIN_EMAIL_ADDRESS', 'admin@tfw9s.com.au') }}</a>
                                                 </td>
                                             </tr>
-                                            @if(!is_null($order->address))
                                             <tr>
-                                                <td style="width: 55%; font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 5px;">
-                                                    Delivery Address
-                                                </td>
-                                                <td style="width: 45%; font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 5px;">
-                                                    Billing Address
+                                                <td style="font-size: 14px; color: #555555; padding-top: 20px;">
+                                                    <strong style="color: #00A878; display: block; margin-bottom: 4px;">Bill To</strong>
+                                                    {{ $order->customerFullName }}<br>
+                                                    {{ $order->address }}<br>
+                                                    Email: <a href="mailto:{{ $order->email }}">{{ $order->email }}</a>
                                                 </td>
                                             </tr>
-                                            @endif
-                                            <tr>
-                                                <td style="width: 55%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->customerFullName }}
-                                                </td>
-                                                <td style="width: 45%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->customerFullName }}
-                                                </td>
-                                            </tr>
-                                            @if(!is_null($order->address))
-                                            <tr>
-                                                <td style="width: 55%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->address }}
-                                                </td>
-                                                <td style="width: 45%; font-size: 14px; line-height: 18px; color: #666666;">
-                                                    {{ $order->address }}
-                                                </td>
-                                            </tr>
-                                            @endif
-                                            <tr>
-                                                <td colspan="2">
-                                                    &nbsp;
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- End address Section -->
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
 
-                            <!-- Start product Section -->
+                            <!-- Invoice Info -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
+                                <tr>
+                                    <td style="font-size: 14px; color: #555555;">
+                                        <strong style="color: #00A878; display: block; margin-bottom: 4px;">Invoice Info</strong>
+                                        Invoice Number: {{ $order->orderNumber }}<br>
+                                        Date: {{ $order->created_at->toFormattedDateString() }}
+                                    </td>
+                                </tr>
+                            </table>
 
-                            @foreach($order->items as $lineItem)
-                            <tr>
-                                <td style="padding-top: 0;">
-                                    <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #eeeeee;">
-                                        <tbody>
-                                            <tr>
-                                                <td rowspan="5" style="padding-right: 10px; padding-bottom: 10px;">
-                                                    <img style="height: 80px;" src="{{ $lineItem->thumbnail }}" alt="Product Image" />
-                                                </td>
-                                                <td colspan="2" style="font-size: 14px; font-weight: bold; color: #666666; padding-bottom: 11px;">
-                                                    {{ $lineItem->item->name }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575; width: 440px;">
-                                                    Description: {{ $lineItem->item->snippet }}
-                                                </td>
-                                                <td style="width: 130px; font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    ${{ number_format($lineItem->value, 2) }} Per Unit
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575;">
-                                                    Quantity: {{ $lineItem->quantity }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575;"></td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #757575; text-align: right;">
-                                                    <b style="color: #666666;">${{ number_format($lineItem->total, 2) }}</b> Total
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            @endForeach
-                            <!-- End product Section -->
+                            <!-- Product Items -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
+                                <tr>
+                                    <td>
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #eeeeee;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: left; border-bottom: 1px solid #eeeeee;">Product</th>
+                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: left; border-bottom: 1px solid #eeeeee;">Description</th>
+                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">Qty</th>
+                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">Unit Price</th>
+                                                    <th style="background-color: #00A878; color: white; padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($order->items as $lineItem)
+                                                <tr>
+                                                    <td style="padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{ $lineItem->item->name }}</td>
+                                                    <td style="padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{ $lineItem->item->snippet }}</td>
+                                                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">{{ $lineItem->quantity }}</td>
+                                                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">${{ number_format($lineItem->value, 2) }}</td>
+                                                    <td style="padding: 12px 8px; text-align: right; border-bottom: 1px solid #eeeeee;">${{ number_format($lineItem->total, 2) }}</td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
 
-                            <!-- Start calculation Section -->
-                            <tr>
-                                <td style="padding-top: 0;">
-                                    <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner" style="border-bottom: 1px solid #bbbbbb; margin-top: -5px;">
-                                        <tbody>
-                                            <tr>
-                                                <td rowspan="6" style="width: 55%;"></td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    Sub-Total Total:
-                                                </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    ${{ number_format($order->subTotal, 2) }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    GST:
-                                                </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                {{$taxToggle->toggleControl2 ? 'GST Inclusive' : 'GST Exclusive'}}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666;">
-                                                    Tax Amount:
-                                                </td>
-                                                <td style="font-size: 14px; line-height: 18px; color: #666666; width: 130px; text-align: right;">
-                                                    @php
-                                                        $taxRate = $taxValue / 100;
-                                                        $calculatedTaxAmount = $order->subTotal * $taxRate;
-                                                        $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
-                                                    @endphp
-                                                    ${{ number_format($taxAmount, 2) }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                            <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee;">
-                                                    Discount:
-                                                </td>
-                                            <td style="font-size: 14px; line-height: 18px; color: #666666; padding-bottom: 10px; border-bottom: 1px solid #eeeeee; text-align: right;">
-                                                @php
-                                                    $itemTotal = $order->subTotal;
-                                                    $discountedTotal = $order->total / 100;
-                                                    $taxRate = $taxValue / 100;
+                            <!-- Totals Section -->
+                            @php
+                                $itemTotal = $order->subTotal;
+                                $discountedTotal = $order->total / 100;
+                                $taxRate = $taxValue / 100;
 
-                                                    $taxAmount = $taxToggle->toggleControl2 ? 0 : ($itemTotal * $taxRate);
+                                $taxAmount = $taxToggle->toggleControl2 ? 0 : ($itemTotal * $taxRate);
 
-                                                    $originalTotal = $taxToggle->toggleControl2 
-                                                        ? ($itemTotal)
-                                                        : ($itemTotal + $taxAmount);
+                                $originalTotal = $taxToggle->toggleControl2 
+                                    ? ($itemTotal)
+                                    : ($itemTotal + $taxAmount);
 
-                                                    $discountAmount = $originalTotal - $discountedTotal;
+                                $discountAmount = $originalTotal - $discountedTotal;
 
-                                                    $discountRate = $originalTotal != 0 ? ($discountAmount / $originalTotal) * 100 : 0;
-                                                    @endphp
-                                                    {{ number_format($discountRate) }}%
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="font-size: 14px; font-weight: bold; line-height: 18px; color: #666666; padding-top: 10px; padding-bottom: 10px;">
-                                                    Order Total
-                                                </td>
-                                                <td style="font-size: 14px; font-weight: bold; line-height: 18px; color: #666666; padding-top: 10px; text-align: right; padding-bottom: 10px;">
-                                                    ${{ number_format(($order->total/100), 2) }}
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- End calculation Section -->
+                                $discountRate = $originalTotal != 0 ? ($discountAmount / $originalTotal) * 100 : 0;
 
-                            <!-- Start Remarks Section -->
-                            <tr>
-                                <td style="padding: 0 10px;">
-                                    <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner">
-                                        <tbody>
-                                            <tr>
-                                                <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Remarks
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2" style="width: 100%; font-size: 14px; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    {{ $order->remarks }}
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- End Remarks Section -->
+                                $taxRate = $taxValue / 100;
+                                $calculatedTaxAmount = $order->subTotal * $taxRate;
+                                $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
+                            @endphp
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
+                                <tr>
+                                    <td style="font-size: 14px; color: #555555; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">Subtotal:</td>
+                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">${{ number_format($order->subTotal, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 14px; color: #555555; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">Tax Amount:</td>
+                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">${{ number_format($taxAmount, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 14px; color: #555555; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">GST:</td>
+                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{$taxToggle->toggleControl2 ? 'GST Inclusive' : 'GST Exclusive'}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 14px; color: #555555; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">Discount:</td>
+                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{ number_format($discountRate) }}%</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size: 18px; font-weight: 700; color: #333333; padding: 12px 8px;">Order Total:</td>
+                                    <td style="font-size: 18px; font-weight: 700; color: #00A878; text-align: right; padding: 12px 8px;">${{ number_format(($order->total/100), 2) }}</td>
+                                </tr>
+                            </table>
 
-                            <!-- Start payment method Section -->
-                            <tr>
-                                <td style="padding: 0 10px;">
-                                    <table width="560" align="center" cellpadding="0" cellspacing="0" border="0" class="devicewidthinner">
-                                        <tbody>
-                                            <tr>
-                                                <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Payment Method ({{ ucfirst($order->payment_gateway->value) }})
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="width: 100%; text-align:center; padding-bottom: 0.7rem; padding-top: 0.7rem;">
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2" style="width: 100%; text-align: center; font-style: italic; font-size: 14px; font-weight: 600; color: #666666; padding: 15px 0; border-top: 1px solid #eeeeee;">
-                                                    Thank you! Your order has been placed and will be shipped out to you within 2 business days of payment clearing. Your invoice for ${{ number_format($order->total/100, 2) }} is attached. Thank you for shopping with TFW Rugby League.
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                            <!-- End payment method Section -->
-                            <tr>
-                                <td>
-                                    <table width="560" align="center" cellpadding="15" cellspacing="15" class="devicewidthinner">
-                                        <tbody>
-                                            <tr>
-                                                <td colspan="2" style="width: 100%; text-align: center;">
-                                                    <p>&copy; 2024-<?=date("Y");?> TFW Rugby League</p>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-        </tbody>
+                            <!-- Remarks Section -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
+                                <tr>
+                                    <td>
+                                        <strong style="font-size: 16px; color: #333333; display: block; margin-bottom: 10px;">Remarks</strong>
+                                        <div style="font-size: 14px; color: #555555; line-height: 1.6; padding: 14px 18px; background-color: #f7f7f7; border-left: 4px solid #00A878; border-radius: 6px;">
+                                            {{ $order->remarks }}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Footer -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0; border-top: 1px solid #eeeeee;">
+                                <tr>
+                                    <td style="text-align: center; font-size: 13px; color: #888888;">
+                                        &copy; @php 2024-date("Y") @endphp TFW Rugby League. All rights reserved. | <a href="https://www.tfw9s.com.au" style="color: #00A878; text-decoration: none;">www.tfw9s.com.au</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
     </table>
 </body>
 </html>
