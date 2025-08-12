@@ -331,10 +331,10 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             $seriesRegistered = $this->individualRegistrationService->create(
                                             $paymentIntent->id,
                                             self::GATEWAY,
-                                            $registrationInformation->contactEmail,
                                             $registrationInformation->contactFirstName,
                                             $registrationInformation->contactLastName,
                                             $registrationInformation->contactPhoneNumber,
+                                            $registrationInformation->contactEmail,
                                             $registrationInformation->playerFirstName,
                                             $registrationInformation->playerLastName,
                                             $registrationInformation->dob,
