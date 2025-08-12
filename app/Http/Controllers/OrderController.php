@@ -107,27 +107,24 @@ class OrderController extends Controller
     {
         $items = $request->input('items');
         $metadata = $request->input('metadata') ?? [];
-        $discountcode = $request->input('discountcode');
-        $res = DiscountCode::where('code', $discountcode)->first();
-
-        $paymentIntent = $request->input('paymentIntent');
-        $paymentMethod = $request->input('payment_method');
-
+        $discountcode = $request->input('discountcode', null);
+        $result = DiscountCode::where('code', $discountcode)->first();
+        $hasDiscount = !empty($result);
 
         $lineItems = [];
+
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
             $onSale = $currentItem->isOnSale();
-            $hasDiscount = !empty($discountcode);
             $salePrice = $currentItem->centSalePrice();
             $regularPrice = $currentItem->centPrice();
 
             if ($onSale && $hasDiscount) {
-                $price = $salePrice * (1 - $res->rate);
+                $price = $salePrice * (1 - $result->rate);
             } elseif ($onSale && !$hasDiscount) {
                 $price = $salePrice;
             } elseif (!$onSale && $hasDiscount) {
-                $price = $regularPrice * (1 - $res->rate);
+                $price = $regularPrice * (1 - $result->rate);
             } else {
                 $price = $regularPrice;
             }
@@ -137,8 +134,10 @@ class OrderController extends Controller
                 'price' => $price,
                 'quantity' => $item['quantity'],
             ];
+
             array_push($lineItems, $lineItem);
         }
+
 
         $totalProduct = $this->calculateTotal($discountcode, $lineItems);
 
@@ -146,37 +145,41 @@ class OrderController extends Controller
         $master = ToggleTaxControl::find(1);
         $taxAmount = 0;
         $totalPrice = 0;
+        $total = 0;
 
         $addTax = $tax->addTaxValue;
         $includeTax = $tax->includeTaxValue;
-        $isInclusive = $master->toggleControl2;
+        $gstInclusive = $master->toggleControl2;
+        $gstExclusive = $master->toggleControl1;
 
-        if (!$isInclusive) {
+        if (!$gstInclusive) {
             $taxRate = $addTax / 100;
             $taxAmount = $totalProduct['totalProduct'] * $taxRate;
             $totalPrice = intval($totalProduct['totalProduct'] + $taxAmount);
-            $isInclusive = false;
-        } elseif ($isInclusive) {
+            $gstInclusive = false;
+        } elseif ($gstInclusive) {
             $taxRate = $includeTax / 100;
             $taxAmount = $totalProduct['totalProduct'] * $taxRate;
             $totalPrice = intval($totalProduct['totalProduct'] );
-            $isInclusive = true;
+            $gstInclusive = true;
         } else {
             $totalPrice = intval($totalProduct['totalProduct']);
-            $isInclusive = true;
+            $gstInclusive = true;
         }
 
         $totalProduct['taxAmount'] = $taxAmount;
 
-        $response = [];
+        if($metadata['shipOption'] === 'delivery') {
+            $total = ($totalPrice / 100) + 10;
+        }else{
+            $total = $totalPrice;
+        }
 
-        $total = $totalPrice;
+        $toCents = intval($total * 100);
 
-        $updateParams = [
-            'amount' => $total,
-        ];
-
-        return response()->json(['OverallTotal' => $total]);
+        return response()->json([
+            'overAllTotal' => $toCents
+        ]);
 
     }
 
