@@ -172,6 +172,8 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             $teams = $teams->with(['registration', 'discountCode']);
             $teams = $teams->whereHas('discountCode');
 
+        }else{
+            $teams = $teams->with(['registration', 'discountCode']);
         }
 
         switch ($filters['sort']) {
