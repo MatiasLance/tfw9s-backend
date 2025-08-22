@@ -63,7 +63,6 @@ class EventController extends Controller
 
     public function store(Request $request, Message $message)
     {
-
         $time = $request->input('time');
         $round = $request->input('round');
         $region_id = $request->input('region_id');
