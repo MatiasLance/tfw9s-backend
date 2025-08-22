@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TaxController;
 use App\Http\Controllers\ToggleTaxControlController;
+use App\Http\Controllers\PaymentSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -90,6 +91,13 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::post('/', 'App\Http\Controllers\PartnerSponsorController@store');
             Route::post('/{id}', 'App\Http\Controllers\PartnerSponsorController@update');
             Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
+        });
+
+        Route::prefix("payment")->group(function() {
+            Route::prefix("setting")->group(function() {
+                Route::get("/", [PaymentSettingController::class, "list"]);
+                Route::patch("/{id}", [PaymentSettingController::class, "update"]);
+            });
         });
 
     });
@@ -380,4 +388,10 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         });
 
     });
+
+    Route::prefix("payment")->group(function() {
+            Route::prefix("setting")->group(function() {
+                Route::get("/", [PaymentSettingController::class, "list"]);
+            });
+        });
 });
