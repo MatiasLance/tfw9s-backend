@@ -128,11 +128,14 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         $teams = $this->model->query();
 
         $filters = array_merge($this->defaultTeamListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
-
         // Search Filter
         if (!is_null($filters['q'])) {
             $teams = $teams->where(function ($q) use($filters) {
                 $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
+                if($this->containsFourDigitYear($filters['q'])) {
+                    $year = (int) $filters['q'];
+                    $q->orWhereYear('created_at', $year);
+                }
             });
         }
 
@@ -514,5 +517,10 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
 
             return $link;
         });
+    }
+
+    protected function containsFourDigitYear(string $str): bool
+    {
+        return (bool) preg_match('/\b(19|20)\d{2}\b/', $str);
     }
 }
