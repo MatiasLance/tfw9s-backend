@@ -175,7 +175,7 @@ class OrderController extends Controller
             $total = $totalPrice;
         }
 
-        $toCents = intval($total * 100);
+        $toCents = intval($total);
 
         return response()->json([
             'overAllTotal' => $toCents
