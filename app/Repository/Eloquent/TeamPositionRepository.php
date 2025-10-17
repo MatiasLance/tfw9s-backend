@@ -205,30 +205,26 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
             ->where('event_id', $eventMatch->event_id)
             ->firstOrFail();
 
-        # reset
+        # reset - FIXED THE BUG HERE
         $team1Position->for -= $existingResult['team1_score'];
         $team1Position->against -= $existingResult['team2_score'];
+        $team1Position->difference = $team1Position->for - $team1Position->against; // ✅ FIXED: for - against
 
         $team2Position->for -= $existingResult['team2_score'];
         $team2Position->against -= $existingResult['team1_score'];
-
-        $team1Position->difference = $team1Position->for + $team1Position->against;
-        $team2Position->difference = $team2Position->for + $team2Position->against;
+        $team2Position->difference = $team2Position->for - $team2Position->against; // ✅ FIXED: for - against
 
         if ($existingResult['winner'] == $team1) {
             $team1Position->win -= 1;
             $team1Position->points -= 2;
-
             $team2Position->loss -= 1;
-        } elseif ($existingResult['losser'] == $team2) {
+        } elseif ($existingResult['winner'] == $team2) {
             $team2Position->win -= 1;
             $team2Position->points -= 2;
-
             $team1Position->loss -= 1;
         } elseif ($existingResult['isDraw']) {
             $team1Position->draw -= 1;
             $team1Position->points -= 1;
-
             $team2Position->draw -= 1;
             $team2Position->points -= 1;
         }
@@ -236,34 +232,28 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
         # set new
         $team1Position->for += $eventMatch->team1_score;
         $team1Position->against += $eventMatch->team2_score;
+        $team1Position->difference = $team1Position->for - $team1Position->against;
 
         $team2Position->for += $eventMatch->team2_score;
         $team2Position->against += $eventMatch->team1_score;
-
-        $team1Position->difference = $team1Position->for - $team1Position->against;
         $team2Position->difference = $team2Position->for - $team2Position->against;
-
 
         if ($eventMatch->winner == $team1) {
             $team1Position->win += 1;
             $team1Position->points += 2;
-
             $team2Position->loss += 1;
         } elseif ($eventMatch->winner == $team2) {
             $team2Position->win += 1;
             $team2Position->points += 2;
-
             $team1Position->loss += 1;
         } else {
             $team1Position->draw += 1;
             $team1Position->points += 1;
-
             $team2Position->draw += 1;
             $team2Position->points += 1;
         }
 
         return DB::transaction(function() use($team1Position, $team2Position, $event_id) {
-
             $team1Position->save();
             $team2Position->save();
 
@@ -274,7 +264,6 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
 
             return true;
         });
-
     }
 
     public function deleteTeamPosition(int $id): bool
