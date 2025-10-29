@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 
-FROM php:8.1-fpm
+FROM php:8.2-fpm
 
 # Move to using the default php.ini
-RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Copy custom PHP configuration
-COPY ./docker/php-custom.ini-development $PHP_INI_DIR/conf.d/php-custom.ini
+COPY ./docker/php-custom.ini-production $PHP_INI_DIR/conf.d/php-custom.ini
 
 # Copy composer.lock and composer.json
 COPY composer.lock composer.json /var/www/html/

@@ -109,6 +109,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
         $filters = array_merge($this->defaultEventListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
+
         if (!is_null($filters['q'])) {
             $events = $events->where(function ($query) use ($filters) {
                 $query->whereHas('eventmatch', function ($q) use ($filters) {
@@ -136,7 +137,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                     ->where('event_date', 'LIKE', '%' . $filters['event_date'] . '%');
             });
         }
-
+        
         // Year Filter
         if (!is_null($filters['year'])) {
             $events = $events->where(function ($q) use($filters) {
@@ -152,7 +153,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                     ->where('id', 'LIKE', '%' . $filters['event'] . '%');
             });
         }
-
         // Region Filter
         if (!is_null($filters['region'])) {
             $events = $events->where(function ($q) use($filters) {
@@ -177,6 +177,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 $events = $events->orderBy('created_at');
                 break;
         }
+
 
         $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
 

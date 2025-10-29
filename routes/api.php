@@ -221,7 +221,6 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
         Route::post('/refund/{id}', 'App\Http\Controllers\TeamController@refund');
         Route::post('/cancelref/{id}', 'App\Http\Controllers\TeamController@cancelref');
-
     });
 
     Route::prefix("events")->group(function() {
@@ -390,8 +389,13 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     });
 
     Route::prefix("payment")->group(function() {
-            Route::prefix("setting")->group(function() {
-                Route::get("/", [PaymentSettingController::class, "list"]);
-            });
+        Route::prefix("setting")->group(function() {
+            Route::get("/", [PaymentSettingController::class, "list"]);
         });
+    });
+
+    Route::prefix('sms')->group(function() {
+        Route::post('/sendSMSNotification', 'App\Http\Controllers\SMSController@sendLinkViaSMS');
+        Route::post('/testSendSMSNotification', 'App\Http\Controllers\SMSController@testTwilioConnection');
+    });
 });
