@@ -87,9 +87,7 @@ class Team extends Model
 
     public function getRegisteredPlayersCountAttribute()
     {
-        return $this->players()->whereHas('registration', function ($query) {
-            $query->whereNull('refund_id');
-        })->count();
+        return $this->players()->count();
     }
 
 }

@@ -16,7 +16,7 @@ return new class extends Migration
     public function up()
     {
         $superadmin = User::factory()->create([
-            'email' => 'superadmin@thefinalwhistle.com',
+            'email' => env('ADMIN_EMAIL_ADDRESS', 'superadmin@thefinalwhistle.com'),
             'password' => bcrypt('superuser1'),
             'first_name' => 'Super',
             'last_name' => 'Administrator',
