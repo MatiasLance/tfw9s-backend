@@ -34,6 +34,8 @@ class SMSController extends Controller
         
                 $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
 
+                dd($link);
+
                 $textMessage = "Hello! Join your team for {$series->name} using this link: {$link}";
 
                 $phoneNumbers = array_filter([

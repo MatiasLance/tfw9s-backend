@@ -184,7 +184,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         int $team_id,
         DateTime $dob,
         int $agegroup_id,
-        string $description,
+        ?string $description,
         int $series_id,
         ?array $media
     ): Player
@@ -229,7 +229,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         int $team_id,
         DateTime $dob,
         int $agegroup_id,
-        string $description,
+        ?string $description,
         int $series_id,
         ?array $media
     ): bool

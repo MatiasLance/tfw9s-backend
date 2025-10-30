@@ -69,7 +69,7 @@ class PlayersController extends Controller
         $team_id = $request->input('teamID');
         $dobstring = $request->input('dob');
         $agegroup_id = $request->input('agegroupID');
-        $description = $request->input('description');
+        $description = $request->input('description') ?? '';
         $series_id = $request->input('seriesID');
         $media = $request->file('photo') ?? [];
 
@@ -112,7 +112,7 @@ class PlayersController extends Controller
         $team_id = $request->input('teamID');
         $dobstring = $request->input('dob');
         $agegroup_id = $request->input('agegroupID');
-        $description = $request->input('description');
+        $description = $request->input('description') ?? '';
         $series_id = $request->input('seriesID');
         $media = $request->file('photo') ?? [];
 

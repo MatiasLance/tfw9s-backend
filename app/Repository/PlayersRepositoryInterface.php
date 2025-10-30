@@ -61,7 +61,7 @@ interface PlayersRepositoryInterface
         int $team_id,
         DateTime $dob,
         int $agegroup_id,
-        string $description,
+        ?string $description,
         int $series_id,
         ?array $media
     ): Player;
@@ -94,7 +94,7 @@ interface PlayersRepositoryInterface
         int $team_id,
         DateTime $dob,
         int $agegroup_id,
-        string $description,
+        ?string $description,
         int $series_id,
         ?array $media
     ): bool;
