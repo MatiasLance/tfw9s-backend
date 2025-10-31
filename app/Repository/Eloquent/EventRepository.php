@@ -170,11 +170,11 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
         switch ($filters['sort']) {
             case Filter::SORT_LATEST:
-                $events = $events->orderBy('event_date');
+                $events = $events->orderBy('event_date', 'desc');
                 break;
 
             default:
-                $events = $events->orderBy('created_at');
+                $events = $events->orderBy('created_at', 'desc');
                 break;
         }
 
