@@ -394,6 +394,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         });
     });
 
+    // Added new api for sms
     Route::prefix('sms')->group(function() {
         Route::post('/sendSMSNotification', 'App\Http\Controllers\SMSController@sendLinkViaSMS');
         Route::post('/testSendSMSNotification', 'App\Http\Controllers\SMSController@testTwilioConnection');
