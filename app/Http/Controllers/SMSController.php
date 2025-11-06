@@ -34,12 +34,11 @@ class SMSController extends Controller
         
                 $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
 
-                dd($link);
-
                 $textMessage = "Hello! Join your team for {$series->name} using this link: {$link}";
 
                 $phoneNumbers = array_filter([
-                    '+61491570156'
+                   $this->formatPhoneNumber($team->coach_mobile),
+                   $this->formatPhoneNumber($team->manager_mobile)
                 ]);
 
                 $results = [];
@@ -52,12 +51,11 @@ class SMSController extends Controller
                     }
 
                     try {
-                        $formattedNumber = $this->formatPhoneNumber($number);
                         
-                        Log::info("Attempting to send SMS to: {$formattedNumber}");
+                        Log::info("Attempting to send SMS to: {$number}");
                         
                         $message = $twilio->messages->create(
-                            $formattedNumber,
+                            $number,
                             [
                                 'from' => $from,
                                 'body' => $textMessage,
