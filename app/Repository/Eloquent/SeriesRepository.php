@@ -374,7 +374,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     $payload['team'] = $team->id;
                     $encryptedToken = encrypt($payload);
             
-                    $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+                    $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
 
                     $coach = $team->coach_email;
 
@@ -394,7 +394,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     $payload['team'] = $team->id;
                     $encryptedToken = encrypt($payload);
 
-                    $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+                    $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
 
                     $coach = $team->coach_email;
 

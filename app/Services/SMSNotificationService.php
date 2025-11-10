@@ -25,7 +25,7 @@ class SMSNotificationService
             $payload = ['series' => $series->id, 'team' => $team->id];
             $encryptedToken = encrypt($payload);
 
-            $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
 
             $textMessage = "Hello! Join your team for {$series->name} using this link: {$link}";
 
@@ -103,7 +103,7 @@ class SMSNotificationService
                 $payload = ['series' => $series->id, 'team' => $team->id];
                 $encryptedToken = encrypt($payload);
 
-                $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+                $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
 
                 $textMessage = "Hello! Join your team for {$series->name} using this link: {$link}";
 

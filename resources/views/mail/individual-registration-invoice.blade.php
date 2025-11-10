@@ -69,7 +69,7 @@
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    @if ($order->item->type === 'weekly')
+                                                    @if ($order->item->type === 'weekly' || $order->item->type === 'coast')
                                                         @foreach($order->players as $player)
                                                             <div><span style="font-weight: bold; display: block;">Player Name:</span>
                                                             {{ ($player->player_firstname ?? 'unknown') . ' ' . ($player->player_lastname ?? 'unknown') }}
@@ -108,7 +108,7 @@
                                                 </td>
                                                 <td colspan="2" style="font-size: 14px; font-weight: bold; color: #666666; padding-bottom: 11px;">
                                                 @php
-                                                    if ($order->item->type === 'weekly') {
+                                                    if ($order->item->type === 'weekly' || $order->item->type === 'coast') {
                                                         $agegroups = $order->players->map(function($player) {
                                                             return $player->agegroup->name ?? 'unknown';
                                                         })->unique()->implode(', ');
