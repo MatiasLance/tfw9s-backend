@@ -286,6 +286,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/pause/{id}', 'App\Http\Controllers\SeriesController@pauseSeries');
         Route::post('/edit/thumbnail', 'App\Http\Controllers\SeriesController@editThumbnail');
         Route::post('/notify/{id}', 'App\Http\Controllers\SeriesController@sendRegistration');
+        Route::post('/notify.teams/{id}', 'App\Http\Controllers\SeriesController@sendRegistrationWithoutPayment');
         Route::post('/teamlinks/{id}', 'App\Http\Controllers\SeriesController@seriesTeamLinks');
     });
 

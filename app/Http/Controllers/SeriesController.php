@@ -203,6 +203,20 @@ class SeriesController extends Controller
         return $message->render();
     }
 
+    public function sendRegistrationWithoutPayment(Message $message, int $id)
+    {
+
+        $isSuccess = $this->seriesService->sendRegistrationsWithoutPayment($id);
+
+        if ($isSuccess) {
+            $message->setContent(200, 'Series team coaches notified');
+        } else {
+            $message->setContent(400, 'Series coaches notification failed');  
+        }
+
+        return $message->render();
+    }
+
     public function seriesTeamLinks(Message $message, int $id)
     {
 

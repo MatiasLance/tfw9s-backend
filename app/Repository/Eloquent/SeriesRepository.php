@@ -14,6 +14,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use DateTime;
 use App\Modules\Mail\MailService;
+use App\Services\SMSNotificationService;
 use App\Models\DiscountCode;
 
 class SeriesRepository extends BaseRepository implements seriesRepositoryInterface
@@ -28,6 +29,8 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
     protected TeamLimitServiceInterface $teamLimitService;
 
     protected MailService $mailService;
+
+    protected $smsNotificationService;
 
     /**
      * Default filters for retrieving list of series
@@ -92,12 +95,13 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         'is_paused' => null,
     ];
 
-    public function __construct(Series $series, StorageInterface $storageService, TeamLimitServiceInterface $teamLimitService, MailService $mailService)
+    public function __construct(Series $series, StorageInterface $storageService, TeamLimitServiceInterface $teamLimitService, MailService $mailService, SMSNotificationService $smsNotificationService)
     {
         parent::__construct($series);
         $this->storageService = $storageService;
         $this->teamLimitService = $teamLimitService;
         $this->mailService = $mailService;
+        $this->smsNotificationService = $smsNotificationService;
     }
 
     public function listSeries(array $userFilters = []): Paginate
@@ -299,7 +303,11 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
         $seriesTeams = $series->team()->get();
 
+
         return DB::transaction(function() use($series, $seriesTeams) {
+
+           $this->smsNotificationService->sendToAll($seriesTeams, $series);
+
             foreach ($seriesTeams as $team) {
                 if($team->discount_codes_id !== 0){
                     $discountCode = DiscountCode::find($team->discount_codes_id);
@@ -329,6 +337,65 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     $encryptedToken = encrypt($payload);
             
                     $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+                    $coach = $team->coach_email;
+
+                    if ($coach) {
+                        $this->mailService->sendCoachSeriesNotification(
+                            coachEmail: $team->coach_email,
+                            seriesName: $series->name,
+                            link: $link,
+                            coach: $team->coach_name,
+                            code: ''
+                        );
+                    }
+                }
+            }
+            return true;
+        });
+    }
+
+    public function sendRegistrationsWithoutPayment(int $id): bool
+    {
+        $series = $this->find($id);
+
+        $seriesTeams = $series->team()->get();
+
+
+        return DB::transaction(function() use($series, $seriesTeams) {
+
+           $this->smsNotificationService->sendToAll($seriesTeams, $series);
+
+            foreach ($seriesTeams as $team) {
+                if($team->discount_codes_id !== 0){
+                    $discountCode = DiscountCode::find($team->discount_codes_id);
+
+                    $payload = [];
+                    $payload['series'] = $series->id;
+                    $payload['team'] = $team->id;
+                    $encryptedToken = encrypt($payload);
+            
+                    $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+
+                    $coach = $team->coach_email;
+
+                    if ($coach) {
+                        $this->mailService->sendCoachSeriesNotification(
+                            coachEmail: $team->coach_email,
+                            seriesName: $series->name,
+                            link: $link,
+                            coach: $team->coach_name,
+                            code: $discountCode->code
+                        );
+                    }
+                }else{
+
+                    $payload = [];
+                    $payload['series'] = $series->id;
+                    $payload['team'] = $team->id;
+                    $encryptedToken = encrypt($payload);
+
+                    $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+
                     $coach = $team->coach_email;
 
                     if ($coach) {
