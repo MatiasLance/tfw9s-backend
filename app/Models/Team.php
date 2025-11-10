@@ -27,6 +27,7 @@ class Team extends Model
 
     protected $appends = [
         'registered_players_count',
+        'player_count'
     ];
 
     public function players() {
@@ -87,10 +88,14 @@ class Team extends Model
 
     public function getRegisteredPlayersCountAttribute()
     {
+        return $this->players()->whereHas('registration', function ($query) {
+            $query->whereNull('refund_id');
+        })->count();
+    }
+
+    public function getPlayerCountAttribute()
+    {
         return $this->players()->count();
-        //  return $this->players()->whereHas('registration', function ($query) {
-        //     $query->whereNull('refund_id');
-        // })->count();
     }
 
 }

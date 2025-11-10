@@ -105,6 +105,8 @@ interface SeriesServiceInterface
      */
     public function sendRegistrations(int $id): bool;
 
+    public function sendRegistrationsWithoutPayment(int $id): bool;
+
     /**
      * Return an array of the Series teams and their registration url
      *
