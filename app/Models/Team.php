@@ -95,7 +95,7 @@ class Team extends Model
 
     public function getPlayerCountAttribute()
     {
-        return $this->players()->count();
+        return $this->players()->whereDoesntHave('registration')->count();
     }
 
 }

@@ -30,7 +30,7 @@ class TransactionController extends Controller
 
         $payload = decrypt($key);
 
-        if ($payload['type'] === 'weekly' || $payload['type'] === 'coast') {
+        if ($payload['type'] === 'weekly') {
             $data = IndividualRegistration::with('players', 'item')->find($payload['target']);
         }
         else {
@@ -49,7 +49,7 @@ class TransactionController extends Controller
         $type = $request->input('type', null);
         $transaction = $request->input('transaction', null);
 
-        if ($type === 'weekly' || $type === 'coast') {
+        if ($type === 'weekly') {
             $target = IndividualRegistration::where('transaction_id', $transaction)->first();
         } else {
             $target = TeamRegistration::where('transaction_id', $transaction)->first();
@@ -87,7 +87,7 @@ class TransactionController extends Controller
                 return 'Missing `photo` file.';
             }
 
-            if ($type === 'weekly' || $type === 'coast') {
+            if ($type === 'weekly') {
                 $registration = IndividualRegistration::with('players')
                     ->where('transaction_id', $transaction)
                     ->first();

@@ -317,7 +317,12 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     $payload['team'] = $team->id;
                     $encryptedToken = encrypt($payload);
             
-                    $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+                    if($series->type === 'coast' || $series->type === 'tournament'){
+                        $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+                    }else{
+                        $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+                    }
+
                     $coach = $team->coach_email;
 
                     if ($coach) {
@@ -336,65 +341,11 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
                     $payload['team'] = $team->id;
                     $encryptedToken = encrypt($payload);
             
-                    $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
-                    $coach = $team->coach_email;
-
-                    if ($coach) {
-                        $this->mailService->sendCoachSeriesNotification(
-                            coachEmail: $team->coach_email,
-                            seriesName: $series->name,
-                            link: $link,
-                            coach: $team->coach_name,
-                            code: ''
-                        );
+                    if($series->type === 'coast' || $series->type === 'tournament'){
+                        $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+                    }else{
+                        $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
                     }
-                }
-            }
-            return true;
-        });
-    }
-
-    public function sendRegistrationsWithoutPayment(int $id): bool
-    {
-        $series = $this->find($id);
-
-        $seriesTeams = $series->team()->get();
-
-
-        return DB::transaction(function() use($series, $seriesTeams) {
-
-           $this->smsNotificationService->sendToAll($seriesTeams, $series);
-
-            foreach ($seriesTeams as $team) {
-                if($team->discount_codes_id !== 0){
-                    $discountCode = DiscountCode::find($team->discount_codes_id);
-
-                    $payload = [];
-                    $payload['series'] = $series->id;
-                    $payload['team'] = $team->id;
-                    $encryptedToken = encrypt($payload);
-            
-                    $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
-
-                    $coach = $team->coach_email;
-
-                    if ($coach) {
-                        $this->mailService->sendCoachSeriesNotification(
-                            coachEmail: $team->coach_email,
-                            seriesName: $series->name,
-                            link: $link,
-                            coach: $team->coach_name,
-                            code: $discountCode->code
-                        );
-                    }
-                }else{
-
-                    $payload = [];
-                    $payload['series'] = $series->id;
-                    $payload['team'] = $team->id;
-                    $encryptedToken = encrypt($payload);
-
-                    $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
 
                     $coach = $team->coach_email;
 
@@ -427,8 +378,12 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
             $payload['series'] = $series->id;
             $payload['team'] = $team->id;
             $encryptedToken = encrypt($payload);
-    
-            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+
+            if($series->type === 'coast' || $series->type === 'tournament'){
+                $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+            }else{
+                $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+            }
 
             $id = $team->id;
             $name = $team->name;
