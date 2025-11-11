@@ -27,7 +27,8 @@ class Team extends Model
 
     protected $appends = [
         'registered_players_count',
-        'player_count'
+        'player_count',
+        'is_team_registered'
     ];
 
     public function players() {
@@ -96,6 +97,11 @@ class Team extends Model
     public function getPlayerCountAttribute()
     {
         return $this->players()->whereDoesntHave('registration')->count();
+    }
+
+    public function getIsTeamRegisteredAttribute(): bool
+    {
+        return $this->whereHas('registration')->exists();
     }
 
 }
