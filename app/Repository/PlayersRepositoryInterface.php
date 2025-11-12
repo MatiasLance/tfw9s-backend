@@ -52,10 +52,10 @@ interface PlayersRepositoryInterface
      * @return players
      */
     public function createPlayers(
-        string $contact_firstname,
-        string $contact_lastname,
-        string $phone_number,
-        string $email,
+        ?string $contact_firstname,
+        ?string $contact_lastname,
+        ?string $phone_number,
+        ?string $email,
         string $player_firstname,
         string $player_lastname,
         int $team_id,
@@ -85,10 +85,10 @@ interface PlayersRepositoryInterface
      */
     public function updatePlayers(
         int $id,
-        string $contact_firstname,
-        string $contact_lastname,
-        string $phone_number,
-        string $email,
+        ?string $contact_firstname,
+        ?string $contact_lastname,
+        ?string $phone_number,
+        ?string $email,
         string $player_firstname,
         string $player_lastname,
         int $team_id,

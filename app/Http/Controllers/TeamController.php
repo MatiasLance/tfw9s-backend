@@ -266,11 +266,22 @@ class TeamController extends Controller
         return $message->render();
     }
 
-    public function generateUrl(Message $message, int $id)
+    public function generateTeamAndIndividualRegistrationLink(Message $message, int $id)
     {
-        $link = $this->teamService->generateUrl($id);
+        $link = $this->teamService->generateTeamAndIndividualRegistrationUrl($id);
 
-        $message->setContent(200, 'Registration link generated', '', [
+        $message->setContent(200, 'Team Registration link generated', '', [
+            'url' => $link
+        ]);
+
+        return $message->render();
+    }
+
+    public function generatePlayerRegistrationLink(Message $message, int $id)
+    {
+        $link = $this->teamService->generatePlayerRegistrationUrl($id);
+
+        $message->setContent(200, 'Player Registration link generated', '', [
             'url' => $link
         ]);
 

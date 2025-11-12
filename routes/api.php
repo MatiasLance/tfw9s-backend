@@ -215,7 +215,14 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::get('/all', 'App\Http\Controllers\TeamController@all');
         Route::get('/trashed', 'App\Http\Controllers\TeamController@trashed');
         Route::get('/{id}', 'App\Http\Controllers\TeamController@retrieve');
-        Route::get('link/{id}', 'App\Http\Controllers\TeamController@generateUrl');
+        Route::get('link/{id}', 'App\Http\Controllers\TeamController@generateTeamAndIndividualRegistrationLink');
+        Route::prefix("player")->group(function() {
+            Route::prefix("registration")->group(function() {
+                Route::prefix("link")->group(function() {
+                    Route::get('/{id}', 'App\Http\Controllers\TeamController@generatePlayerRegistrationLink');
+                });
+            });
+        });
         Route::post('/', 'App\Http\Controllers\TeamController@store');
         Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
         Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');

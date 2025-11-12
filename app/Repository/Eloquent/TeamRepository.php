@@ -501,7 +501,7 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
         });
     }
 
-    public function generateUrl(int $id): string
+    public function generateTeamAndIndividualRegistrationUrl(int $id): string
     {
         $team = Team::withTrashed()->find($id);
         $series = Series::withTrashed()->find($team->series_id);
@@ -513,7 +513,30 @@ class TeamRepository extends BaseRepository implements teamRepositoryInterface
             $payload['team'] = $team->id;
             $encryptedToken = encrypt($payload);
 
-            $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+            if($series->type === 'coast' || $series->type === 'tournament'){
+                $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+            }else{
+                $link = url('/register?id=' . $series->id . '&series=' . urlencode($series->name) . '&price=' . $series->price . '&token=' . $encryptedToken);
+            }
+
+            return $link;
+        });
+    }
+
+    public function generatePlayerRegistrationUrl(int $id): string
+    {
+        $team = Team::withTrashed()->find($id);
+        $series = Series::withTrashed()->find($team->series_id);
+
+        return DB::transaction(function() use($team, $series) {
+
+            $payload = [];
+            $payload['series'] = $series->id;
+            $payload['team'] = $team->id;
+            $encryptedToken = encrypt($payload);
+
+            $link = url('/player?' . http_build_query(['token' => $encryptedToken]));
+            
             return $link;
         });
     }

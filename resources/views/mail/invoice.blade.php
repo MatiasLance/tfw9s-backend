@@ -152,7 +152,8 @@
                             @php
                                 $subTotal = $order->subTotal / ($taxValue / 100 + 1);
                                 $calculatedTaxAmount = $order->total - $subTotal;
-                                $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->toggleControl2 ? $calculatedTaxAmount : 0.00);
+                                @dd($calculatedTaxAmount);
+                                $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->  toggleControl2 ? $calculatedTaxAmount : 0.00);
                             @endphp
                             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
                                 <tr>
