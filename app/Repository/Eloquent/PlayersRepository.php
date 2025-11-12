@@ -175,10 +175,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
     }
 
     public function createPlayers(
-        string $contact_firstname,
-        string $contact_lastname,
-        string $phone_number,
-        string $email,
+        ?string $contact_firstname,
+        ?string $contact_lastname,
+        ?string $phone_number,
+        ?string $email,
         string $player_firstname,
         string $player_lastname,
         int $team_id,
@@ -191,10 +191,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
     {
         $players = new Player();
-        $players->contact_firstname = $contact_firstname;
-        $players->contact_lastname = $contact_lastname;
-        $players->phone_number = $phone_number;
-        $players->email = $email;
+        $players->contact_firstname = $contact_firstname ?? '';
+        $players->contact_lastname = $contact_lastname ?? '';
+        $players->phone_number = $phone_number ?? '';
+        $players->email = $email ?? '';
         $players->player_firstname = $player_firstname;
         $players->player_lastname = $player_lastname;
         $players->team_id = $team_id;
@@ -220,10 +220,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
     public function updatePlayers(
         int $id,
-        string $contact_firstname,
-        string $contact_lastname,
-        string $phone_number,
-        string $email,
+        ?string $contact_firstname,
+        ?string $contact_lastname,
+        ?string $phone_number,
+        ?string $email,
         string $player_firstname,
         string $player_lastname,
         int $team_id,
@@ -236,10 +236,10 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
     {
         $players = $this->find($id);
-        $players->contact_firstname = $contact_firstname;
-        $players->contact_lastname = $contact_lastname;
-        $players->phone_number = $phone_number;
-        $players->email = $email;
+        $players->contact_firstname = $contact_firstname ?? '';
+        $players->contact_lastname = $contact_lastname ?? '';
+        $players->phone_number = $phone_number ?? '';
+        $players->email = $email ?? '';
         $players->player_firstname = $player_firstname;
         $players->player_lastname = $player_lastname;
         $players->team_id = $team_id;

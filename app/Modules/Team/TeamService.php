@@ -67,8 +67,13 @@ class TeamService implements TeamServiceInterface
         return $this->teamRepository->cancelrefTeam($id);
     }
 
-    public function generateUrl(int $id): string
+    public function generateTeamAndIndividualRegistrationUrl(int $id): string
     {
-        return $this->teamRepository->generateUrl($id);
+        return $this->teamRepository->generateTeamAndIndividualRegistrationUrl($id);
+    }
+
+    public function generatePlayerRegistrationUrl(int $id): string
+    {
+        return $this->teamRepository->generatePlayerRegistrationUrl($id);
     }
 }
