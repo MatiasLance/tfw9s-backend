@@ -10,19 +10,43 @@ class ItemVariant extends Model
     use HasFactory;
 
     protected $table = 'item_variant';
+    
     protected $fillable = [
         'item_id',
-        'color',
+        'variant_id',
+        'value',
+        'type',
+        'sku',
+        'price_override',
+        'stock_quantity',
+        'display_order',
+    ];
 
+    protected $casts = [
+        'price_override' => 'integer',
+        'stock_quantity' => 'integer',
+        'display_order' => 'integer',
     ];
 
     public function variant()
     {
-        return $this->belongsToMany(Variant::class);
+        return $this->belongsTo(Variant::class);
     }
 
-    public function items()
+    public function item()
     {
-        return $this->belongsToMany(Item::class);
+        return $this->belongsTo(Item::class);
+    }
+
+    // Price calculation
+    public function getCalculatedPriceAttribute()
+    {
+        return $this->price_override ?? $this->item->centPrice();
+    }
+
+    // Check if in stock
+    public function getInStockAttribute()
+    {
+        return $this->stock_quantity > 0;
     }
 }

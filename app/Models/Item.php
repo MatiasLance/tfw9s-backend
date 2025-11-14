@@ -31,6 +31,9 @@ class Item extends Model
         'snippet',
         'isVariant' => 'is_variant',
         'hasVariants' => 'has_variants',
+        'hasSizeVariants' => 'has_size_variants',
+        'availableSizes' => 'available_sizes',
+        'displayPrice' => 'display_price',
     ];
 
     protected $casts = [
@@ -112,9 +115,208 @@ class Item extends Model
         return $this->belongsTo(Item::class, 'parent_id', 'id');
     }
 
+    // =========================================================================
+    // NEW METHODS FOR SIZE VARIANTS
+    // =========================================================================
+
+    /**
+     * Get all item variants (colors and sizes)
+     */
+    public function itemVariants()
+    {
+        return $this->hasMany(ItemVariant::class);
+    }
+
+    /**
+     * Get color variants only
+     */
+    public function colorVariants()
+    {
+        return $this->hasMany(ItemVariant::class)->where('type', 'color');
+    }
+
+    /**
+     * Get size variants only  
+     */
+    public function sizeVariants()
+    {
+        return $this->hasMany(ItemVariant::class)->where('type', 'size');
+    }
+
+    /**
+     * Check if product has size variants
+     */
+    public function getHasSizeVariantsAttribute()
+    {
+        return $this->sizeVariants()->exists();
+    }
+
+    /**
+     * Get available size options with pricing
+     */
+    public function getAvailableSizesAttribute()
+    {
+        if (!$this->has_size_variants) {
+            return collect();
+        }
+
+        return $this->sizeVariants()
+            ->where('stock_quantity', '>', 0)
+            ->orderBy('display_order')
+            ->get()
+            ->map(function($variant) {
+                return [
+                    'id' => $variant->id,
+                    'size' => $variant->value,
+                    'price' => $variant->calculated_price,
+                    'price_display' => $this->toPrice($variant->calculated_price),
+                    'sku' => $variant->sku,
+                    'in_stock' => $variant->in_stock,
+                    'stock_quantity' => $variant->stock_quantity,
+                ];
+            });
+    }
+
+    /**
+     * Get minimum price across all size variants
+     */
+    public function getMinSizePriceAttribute()
+    {
+        if (!$this->has_size_variants) {
+            return $this->centPrice();
+        }
+
+        $minPrice = $this->sizeVariants()
+            ->where('stock_quantity', '>', 0)
+            ->min('price_override');
+
+        return $minPrice ?? $this->centPrice();
+    }
+
+    /**
+     * Get maximum price across all size variants
+     */
+    public function getMaxSizePriceAttribute()
+    {
+        if (!$this->has_size_variants) {
+            return $this->centPrice();
+        }
+
+        $maxPrice = $this->sizeVariants()
+            ->where('stock_quantity', '>', 0)
+            ->max('price_override');
+
+        return $maxPrice ?? $this->centPrice();
+    }
+
+    /**
+     * Get the display price (shows range if sizes have different prices)
+     */
+    public function getDisplayPriceAttribute()
+    {
+        if ($this->has_size_variants) {
+            $minPrice = $this->min_size_price;
+            $maxPrice = $this->max_size_price;
+            
+            $minPriceDisplay = $this->toPrice($minPrice);
+            $maxPriceDisplay = $this->toPrice($maxPrice);
+            
+            if ($minPrice !== $maxPrice) {
+                return "{$minPriceDisplay} - {$maxPriceDisplay}";
+            }
+            
+            return $minPriceDisplay;
+        }
+        
+        return $this->price;
+    }
+
+    /**
+     * Get the base price without size variations
+     * Useful for displaying the starting price
+     */
+    public function getBasePriceDisplayAttribute()
+    {
+        return $this->price;
+    }
+
+    /**
+     * Check if item has any variants (either color or size)
+     * This extends your existing has_variants logic
+     */
     public function getHasVariantsAttribute()
     {
-        return $this->variants()->exists();
+        return $this->variants()->exists() || 
+               $this->itemVariants()->exists();
+    }
+
+    /**
+     * Get all available variant combinations
+     * Useful for complex product pages with both color and size
+     */
+    public function getVariantCombinationsAttribute()
+    {
+        $colors = $this->colorVariants()
+            ->where('stock_quantity', '>', 0)
+            ->get()
+            ->map(function($variant) {
+                return [
+                    'id' => $variant->id,
+                    'type' => 'color',
+                    'value' => $variant->value,
+                    'display_name' => $variant->value,
+                    'in_stock' => $variant->in_stock,
+                ];
+            });
+
+        $sizes = $this->sizeVariants()
+            ->where('stock_quantity', '>', 0)
+            ->get()
+            ->map(function($variant) {
+                return [
+                    'id' => $variant->id,
+                    'type' => 'size',
+                    'value' => $variant->value,
+                    'display_name' => $variant->value,
+                    'price' => $variant->calculated_price,
+                    'price_display' => $this->toPrice($variant->calculated_price),
+                    'in_stock' => $variant->in_stock,
+                ];
+            });
+
+        return [
+            'colors' => $colors,
+            'sizes' => $sizes,
+        ];
+    }
+
+    /**
+     * Find a specific size variant by size value
+     */
+    public function findSizeVariant(string $size)
+    {
+        return $this->sizeVariants()
+            ->where('value', $size)
+            ->where('stock_quantity', '>', 0)
+            ->first();
+    }
+
+    /**
+     * Check if a specific size is in stock
+     */
+    public function isSizeInStock(string $size): bool
+    {
+        $variant = $this->findSizeVariant($size);
+        return $variant ? $variant->in_stock : false;
+    }
+
+    /**
+     * Get price for a specific size
+     */
+    public function getPriceForSize(string $size)
+    {
+        $variant = $this->findSizeVariant($size);
+        return $variant ? $this->toPrice($variant->calculated_price) : $this->price;
     }
 
     /**
