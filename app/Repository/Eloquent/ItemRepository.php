@@ -84,6 +84,10 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
          * Maximum number of items shown per page. When 0 or null is passed, will get every item
          */
         'max_item_per_page' => self::MAX_PAGE_ITEMS,
+        'size' => null,
+        'min_price' => null,
+        'max_price' => null,
+        'in_stock' => null,
     ];
 
     public function __construct(Item $item, StorageInterface $storageService, DiscountCode $discountCode)
@@ -129,7 +133,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             });
         }
 
-        // Item variant filter
+        // Item variant filter (for color variants using parent/child relationship)
         if (!is_null($filters['itemVariant'])) {
             $areVariantsShown = true;
             $variantItem = $this->find($filters['itemVariant']);
@@ -141,14 +145,80 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             });
         }
 
-        // Sorting
+        // NEW: Size variant filter
+        if (!is_null($filters['size'])) {
+            $areVariantsShown = true;
+            $items = $items->whereHas('sizeVariants', function($q) use($filters) {
+                $q->where('value', $filters['size'])
+                ->where('stock_quantity', '>', 0);
+            });
+        }
+
+        // NEW: Price range filter that considers size variants
+        if (!is_null($filters['min_price']) || !is_null($filters['max_price'])) {
+            $items = $items->where(function($query) use($filters) {
+                // For items without size variants, check the base price
+                $query->where(function($q) use($filters) {
+                    $q->whereDoesntHave('sizeVariants')
+                    ->where('price', '>=', $filters['min_price'] ?? 0);
+                    
+                    if (!is_null($filters['max_price'])) {
+                        $q->where('price', '<=', $filters['max_price']);
+                    }
+                });
+                
+                // For items with size variants, check if any size variant falls within the price range
+                $query->orWhereHas('sizeVariants', function($q) use($filters) {
+                    $q->where('stock_quantity', '>', 0)
+                    ->where(function($subQ) use($filters) {
+                        // Use price_override if set, otherwise use item base price
+                        $subQ->whereRaw('COALESCE(price_override, (SELECT price FROM items WHERE items.id = item_variant.item_id)) >= ?', [$filters['min_price'] ?? 0]);
+                        
+                        if (!is_null($filters['max_price'])) {
+                            $subQ->whereRaw('COALESCE(price_override, (SELECT price FROM items WHERE items.id = item_variant.item_id)) <= ?', [$filters['max_price']]);
+                        }
+                    });
+                });
+            });
+        }
+
+        // NEW: In-stock filter for size variants
+        if (!is_null($filters['in_stock']) && $filters['in_stock']) {
+            $items = $items->where(function($query) {
+                // Items without size variants should have stock > 0
+                $query->where(function($q) {
+                    $q->whereDoesntHave('sizeVariants')
+                    ->where('stock', '>', 0); // Assuming you have a stock column on items table
+                })
+                // OR items with size variants should have at least one size in stock
+                ->orWhereHas('sizeVariants', function($q) {
+                    $q->where('stock_quantity', '>', 0);
+                });
+            });
+        }
+
+        // Sorting - UPDATED to consider size variant pricing
         switch ($filters['sort']) {
             case Filter::SORT_LOW_TO_HIGH:
-                $items = $items->orderBy('price');
+                // Sort by minimum available price (considering size variants)
+                $items = $items->select('items.*')
+                    ->leftJoin('item_variant as iv_min', function($join) {
+                        $join->on('items.id', '=', 'iv_min.item_id')
+                            ->where('iv_min.type', 'size')
+                            ->where('iv_min.stock_quantity', '>', 0);
+                    })
+                    ->orderByRaw('COALESCE(MIN(iv_min.price_override), items.price) ASC');
                 break;
 
             case Filter::SORT_HIGH_TO_LOW:
-                $items = $items->orderByDesc('price');
+                // Sort by maximum available price (considering size variants)
+                $items = $items->select('items.*')
+                    ->leftJoin('item_variant as iv_max', function($join) {
+                        $join->on('items.id', '=', 'iv_max.item_id')
+                            ->where('iv_max.type', 'size')
+                            ->where('iv_max.stock_quantity', '>', 0);
+                    })
+                    ->orderByRaw('COALESCE(MAX(iv_max.price_override), items.price) DESC');
                 break;
 
             case Filter::SORT_A_TO_Z:
@@ -168,9 +238,19 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             $items = $items->whereNull('parent_id');
         }
 
+        // UPDATED: Eager load relationships including size variants
         $items = $items->with([
             'variants' => function($query) {
                 $query->select('name', 'parent_id');
+            },
+            'sizeVariants' => function($query) {
+                $query->where('stock_quantity', '>', 0)
+                    ->orderBy('display_order')
+                    ->select('id', 'item_id', 'value', 'price_override', 'stock_quantity', 'sku');
+            },
+            'colorVariants' => function($query) {
+                $query->where('stock_quantity', '>', 0)
+                    ->select('id', 'item_id', 'value', 'stock_quantity');
             },
         ]);
 

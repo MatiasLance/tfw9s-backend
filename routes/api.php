@@ -99,7 +99,6 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
                 Route::patch("/{id}", [PaymentSettingController::class, "update"]);
             });
         });
-
     });
 });
 
