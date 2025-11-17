@@ -83,18 +83,37 @@ class ItemController extends Controller
         $isHideOutOfStock = $request->boolean('isHideOutOfStock');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
-        /** todo: add shipping setting id */
         $shippingId = $request->input('selected_shippingid');
+        
+        $sizeVariants = [];
+        if ($request->has('size_variants')) {
+            $sizeVariants = json_decode($request->input('size_variants'), true) ?? [];
+        }
+        
         $categories = array_map(function($id) {
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        // TODO: add saleprice, isRRP, isOnSale
-        $item = $this->itemService->createItem($name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
+        $item = $this->itemService->createItem(
+            $name, 
+            $description, 
+            $price, 
+            $saleprice, 
+            $stock, 
+            $isFeatured, 
+            $isRRP, 
+            $isOnSale, 
+            $isHideOutOfStock, 
+            $photo, 
+            $categories, 
+            $shippingId, 
+            $tags,
+            $sizeVariants
+        );
 
         if ($item instanceof Item) {
             $message->setContent(201, 'Item created', '', [
-                'item' => $item
+                'item' => $item->load(['sizeVariants', 'colorVariants', 'categories', 'media'])
             ]);
         } else {
             $message->setContent(400, 'Item not created');
@@ -243,10 +262,31 @@ class ItemController extends Controller
         $categories = array_map(function($id) {
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
-        /** todo: add shipping setting id */
+
         $shippingId = $request->input('selected_shippingid');
 
-        $isSuccess = $this->itemService->updateItem($id, $name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $photo, $categories, $shippingId, $tags);
+        $sizeVariants = [];
+        if ($request->has('size_variants')) {
+            $sizeVariants = json_decode($request->input('size_variants'), true) ?? [];
+        }
+
+        $isSuccess = $this->itemService->updateItem(
+            $id, 
+            $name, 
+            $description, 
+            $price, 
+            $saleprice, 
+            $stock, 
+            $isFeatured, 
+            $isRRP, 
+            $isOnSale, 
+            $isHideOutOfStock, 
+            $photo, 
+            $categories, 
+            $shippingId, 
+            $tags,
+            $sizeVariants
+        );
 
         if ($isSuccess) {
             $message->setContent(200, 'Item updated');
