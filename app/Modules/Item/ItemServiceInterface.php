@@ -47,7 +47,22 @@ interface ItemServiceInterface
      * 
      * @return Item
      */
-    public function createItem(string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, array $media, array $categories, string $shippingId, array $tags): Item;
+    public function createItem(
+        string $title, 
+        string $description, 
+        float $price, 
+        float $saleprice, 
+        int $stock, 
+        bool $isFeatured, 
+        bool $isRRP, 
+        bool $isOnSale, 
+        bool $isHideOutOfStock, 
+        array $media, 
+        array $categories, 
+        string $shippingId, 
+        array $tags,
+        array $sizeVariants = []
+    ): Item;
 
     /**
      * Duplicate an existing Item. Pass null to retain the value from the original item.
@@ -98,7 +113,23 @@ interface ItemServiceInterface
      * 
      * @return bool
      */
-    public function updateItem(int $id, string $title, string $description, float $price, float $saleprice, int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, array $categories, string $shippingId, array $tags): bool;
+    public function updateItem(
+        int $id,
+        string $title, 
+        string $description, 
+        float $price, 
+        float $saleprice, 
+        int $stock, 
+        bool $isFeatured, 
+        bool $isRRP, 
+        bool $isOnSale, 
+        bool $isHideOutOfStock, 
+        ?array $media, 
+        array $categories, 
+        string $shippingId, 
+        array $tags,
+        array $sizeVariants = []
+    ): bool;
 
     /**
      * Decrease the stocks of an item. Useful when Item is bought by a customer
