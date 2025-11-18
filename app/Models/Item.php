@@ -77,12 +77,14 @@ class Item extends Model
 
     public function centPrice(): int
     {
-        return $this->getAttributes()['price'];
+        $price = $this->getAttributes()['price'];
+        return (int)$price;
     }
 
     public function centSalePrice(): int
     {
-        return $this->getAttributes()['saleprice'] * 100;
+        $salePrice = $this->getAttributes()['saleprice'] ?? 0;
+        return (int)($salePrice * 100);
     }
 
     public function isOnSale(): bool
@@ -360,5 +362,56 @@ class Item extends Model
         $sanitized = html_entity_decode($sanitized);
 
         return $sanitized;
+    }
+
+    /**
+     * Get price for a specific size variant ID
+     */
+    public function getPriceForSizeVariant(?int $sizeVariantId = null): float
+    {
+        if (!$sizeVariantId) {
+            return (float)$this->centPrice();
+        }
+
+        $sizeVariant = $this->sizeVariants()->find($sizeVariantId);
+        
+        if ($sizeVariant) {
+            // Use calculated_price if available, otherwise price_override, otherwise base price
+            if (isset($sizeVariant->calculated_price) && $sizeVariant->calculated_price > 0) {
+                return (float)$sizeVariant->calculated_price;
+            } elseif (isset($sizeVariant->price_override) && $sizeVariant->price_override > 0) {
+                return (float)$sizeVariant->price_override;
+            }
+        }
+
+        return (float)$this->centPrice();
+    }
+
+    /**
+     * Calculate final price with discount and sale logic for a specific size variant
+     */
+    public function calculateFinalPrice(?int $sizeVariantId = null, bool $hasDiscount = false, float $discountRate = 0): float
+    {
+        $basePrice = $this->getPriceForSizeVariant($sizeVariantId);
+        $salePrice = $this->centSalePrice();
+        $onSale = $this->isOnSale();
+
+        if ($onSale && $hasDiscount) {
+            $finalPrice = $salePrice * (1 - $discountRate);
+        } elseif ($onSale && !$hasDiscount) {
+            $finalPrice = $salePrice;
+        } elseif (!$onSale && $hasDiscount) {
+            $finalPrice = $basePrice * (1 - $discountRate);
+        } else {
+            $finalPrice = $basePrice;
+        }
+
+        // DEBUG: Check the result
+        \Log::debug("Final price result", [
+            'finalPrice' => $finalPrice,
+            'finalPrice_type' => gettype($finalPrice)
+        ]);
+
+        return (float)$finalPrice;
     }
 }

@@ -115,10 +115,27 @@ class OrderController extends Controller
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
-            $onSale = $currentItem->isOnSale();
-            $salePrice = $currentItem->centSalePrice();
-            $regularPrice = $currentItem->centPrice();
+            
+            // Check if this is a size variant item
+            $sizeVariantId = $item['size_variant_id'] ?? null;
+            $sizeVariantPrice = null;
+            
+            // Get price from size variant if available
+            if ($sizeVariantId && $currentItem->size_variants) {
+                $sizeVariant = collect($currentItem->size_variants)
+                    ->firstWhere('id', $sizeVariantId);
+                
+                if ($sizeVariant && isset($sizeVariant['price'])) {
+                    $sizeVariantPrice = $sizeVariant['price'] * 100; // Convert to cents if needed
+                }
+            }
 
+            // Determine the base price (size variant price or item price)
+            $regularPrice = $sizeVariantPrice ?? $currentItem->centPrice();
+            $salePrice = $currentItem->centSalePrice();
+            $onSale = $currentItem->isOnSale();
+
+            // Apply discount logic
             if ($onSale && $hasDiscount) {
                 $price = $salePrice * (1 - $result->rate);
             } elseif ($onSale && !$hasDiscount) {
@@ -131,6 +148,7 @@ class OrderController extends Controller
 
             $lineItem = [
                 'item_id' => $currentItem->id,
+                'size_variant_id' => $sizeVariantId,
                 'price' => $price,
                 'quantity' => $item['quantity'],
             ];
@@ -138,8 +156,9 @@ class OrderController extends Controller
             array_push($lineItems, $lineItem);
         }
 
-
         $totalProduct = $this->calculateTotal($discountcode, $lineItems);
+
+        dd($totalProduct);
 
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
@@ -171,7 +190,7 @@ class OrderController extends Controller
 
         if($metadata['shipOption'] === 'delivery') {
             $total = ($totalPrice / 100) + 10;
-        }else{
+        } else {
             $total = $totalPrice;
         }
 
@@ -180,40 +199,26 @@ class OrderController extends Controller
         return response()->json([
             'overAllTotal' => $toCents
         ]);
-
     }
 
     protected function calculateTotal($discountcode, array $items): array
     {
-        $total = 0;
-        foreach ($items as $item) {
-           $total += $this->calculateItemTotal($discountcode, $item['item_id'], $item['quantity']);
-        }
-
-        return ['totalProduct' => $total];
-    }
-
-    protected function calculateItemTotal($discountcode, int $itemId, int $quantity): float
-    {
+        $total = 0.0; // Initialize as float
         $res = DiscountCode::where('code', $discountcode)->first();
-
-        $item = $this->itemService->retrieveItem($itemId);
-        $onSale = $item->isOnSale();
         $hasDiscount = !empty($discountcode);
-        $salePrice = $item->centSalePrice();
-        $regularPrice = $item->centPrice();
 
-        if ($onSale && $hasDiscount) {
-            $dprice = $salePrice * (1 - $res->rate);
-        } elseif ($onSale && !$hasDiscount) {
-            $dprice = $salePrice;
-        } elseif (!$onSale && $hasDiscount) {
-            $dprice = $regularPrice * (1 - $res->rate);
-        } else {
-            $dprice = $regularPrice;
+        foreach ($items as $index => $item) {
+            $currentItem = Item::find($item['item_id']);
+            $sizeVariantId = $item['size_variant_id'] ?? null;
+            
+            $price = $currentItem->calculateFinalPrice($sizeVariantId, $hasDiscount, $res->rate ?? 0);
+            
+            $subtotal = (float)($price * (int)$item['quantity']);
+            
+            $total += $subtotal;
         }
-        $price = $dprice;
-        return $price * $quantity;
+        
+        return ['totalProduct' => $total];
     }
 
     public function refundRegistration(Request $request)
