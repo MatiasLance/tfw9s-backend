@@ -48,13 +48,13 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
         });
 
         Route::prefix("tax")->group(function() { // Tax Setting  API Endpoints
-            Route::get('/{id}', [TaxController::class, 'retrieve']);
-            Route::patch('/{id}', [TaxController::class, 'update']);
+            Route::get('/', [TaxController::class, 'list']);
+            Route::post('/{id}', [TaxController::class, 'update']);
         });
 
-        Route::prefix("toogletax")->group(function() { // Tax Setting  API Endpoints
-            Route::get('/{id}', [ToggleTaxControlController::class, 'retrieve']);
-            Route::patch('/{id}', [ToggleTaxControlController::class, 'update']);
+        Route::prefix("toggletax")->group(function() { // Tax Setting  API Endpoints
+            Route::get('/', [ToggleTaxControlController::class, 'list']);
+            Route::post('/{id}', [ToggleTaxControlController::class, 'update']);
         });
 
         Route::prefix("regions")->group(function() {

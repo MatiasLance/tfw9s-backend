@@ -77,14 +77,12 @@ class Item extends Model
 
     public function centPrice(): int
     {
-        $price = $this->getAttributes()['price'];
-        return (int)$price;
+        return $this->getAttributes()['price'];
     }
 
     public function centSalePrice(): int
     {
-        $salePrice = $this->getAttributes()['saleprice'] ?? 0;
-        return (int)($salePrice * 100);
+        return $this->getAttributes()['saleprice'];
     }
 
     public function isOnSale(): bool
@@ -378,13 +376,13 @@ class Item extends Model
         if ($sizeVariant) {
             // Use calculated_price if available, otherwise price_override, otherwise base price
             if (isset($sizeVariant->calculated_price) && $sizeVariant->calculated_price > 0) {
-                return (float)$sizeVariant->calculated_price;
+                return (float)$sizeVariant->calculated_price * 100;
             } elseif (isset($sizeVariant->price_override) && $sizeVariant->price_override > 0) {
                 return (float)$sizeVariant->price_override;
             }
         }
 
-        return (float)$this->centPrice();
+        return $this->centPrice();
     }
 
     /**
