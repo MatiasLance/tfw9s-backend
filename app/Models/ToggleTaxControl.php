@@ -13,4 +13,11 @@ class ToggleTaxControl extends Model
         "toggleControl1" => "boolean",
         "toggleControl2" => "boolean"
     ];
+
+    protected $hidden = ['created_at', 'updated_at'];
+
+    public function isToggleControle2(): int
+    {
+        return $this->getAttributes()['toggleControl2'];
+    }
 }

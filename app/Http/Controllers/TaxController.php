@@ -7,29 +7,19 @@ use App\Models\Tax;
 
 class TaxController extends Controller
 {
-
-    public function retrieve($id)
+    public function list()
     {
-        $retrieveData = Tax::findOrFail($id);
-        return response()->json([
-            "message" => "Data retrieved successfully",
-            "me" => $retrieveData,
-            "status" => 200
-        ]);
+        $list = Tax::latest()->first();
+        return $list;
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
+        $addTaxValue = $request->input('addTaxOnCartPrice');
 
-        // Retrieve incoming input
-        $addTaxValue = $request->input('addTaxValue');
-        $includetax_value = $request->input('includeTaxValue');
-
-        // Updating data in database
         $updateData = Tax::find($id);
         $updateData->addTaxValue = $addTaxValue;
-        $updateData->includeTaxValue = $includetax_value;
 
-        // Check if all data to be store are not empty
         if(!empty($updateData)) {
             $updateData->save();
             return response()->json([

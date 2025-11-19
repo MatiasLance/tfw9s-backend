@@ -106,80 +106,113 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
-            $onSale = $currentItem->isOnSale();
-            $salePrice = $currentItem->centSalePrice();
-            $regularPrice = $currentItem->centPrice();
+            
+            // Check if this is a size variant item
+            $sizeVariantId = $item['size_variant_id'] ?? null;
+            $sizeVariantPrice = null;
+            
+            // Get price from size variant if available
+            if ($sizeVariantId && $currentItem->size_variants) {
+                $sizeVariant = collect($currentItem->size_variants)
+                    ->firstWhere('id', $sizeVariantId);
+                
+                if ($sizeVariant && isset($sizeVariant['price'])) {
+                    $sizeVariantPrice = $sizeVariant['price'] * 100; // Convert to cents if needed
+                }
+            }
 
+            // Determine the base price (size variant price or item price)
+            $regularPrice = $sizeVariantPrice ?? $currentItem->centPrice();
+            $salePrice = $currentItem->centSalePrice();
+            $onSale = $currentItem->isOnSale();
+
+            // Apply discount logic
             if ($onSale && $hasDiscount) {
-                $price = $salePrice * (1 - $$discount->rate);
+                $price = $salePrice * (1 - $result->rate);
             } elseif ($onSale && !$hasDiscount) {
                 $price = $salePrice;
             } elseif (!$onSale && $hasDiscount) {
-                $price = $regularPrice * (1 - $$discount->rate);
+                $price = $regularPrice * (1 - $result->rate);
             } else {
                 $price = $regularPrice;
             }
+
             $lineItem = [
                 'item_id' => $currentItem->id,
+                'size_variant_id' => $sizeVariantId,
                 'price' => $price,
                 'quantity' => $item['quantity'],
             ];
+
             array_push($lineItems, $lineItem);
-        }
-
-        $totalshipping = $this->calculateTotal($discountCode, $lineItems);
-
-        $tax = Tax::find(1);
-        $master = ToggleTaxControl::find(1);
-        $taxAmount = 0;
-        $totalPrice = 0;
-
-        $addTax = $tax->addTaxValue;
-        $includeTax = $tax->includeTaxValue;
-        $isInclusive = $master->toggleControl2;
-
-        if (!$isInclusive) {
-            $taxRate = $addTax / 100;
-            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
-            $totalPrice = intval($totalshipping['totalProduct'] + $taxAmount);
-            $isInclusive = false;
-        } elseif ($isInclusive) {
-            $taxRate = $includeTax / 100;
-            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
-            $totalPrice = intval($totalshipping['totalProduct'] );
-            $isInclusive = true;
-        } else {
-            $totalPrice = intval($totalshipping['totalProduct']);
-            $isInclusive = true;
-        }
-
-        if($metadata['shipOption'] == ShippingType::DELIVERY->value) {
-            $withShippingTotal = ($totalPrice / 100) + 10;
-            $total = intval($withShippingTotal * 100);
-        }else{
-            $total = $totalPrice;
         }
 
         $metadata['line_items'] = json_encode($lineItems);
 
-        $productValue = [
-            'amount' => $total,
-            'currency' => $this->currency,
-            'automatic_payment_methods' => [
-                'enabled' => true,
-            ],
-            'metadata' => $metadata,
-        ];
+        $totalProduct = $this->calculateTotal($discountCode, $lineItems);
 
-        $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+        $tax = Tax::latest()->first();
+        $toggleTaxControl = ToggleTaxControl::latest()->first();
 
-        $responseValues = [
-            'totalProduct' => $totalshipping['totalProduct'],
-            'stripeToken' => $paymentIntent->client_secret,
-            'paymentIntentId' => $paymentIntent->id
-        ];
+        $addTax = $tax?->getAddTaxValue();
+        $gstInclusive = $toggleTaxControl?->isToggleControle2();
 
-        return response()->json($responseValues);
+        $productTotal = $totalProduct['totalProduct'];
+        $shippingFee = ($metadata['shipOption'] === 'delivery') ? 1000 : 0;
+
+        if ($gstInclusive) {
+            // INCLUSIVE MODE: Tax included in both products and shipping
+            $totalBeforeTax = ($productTotal + $shippingFee) / (1 + ($addTax / 100));
+            $taxAmount = ($productTotal + $shippingFee) - $totalBeforeTax;
+            
+            $productBase = $productTotal / (1 + ($addTax / 100));
+            $shippingBase = $shippingFee / (1 + ($addTax / 100));
+            
+            $grandTotal = $productTotal + $shippingFee;
+
+            $productValue = [
+                'amount' => $grandTotal,
+                'currency' => $this->currency,
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+                'metadata' => $metadata,
+            ];
+
+            $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+
+            $responseValues = [
+                'totalProduct' => $grandTotal / 100,
+                'stripeToken' => $paymentIntent->client_secret,
+                'paymentIntentId' => $paymentIntent->id
+            ];
+
+            return response()->json($responseValues);
+            
+        } else {
+            // EXCLUSIVE MODE: Tax added to both products AND shipping
+            $taxAmount = ($productTotal + $shippingFee) * ($addTax / 100);
+            $grandTotal = $productTotal + $shippingFee + $taxAmount;
+
+            $productValue = [
+                'amount' => $grandTotal,
+                'currency' => $this->currency,
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+                'metadata' => $metadata,
+            ];
+
+            $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+
+            $responseValues = [
+                'totalProduct' => $grandTotal / 100,
+                'stripeToken' => $paymentIntent->client_secret,
+                'paymentIntentId' => $paymentIntent->id
+            ];
+
+            return response()->json($responseValues);
+        }
     }  
 
     public function verify(string $paymentIntentId): PaymentStatus
@@ -413,9 +446,20 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     protected function calculateTotal($discountcode, array $items): array
     {
         $total = 0;
-        foreach ($items as $item) {
-           $total += $this->calculateItemTotal($discountcode, $item['item_id'], $item['quantity']);
+        $res = DiscountCode::where('code', $discountcode)->first();
+        $hasDiscount = !empty($discountcode);
+
+        foreach ($items as $index => $item) {
+            $currentItem = Item::find($item['item_id']);
+            $sizeVariantId = $item['size_variant_id'] ?? null;
+            
+            $price = $currentItem->calculateFinalPrice($sizeVariantId, $hasDiscount, $res->rate ?? 0);
+            
+            $subtotal = (float)($price * (int)$item['quantity']);
+            
+            $total += $subtotal;
         }
+        
         return ['totalProduct' => $total];
     }
 
@@ -539,38 +583,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             'regularPrice' => $regularPrice,
             'totalPrice' => $totalPrice
         ];
-    }
-
-    /**
-     * Calculate total item price with quantity taken into consideration
-     *
-     * @param int $itemId ID of the item
-     * @param int $quantity
-     *
-     * @return float
-     */
-    protected function calculateItemTotal($discountcode, int $itemId, int $quantity): float
-    {
-        $item = $this->itemService->retrieveItem($itemId);
-        $res = DiscountCode::where('code', $discountcode)->first();
-
-        $onSale = $item->isOnSale();
-        $hasDiscount = !empty($discountcode);
-        $salePrice = $item->centSalePrice();
-        $regularPrice = $item->centPrice();
-
-        if ($onSale && $hasDiscount) {
-            $dprice = $salePrice * (1 - $res->rate);
-        } elseif ($onSale && !$hasDiscount) {
-            $dprice = $salePrice;
-        } elseif (!$onSale && $hasDiscount) {
-            $dprice = $regularPrice * (1 - $res->rate);
-        } else {
-            $dprice = $regularPrice;
-        }
-
-        $price = $dprice;
-        return $price * $quantity;
     }
 
     /**
