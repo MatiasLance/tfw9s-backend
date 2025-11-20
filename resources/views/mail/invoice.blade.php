@@ -150,33 +150,38 @@
 
                             <!-- Totals Section -->
                             @php
-                                $subTotal = $order->subTotal / ($taxValue / 100 + 1);
-                                $calculatedTaxAmount = $order->total - $subTotal;
-                                @dd($calculatedTaxAmount);
-                                $taxAmount = $taxToggle->toggleControl1 ? $calculatedTaxAmount : ($taxToggle->  toggleControl2 ? $calculatedTaxAmount : 0.00);
+                                $add_tax_value = $tax->addTaxValue;
+                                $gst_inclusive = $tax_toggle_control->toggleControl2;
+                                $productTotal = $order->total;
+                        
+                                $totalBeforeTax = $productTotal / (1 + ($add_tax_value / 100));
+                                $tax_amount = $gst_inclusive ? $productTotal - $totalBeforeTax : $productTotal * ($add_tax_value / 100);
+                                $sub_total = $gst_inclusive ? $productTotal / (1 + ($add_tax_value / 100)) : $productTotal;
+                                $shipping_base = $gst_inclusive ? 1000 / (1 + ($add_tax_value / 100)) : 1000;
+                                $grand_total = $gst_inclusive ? $productTotal : $productTotal + $tax_amount;
                             @endphp
                             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
                                 <tr>
-                                    <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">Subtotal:</td>
-                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">${{ number_format($order->subTotal, 2) }}</td>
+                                    <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">Sub-Total:</td>
+                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">${{ number_format($sub_total/100, 2) }}</td>
                                 </tr>
                                 <tr>
-                                    <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">Tax Amount:</td>
-                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">${{ number_format($taxAmount, 2) }}</td>
+                                    <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">Tax:</td>
+                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">${{ number_format($tax_amount/100, 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">GST:</td>
-                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{$taxToggle->toggleControl2 ? 'GST Exclusive' : 'GST Inclusive'}}</td>
+                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{$gst_inclusive ? 'GST Exclusive' : 'GST Inclusive'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">Shipping:</td>
                                     <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">
-                                        {{ $order->ship_option == 'pickup' ? 'FREE' : '$' . number_format(10, 2) }}
+                                        {{ $order->ship_option == 'pickup' ? 'FREE' : '$' . number_format($shipping_base/100, 2) }}
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="font-size: 18px; font-weight: 700; color: #333333; padding: 12px 20px;">Order Total:</td>
-                                    <td style="font-size: 18px; font-weight: 700; color: #00A878; text-align: right; padding: 12px 8px;">${{ number_format(($order->total/100), 2) }}</td>
+                                    <td style="font-size: 18px; font-weight: 700; color: #333333; padding: 12px 20px;">Grand Total:</td>
+                                    <td style="font-size: 18px; font-weight: 700; color: #00A878; text-align: right; padding: 12px 8px;">${{ number_format(($grand_total/100), 2) }}</td>
                                 </tr>
                             </table>
 
@@ -196,7 +201,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px; border-top: 1px solid #eeeeee;">
                                 <tr>
                                     <td style="text-align: center; font-size: 13px; color: #888888; padding: 20px 0 20px 0;">
-                                        &copy; @php echo 2024-date("Y"); @endphp TFW Rugby League. All rights reserved. | <a href="https://www.tfw9s.com.au" style="color: #00A878; text-decoration: none;">www.tfw9s.com.au</a>
+                                        &copy; @php echo 2024 . '-' . date("Y"); @endphp TFW Rugby League. All rights reserved. | <a href="https://www.tfw9s.com.au" style="color: #00A878; text-decoration: none;">www.tfw9s.com.au</a>
                                     </td>
                                 </tr>
                             </table>

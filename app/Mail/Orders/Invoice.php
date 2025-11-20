@@ -28,6 +28,18 @@ class Invoice extends Mailable
      */
     protected bool $toAdmin;
 
+    protected function getTax()
+    {
+        $tax = Tax::latest()->first();
+        return $tax;
+    }
+
+    protected function getToggleControl()
+    {
+        $toggleTaxControl = ToggleTaxControl::latest()->first();
+        return $toggleTaxControl;
+    }
+
     /**
      * Create a new message instance.
      *
@@ -46,19 +58,21 @@ class Invoice extends Mailable
      */
     public function build()
     {
-        $tax = Tax::firstOrFail();
-        $toggleTax = ToggleTaxControl::firstOrFail();
-
-        $taxValue = $toggleTax->toggleControl1 ? $tax->addTaxValue : $tax->includeTaxValue;
-
+        // dump('Inspecting data to be displayed on email template', [
+        //     'order' => $this->order,
+        //     'order_line_items' => $this->order->items,
+        //     'tax' => $this->getTax(),
+        //     'tax_toggle_control' => $this->getToggleControl(),
+        //     'to_admin' => $this->toAdmin
+        // ]);
         return $this
                 ->subject('Invoice')
                 ->view('mail.invoice')
                 ->with([
                     'order' => $this->order,
-                    'taxValue' => $taxValue,
-                    'taxToggle' => $toggleTax,
-                    'toAdmin' => $this->toAdmin,
+                    'tax' => $this->getTax(),
+                    'tax_toggle_control' => $this->getToggleControl(),
+                    'to_admin' => $this->toAdmin,
                 ]);
     }
 }

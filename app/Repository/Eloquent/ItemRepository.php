@@ -518,23 +518,53 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         });
     }
 
-    public function decreaseStocks(int $id, int $amount, bool $override = false): bool
+    public function decreaseStocks(int $id, int $amount, ?int $sizeVariantId = null, bool $override = false): bool
     {
         $item = $this->find($id);
+        
+        if (!$item) {
+            throw new ModelNotFoundException("Item with ID {$id} not found.");
+        }
 
         if ($amount > $item->stock) {
-
             if ($override) {
                 $item->stock = 0;
+            } else {
+                throw new ItemStockCannotBeLowerThanZeroException(
+                    "Attempted to decrease item stock below zero. Available: {$item->stock}, Requested: {$amount}"
+                );
             }
-
-            throw new ItemStockCannotBeLowerThanZeroException('Attempted to decrease the stocks below zero');
         } else {
             $item->stock -= $amount;
         }
 
-        return DB::transaction(function() use($item) {
-            return $item->save();
+        $itemSizeVariant = null;
+        
+        if (!is_null($sizeVariantId)) {
+            $itemSizeVariant = ItemVariant::find($sizeVariantId);
+            
+            if (!$itemSizeVariant) {
+                throw new ModelNotFoundException("Item variant with ID {$sizeVariantId} not found.");
+            }
+
+            if ($amount > $itemSizeVariant->stock_quantity) {
+                if ($override) {
+                    $itemSizeVariant->stock_quantity = 0;
+                } else {
+                    throw new ItemStockCannotBeLowerThanZeroException(
+                        "Attempted to decrease variant stock below zero. Available: {$itemSizeVariant->stock_quantity}, Requested: {$amount}"
+                    );
+                }
+            } else {
+                $itemSizeVariant->stock_quantity -= $amount;
+            }
+        }
+
+        return DB::transaction(function() use ($item, $itemSizeVariant) {
+            $itemSaved = $item->save();
+            $variantSaved = is_null($itemSizeVariant) ? true : $itemSizeVariant->save();
+            
+            return $itemSaved && $variantSaved;
         });
     }
 

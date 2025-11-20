@@ -120,9 +120,9 @@ class ItemService implements ItemServiceInterface
         );
     }
 
-    public function decreaseStocks(int $id, int $amount, bool $override = false): bool
+    public function decreaseStocks(int $id, int $amount, ?int $sizeVariantId, bool $override = false): bool
     {
-        return $this->itemRepository->decreaseStocks($id, $amount, $override);
+        return $this->itemRepository->decreaseStocks($id, $amount, $sizeVariantId, $override);
     }
 
     public function deleteItem(User $initiator, Item $item): bool

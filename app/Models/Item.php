@@ -404,12 +404,6 @@ class Item extends Model
             $finalPrice = $basePrice;
         }
 
-        // DEBUG: Check the result
-        \Log::debug("Final price result", [
-            'finalPrice' => $finalPrice,
-            'finalPrice_type' => gettype($finalPrice)
-        ]);
-
         return (float)$finalPrice;
     }
 }

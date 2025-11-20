@@ -103,36 +103,41 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         $discount = DiscountCode::where('code', $discountCode)->first();
         $hasDiscount = !empty($discount);
+        $discountRate = $hasDiscount ? $discount->rate : 0;
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
             
-            // Check if this is a size variant item
+            if (!$currentItem) {
+                continue;
+            }
+            
             $sizeVariantId = $item['size_variant_id'] ?? null;
             $sizeVariantPrice = null;
             
-            // Get price from size variant if available
-            if ($sizeVariantId && $currentItem->size_variants) {
-                $sizeVariant = collect($currentItem->size_variants)
-                    ->firstWhere('id', $sizeVariantId);
-                
+            if ($sizeVariantId && $currentItem->has_size_variants) {
+                $sizeVariants = is_array($currentItem->has_size_variants) 
+                    ? $currentItem->available_sizes 
+                    : json_decode($currentItem->available_sizes, true);
+                    
+                $sizeVariant = collect($sizeVariants)
+                    ->firstWhere('id', (int)$sizeVariantId);
+                    
                 if ($sizeVariant && isset($sizeVariant['price'])) {
-                    $sizeVariantPrice = $sizeVariant['price'] * 100; // Convert to cents if needed
+                    $sizeVariantPrice = $sizeVariant['price'] * 100;
                 }
             }
 
-            // Determine the base price (size variant price or item price)
             $regularPrice = $sizeVariantPrice ?? $currentItem->centPrice();
             $salePrice = $currentItem->centSalePrice();
             $onSale = $currentItem->isOnSale();
 
-            // Apply discount logic
             if ($onSale && $hasDiscount) {
-                $price = $salePrice * (1 - $result->rate);
+                $price = $salePrice * (1 - $discountRate);
             } elseif ($onSale && !$hasDiscount) {
                 $price = $salePrice;
             } elseif (!$onSale && $hasDiscount) {
-                $price = $regularPrice * (1 - $result->rate);
+                $price = $regularPrice * (1 - $discountRate);
             } else {
                 $price = $regularPrice;
             }
@@ -245,7 +250,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 foreach ($lineItems as $item) {
                     try
                     {
-                        $this->itemService->decreaseStocks($item['item_id'], $item['quantity'], true);
+                        $this->itemService->decreaseStocks($item['item_id'], $item['quantity'], $item['size_variant_id'], true);
                     }
                     catch(ItemStockCannotBeLowerThanZeroException $e) {
                         report($e);
