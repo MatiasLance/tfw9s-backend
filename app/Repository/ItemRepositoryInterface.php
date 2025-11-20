@@ -150,7 +150,7 @@ interface ItemRepositoryInterface
      *
      * @return bool
      */
-    public function decreaseStocks(int $id, int $amount, bool $override = false): bool;
+    public function decreaseStocks(int $id, int $amount, ?int $sizeVariantID, bool $override = false): bool;
 
     /**
      * Delete an existing item instance
