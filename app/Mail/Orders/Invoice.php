@@ -58,13 +58,8 @@ class Invoice extends Mailable
      */
     public function build()
     {
-        // dump('Inspecting data to be displayed on email template', [
-        //     'order' => $this->order,
-        //     'order_line_items' => $this->order->items,
-        //     'tax' => $this->getTax(),
-        //     'tax_toggle_control' => $this->getToggleControl(),
-        //     'to_admin' => $this->toAdmin
-        // ]);
+        $this->order->load(['items.item.sizeVariants', 'items.selectedVariant']);
+
         return $this
                 ->subject('Invoice')
                 ->view('mail.invoice')

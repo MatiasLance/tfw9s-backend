@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Modules\Order\Traits\HasShippingOptions;
 use App\Modules\Payment\PaymentGateway;
+use App\Models\Item;
+use App\Models\OrderLineItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -53,5 +55,17 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderLineItem::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasManyThrough(
+            Item::class,
+            OrderLineItem::class,
+            'order_id',
+            'id',
+            'id',
+            'item_id'
+        );
     }
 }

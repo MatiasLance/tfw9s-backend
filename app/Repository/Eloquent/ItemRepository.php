@@ -624,7 +624,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * Update size variants for an item
      */
-    private function updateSizeVariants(Item $item, array $sizeVariants): void
+    protected function updateSizeVariants(Item $item, array $sizeVariants): void
     {
         // Get existing size variants to determine which to keep/delete
         $existingVariants = $item->sizeVariants()->get()->keyBy('id');
