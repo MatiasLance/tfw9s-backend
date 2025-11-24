@@ -41,7 +41,7 @@ class ItemVariant extends Model
     // Price calculation
     public function getCalculatedPriceAttribute()
     {
-        return $this->price_override ?? $this->item->centPrice();
+        return $this->price_override ?? $this->item->centPrice() / 100;
     }
 
     // Check if in stock

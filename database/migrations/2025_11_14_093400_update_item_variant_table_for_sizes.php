@@ -21,7 +21,7 @@ return new class extends Migration
             $table->enum('type', ['color', 'size'])->default('color')->after('color');
             
             // Add SKU for inventory tracking
-            $table->string('sku')->nullable()->unique()->after('type');
+            $table->string('sku')->nullable()->after('type');
             
             // Add price override for size-based pricing
             $table->integer('price_override')->nullable()->after('sku');

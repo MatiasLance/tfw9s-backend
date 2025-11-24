@@ -14,6 +14,7 @@ class OrderLineItem extends Model
 
     protected $fillable = [
         'item_id',
+        'size_variant_id',
         'price',
         'quantity',
     ];
@@ -26,6 +27,11 @@ class OrderLineItem extends Model
     public function item()
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function selectedVariant()
+    {
+        return $this->belongsTo(ItemVariant::class, 'size_variant_id');
     }
 
     public function getThumbnailAttribute()
