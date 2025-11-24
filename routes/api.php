@@ -20,13 +20,13 @@ use App\Http\Controllers\PaymentSettingController;
 Route::middleware('auth:sanctum')->group(function () { // Admin only routes
     Route::prefix('v1')->group(function () { // API v1 Endpoints
 
-        Route::prefix('users')->group(function () { // User API Endpoints
+        Route::prefix('users')->group(function () {
             Route::get('me', function (Request $request) {
                 return $request->user();
             });
         });
 
-        Route::prefix('items')->group(function () { // Item API Endpoints
+        Route::prefix('items')->group(function () {
             Route::post('/', 'App\Http\Controllers\ItemController@store');
             Route::post('/duplicate/{itemId}', 'App\Http\Controllers\ItemController@duplicate');
             Route::patch('/addVariant/{itemId}', 'App\Http\Controllers\ItemController@storeItemVariant');
@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::delete('/{itemId}', 'App\Http\Controllers\ItemController@delete');
         });
 
-        Route::prefix('categories')->group(function () { // Category API Endpoints
+        Route::prefix('categories')->group(function () { 
             Route::post('/', 'App\Http\Controllers\CategoryController@store');
             Route::post('/move', 'App\Http\Controllers\CategoryController@move');
             Route::patch('/{categoryId}', 'App\Http\Controllers\CategoryController@update');
@@ -47,14 +47,14 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             });
         });
 
-        Route::prefix("tax")->group(function() { // Tax Setting  API Endpoints
-            Route::get('/', [TaxController::class, 'list']);
-            Route::post('/{id}', [TaxController::class, 'update']);
+        Route::prefix("tax")->group(function() {
+            Route::get('/', 'App\Http\Controllers\TaxController@list');
+            Route::post('/{id}', 'App\Http\Controllers\TaxController@update');
         });
 
-        Route::prefix("toggletax")->group(function() { // Tax Setting  API Endpoints
-            Route::get('/', [ToggleTaxControlController::class, 'list']);
-            Route::post('/{id}', [ToggleTaxControlController::class, 'update']);
+        Route::prefix("toggletax")->group(function() {
+            Route::get('/', 'App\Http\Controllers\ToggleTaxControlController@list');
+            Route::post('/{id}', 'App\Http\Controllers\ToggleTaxControlController@update');
         });
 
         Route::prefix("regions")->group(function() {
@@ -95,40 +95,40 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
 
         Route::prefix("payment")->group(function() {
             Route::prefix("setting")->group(function() {
-                Route::get("/", [PaymentSettingController::class, "list"]);
-                Route::patch("/{id}", [PaymentSettingController::class, "update"]);
+                Route::get("/", 'App\Http\Controllers\PaymentSettingController@list');
+                Route::patch("/{id}", 'App\Http\Controllers\PaymentSettingController@update');
             });
         });
     });
 });
 
-Route::prefix('v1')->group(function () { // API v1 Endpoints
-    Route::prefix('transaction')->group(function () { // Item API Endpoints
+Route::prefix('v1')->group(function () {
+    Route::prefix('transaction')->group(function () {
         Route::get('/retrieve/{key}', 'App\Http\Controllers\TransactionController@retrieve');
         Route::post('/generate', 'App\Http\Controllers\TransactionController@generate');
         Route::post('/savemedia', 'App\Http\Controllers\TransactionController@saveMedia');
     });
 
-    Route::prefix('items')->group(function () { // Item API Endpoints
+    Route::prefix('items')->group(function () {
         Route::get('/', 'App\Http\Controllers\ItemController@list');
         Route::get('/{itemId}', 'App\Http\Controllers\ItemController@retrieve');
         Route::post('/{id}', 'App\Http\Controllers\ItemController@update');
         Route::delete('/{id}', 'App\Http\Controllers\ItemController@delete');
     });
 
-    Route::prefix('categories')->group(function () { // Category API Endpoints
+    Route::prefix('categories')->group(function () {
         Route::get('/', 'App\Http\Controllers\CategoryController@list');
     });
 
-    Route::prefix('tags')->group(function () { // Tag API Endpoints
+    Route::prefix('tags')->group(function () {
         Route::get('/', 'App\Http\Controllers\TagController@list');
     });
 
-    Route::prefix('contact')->group(function () { // Contact API Endpoints
+    Route::prefix('contact')->group(function () {
         Route::post('/send-message', 'App\Http\Controllers\ContactController@sendMessage');
     });
 
-    Route::prefix('orders')->group(function () { // Order API Endpoints
+    Route::prefix('orders')->group(function () {
         Route::post('/checkout', 'App\Http\Controllers\OrderController@checkout');
         Route::post('/verify', 'App\Http\Controllers\OrderController@verify');
         Route::post('/calculation', 'App\Http\Controllers\OrderController@shippingCalc');
@@ -138,7 +138,7 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         });
     });
 
-    Route::prefix('tournament')->group(function () { // Order API Endpoints
+    Route::prefix('tournament')->group(function () {
         Route::post('/indiv/checkout', 'App\Http\Controllers\IndividualRegistrationController@checkout');
         Route::post('/team/checkout', 'App\Http\Controllers\TeamRegistrationController@checkout');
         Route::post('/indiv/verify', 'App\Http\Controllers\IndividualRegistrationController@verify');
@@ -149,7 +149,6 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::post('/team/afterpay/calculation', 'App\Http\Controllers\TeamRegistrationController@initialAfterPayCalculation');
     });
 
-    // Discount Code API Endpoints
     Route::prefix('discountcode')->group(function() {
         Route::get('/', 'App\Http\Controllers\DiscountCodeController@list');
         Route::get('/{id}', 'App\Http\Controllers\DiscountCodeController@retrieve');
@@ -159,14 +158,12 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
         Route::patch('/{id}', 'App\Http\Controllers\DiscountCodeController@update');
     });
 
-    // non-admin tax retrieve
-    Route::prefix('tax')->group(function() {
-        Route::get('/{id}', [TaxController::class, 'retrieve']);
+    Route::prefix("tax")->group(function() {
+        Route::get('/', 'App\Http\Controllers\TaxController@list');
     });
 
-    // non-admin toggletax retrieve
-    Route::prefix("toogletax")->group(function() {
-        Route::get('/retrieve/{id}', [ToggleTaxControlController::class, 'retrieve']);
+    Route::prefix("toggletax")->group(function() {
+        Route::get('/', 'App\Http\Controllers\ToggleTaxControlController@list');
     });
 
     Route::prefix("regions")->group(function() {
@@ -343,49 +340,49 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
     });
 
     Route::prefix('shipping')->group(function (){
-        Route::prefix('country')->group(function () { // Country Shipping API Endpoints
+        Route::prefix('country')->group(function () {
             Route::post('/', 'App\Http\Controllers\ShippingController@store');
             Route::get('/', 'App\Http\Controllers\ShippingController@list');
             Route::get('/latest', 'App\Http\Controllers\ShippingController@retrieve');
             Route::patch('/{id}', 'App\Http\Controllers\ShippingController@update');
             Route::delete('/{id}', 'App\Http\Controllers\ShippingController@delete');
         });
-        Route::prefix('state')->group(function () { // State Shipping API Endpoints
+        Route::prefix('state')->group(function () {
             Route::post('/', 'App\Http\Controllers\StateShippingController@store');
             Route::get('/', 'App\Http\Controllers\StateShippingController@list');
             Route::get('/latest', 'App\Http\Controllers\StateShippingController@retrieve');
             Route::patch('/{id}', 'App\Http\Controllers\StateShippingController@update');
             Route::delete('/{id}', 'App\Http\Controllers\StateShippingController@delete');
         });
-        Route::prefix('city')->group(function () { // City Shipping API Endpoints
+        Route::prefix('city')->group(function () {
             Route::post('/', 'App\Http\Controllers\CityShippingController@store');
             Route::get('/', 'App\Http\Controllers\CityShippingController@list');
             Route::get('/latest', 'App\Http\Controllers\CityShippingController@retrieve');
             Route::patch('/{id}', 'App\Http\Controllers\CityShippingController@update');
             Route::delete('/{id}', 'App\Http\Controllers\CityShippingController@delete');
         });
-        Route::prefix('othercountry')->group(function () { // Other Country Shipping API Endpoints
+        Route::prefix('othercountry')->group(function () {
             Route::post('/', 'App\Http\Controllers\OtherCountryShippingController@store');
             Route::get('/', 'App\Http\Controllers\OtherCountryShippingController@list');
             Route::get('/latest', 'App\Http\Controllers\OtherCountryShippingController@retrieve');
             Route::patch('/{id}', 'App\Http\Controllers\OtherCountryShippingController@update');
             Route::delete('/{id}', 'App\Http\Controllers\OtherCountryShippingController@delete');
         });
-        Route::prefix('otherstate')->group(function () { // Other State Shipping API Endpoints
+        Route::prefix('otherstate')->group(function () {
             Route::post('/', 'App\Http\Controllers\OtherStateShippingController@store');
             Route::get('/', 'App\Http\Controllers\OtherStateShippingController@list');
             Route::get('/latest', 'App\Http\Controllers\OtherStateShippingController@retrieve');
             Route::patch('/{id}', 'App\Http\Controllers\OtherStateShippingController@update');
             Route::delete('/{id}', 'App\Http\Controllers\OtherStateShippingController@delete');
         });
-        Route::prefix('othercity')->group(function () { // Other State Shipping API Endpoints
+        Route::prefix('othercity')->group(function () {
             Route::post('/', 'App\Http\Controllers\OtherCityShippingController@store');
             Route::get('/', 'App\Http\Controllers\OtherCityShippingController@list');
             Route::get('/latest', 'App\Http\Controllers\OtherCityShippingController@retrieve');
             Route::patch('/{id}', 'App\Http\Controllers\OtherCityShippingController@update');
             Route::delete('/{id}', 'App\Http\Controllers\OtherCityShippingController@delete');
         });
-        Route::prefix('mastershipping')->group(function () { // Master Setting Shipping API Endpoints
+        Route::prefix('mastershipping')->group(function () {
             Route::post('/', 'App\Http\Controllers\MasterShippingSettingController@store');
             Route::get('/{id}', 'App\Http\Controllers\MasterShippingSettingController@retrieve');
             Route::patch('/{id}', 'App\Http\Controllers\MasterShippingSettingController@update');
@@ -394,13 +391,12 @@ Route::prefix('v1')->group(function () { // API v1 Endpoints
 
     });
 
-    Route::prefix("payment")->group(function() {
-        Route::prefix("setting")->group(function() {
-            Route::get("/", [PaymentSettingController::class, "list"]);
+    Route::prefix('payment')->group(function() {
+        Route::prefix('setting')->group(function() {
+            Route::get('/', 'App\Http\Controllers\PaymentSettingController@list');
         });
     });
 
-    // Added new api for sms
     Route::prefix('sms')->group(function() {
         Route::post('/sendSMSNotification', 'App\Http\Controllers\SMSController@sendLinkViaSMS');
         Route::post('/testSendSMSNotification', 'App\Http\Controllers\SMSController@testTwilioConnection');
