@@ -173,7 +173,7 @@
                                 </tr>
                                 <tr>
                                     <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">GST:</td>
-                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{$gst_inclusive ? 'GST Exclusive' : 'GST Inclusive'}}</td>
+                                    <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">{{$gst_inclusive ? 'GST Inclusive' : 'GST Exclusive'}}</td>
                                 </tr>
                                 <tr>
                                     <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">Shipping:</td>
