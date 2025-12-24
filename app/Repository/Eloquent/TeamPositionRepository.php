@@ -152,7 +152,7 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
         }
 
 
-        $maxPerPage = $filters['max_teamPosition_per_page']?:10;
+        $maxPerPage = is_null($userFilters['max_teamPosition_per_page']) ? $teamPositions->count() : $filters['max_teamPosition_per_page'];
 
 
         return new Paginate($teamPositions, $maxPerPage, $filters['page'], 'teamPositions');
