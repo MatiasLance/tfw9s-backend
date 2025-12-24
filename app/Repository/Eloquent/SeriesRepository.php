@@ -157,7 +157,7 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
         $series = $series->with(['team']);
 
-        $maxPerPage = $filters['max_series_per_page'] ?: 10;
+        $maxPerPage = is_null($userFilters['max_series_per_page']) ? $series->count() : $filters['max_series_per_page'];
         
         return new Paginate($series, $maxPerPage, $filters['page'], 'series');
     }
