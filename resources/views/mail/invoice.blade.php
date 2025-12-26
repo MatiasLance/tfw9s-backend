@@ -178,7 +178,7 @@
                                 <tr>
                                     <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">Shipping:</td>
                                     <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">
-                                        {{ $order->ship_option == 'pickup' ? 'FREE' : '$' . number_format($shipping_base/100, 2) }}
+                                        {{ $order->ship_option == 'pickup' ? 'FREE' : '$' . number_format(1000/100, 2) }}
                                     </td>
                                 </tr>
                                 <tr>

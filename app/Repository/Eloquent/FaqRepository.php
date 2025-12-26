@@ -83,9 +83,7 @@ class FaqRepository extends BaseRepository implements FaqRepositoryInterface
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_faq_per_page']) ? $faq->count() : $filters['max_faq_per_page'];
-
-        return new Paginate($faq, $maxPerPage, $filters['page'], 'faq');
+        return new Paginate($faq, $filters['max_faq_per_page'], $filters['page'], 'faq');
     }
 
     public function retrieveFaq(int $id): Faq

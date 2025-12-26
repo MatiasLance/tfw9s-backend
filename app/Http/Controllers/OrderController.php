@@ -182,7 +182,7 @@ class OrderController extends Controller
             
             return response()->json([
                 'subtotal' => $productBase / 100,
-                'shipping' => $shippingBase / 100,
+                'shipping' => $shippingFee / 100,
                 'tax' => $taxAmount / 100,
                 'total' => ($productBase + $shippingBase) / 100,
                 'grand_total' => $grandTotal / 100,

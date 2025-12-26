@@ -113,9 +113,7 @@ class GuidelineRepository extends BaseRepository implements GuidelineRepositoryI
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_guideline_per_page']) ? $guidelines->count() : $filters['max_guideline_per_page'];
-
-        return new Paginate($guidelines, $maxPerPage, $filters['page'], 'guidelines');
+        return new Paginate($guidelines, $filters['max_guideline_per_page'], $filters['page'], 'guidelines');
     }
 
     public function retrieveGuideline(int $id): guideline

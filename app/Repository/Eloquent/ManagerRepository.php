@@ -103,9 +103,7 @@ class ManagerRepository extends BaseRepository implements ManagerRepositoryInter
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_manager_per_page']) ? $managers->count() : $filters['max_manager_per_page'];
-
-        return new Paginate($managers, $maxPerPage, $filters['page'], 'managers');
+        return new Paginate($managers, $filters['max_manager_per_page'], $filters['page'], 'managers');
     }
 
     public function retrieveManager(int $id): manager
