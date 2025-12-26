@@ -169,9 +169,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
                 break;
         }
 
-        $maxPerPage = is_null($filters['max_players_per_page']) ? $players->count() : $filters['max_players_per_page'];
-
-        return new Paginate($players, $maxPerPage, $filters['page'], 'players');
+        return new Paginate($players, $filters['max_players_per_page'], $filters['page'], 'players');
     }
 
     public function createPlayers(

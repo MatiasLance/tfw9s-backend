@@ -89,9 +89,7 @@ class RegionRepository extends BaseRepository implements RegionRepositoryInterfa
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_region_per_page']) ? $regions->count() : $filters['max_region_per_page'];
-
-        return new Paginate($regions, $maxPerPage, $filters['page'], 'regions');
+        return new Paginate($regions, $filters['max_region_per_page'], $filters['page'], 'regions');
     }
 
     public function retrieveRegion(int $id): Region

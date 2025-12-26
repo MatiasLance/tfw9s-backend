@@ -151,11 +151,7 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
                 break;
         }
 
-
-        $maxPerPage = is_null($userFilters['max_teamPosition_per_page']) ? $teamPositions->count() : $filters['max_teamPosition_per_page'];
-
-
-        return new Paginate($teamPositions, $maxPerPage, $filters['page'], 'teamPositions');
+        return new Paginate($teamPositions, $filters['max_teamPosition_per_page'], $filters['page'], 'teamPositions');
     }
 
     public function retrieveTeamPosition(int $id): TeamPosition
