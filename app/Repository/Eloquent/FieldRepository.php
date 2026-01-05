@@ -88,7 +88,7 @@ class FieldRepository extends BaseRepository implements FieldRepositoryInterface
                 break;
         }
 
-         $maxPerPage = is_null($userFilters['max_field_per_page']) ? $fields->count() : $filters['max_field_per_page'];
+        $maxPerPage = is_null($userFilters['max_field_per_page']) ? $fields->count() : $filters['max_field_per_page'];
 
         return new Paginate($fields, $maxPerPage, $filters['page'], 'fields');
     }

@@ -85,7 +85,9 @@ class NewsRepository extends BaseRepository implements NewsRepositoryInterface
                 break;
         }
 
-        return new Paginate($news, $filters['max_news_per_page'], $filters['page'], 'news');
+        $maxPerPage = is_null($userFilters['max_news_per_page']) ? $news->count() : $filters['max_news_per_page'];
+
+        return new Paginate($news, $maxPerPage, $filters['page'], 'news');
     }
 
     public function retrieveNews(int $id): News

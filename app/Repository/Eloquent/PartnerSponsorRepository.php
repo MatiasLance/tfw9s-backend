@@ -90,7 +90,9 @@ class PartnerSponsorRepository extends BaseRepository implements PartnerSponsorR
                 break;
         }
 
-        return new Paginate($partnerSponsors, $filters['max_partnerSponsor_per_page'], $filters['page'], 'partnerSponsors');
+        $maxPerPage = is_null($filters['max_players_per_page']) ? $players->count() : $filters['max_players_per_page'];
+
+        return new Paginate($players, $maxPerPage, $filters['page'], 'players');
     }
 
     public function retrievePartnerSponsor(int $id): PartnerSponsor

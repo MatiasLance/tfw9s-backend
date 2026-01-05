@@ -102,7 +102,7 @@ class AgeGroupRepository extends BaseRepository implements AgeGroupRepositoryInt
 
     public function createAgeGroup(string $name, int $min_age, int $max_age): AgeGroup
     {
-        $ageGroup = new AgeGroup();
+        $ageGroup = new AgeGroup(); 
         $ageGroup->name = $name;
         $ageGroup->min_age = $min_age;
         $ageGroup->max_age = $max_age;
