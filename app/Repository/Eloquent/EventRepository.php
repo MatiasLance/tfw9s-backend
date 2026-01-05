@@ -109,7 +109,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
         $filters = array_merge($this->defaultEventListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
-
         if (!is_null($filters['q'])) {
             $events = $events->where(function ($query) use ($filters) {
                 $query->whereHas('eventmatch', function ($q) use ($filters) {
@@ -178,8 +177,9 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 break;
         }
 
+        // $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
 
-        return new Paginate($events, $filters['max_event_per_page'], $filters['page'], 'events');
+        return new Paginate($events, 10, $filters['page'], 'events');
     }
 
     public function retrieveEvent(int $id): Event
