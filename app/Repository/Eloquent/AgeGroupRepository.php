@@ -90,7 +90,9 @@ class AgeGroupRepository extends BaseRepository implements AgeGroupRepositoryInt
                 break;
         }
 
-        return new Paginate($ageGroups, $filters['max_age_group_per_page'], $filters['page'], 'ageGroups');
+        $maxPerPage = is_null($userFilters['max_age_group_per_page']) ? $ageGroups->count() : $filters['max_age_group_per_page'];
+
+        return new Paginate($ageGroups, $maxPerPage, $filters['page'], 'ageGroups');
     }
 
     public function retrieveAgeGroup(int $id): ageGroup
