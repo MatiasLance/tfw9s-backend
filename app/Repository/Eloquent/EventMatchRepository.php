@@ -76,6 +76,12 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         'agegroup' => null,
 
         /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'round' => null,
+
+        /**
          * Max eventMatch per page
          *
          * Maximum number of eventMatchs shown per page. When 0 or null is passed, will get every eventMatch
@@ -158,6 +164,10 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             $query->where('events.agegroup_id', $filters['agegroup']);
         }
 
+        if (!empty($filters['round'])) {
+            $query->where('events.round', $filters['round']);
+        }
+
         if (!empty($filters['q'])) {
             $query->where(function ($q) use ($filters) {
                 $q->whereHas('team1', function ($t) use ($filters) {
@@ -193,7 +203,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         }
 
         $query->with([
-            'event:id,event_date,region_id,agegroup_id,time',
+            'event:id,event_date,region_id,agegroup_id,time,round',
             'team1:id,name',
             'team2:id,name',
             'field:id,name',
