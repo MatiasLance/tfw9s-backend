@@ -14,7 +14,6 @@ class EventMatch extends Model
         'deleted_at',
         'created_at',
         'updated_at',
-        'event',
     ];
 
     protected $fillable = [

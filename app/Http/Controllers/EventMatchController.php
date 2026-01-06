@@ -21,12 +21,18 @@ class EventMatchController extends Controller
         $query = $request->query('q', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
+        $year = $request->query('year', null);
+        $region = $request->query('region', null);
+        $agegroup = $request->query('agegroup', null);
         $maxEventMatchesPerPage = $request->query('maxEventMatchesPerPage', null);
 
         $filter = [
             'q' => $query,
             'sort' => $sort,
             'page' => $page,
+            'year' => $year,
+            'region' => $region,
+            'agegroup' => $agegroup,
             'max_eventMatch_per_page' => $maxEventMatchesPerPage,
         ];
 
