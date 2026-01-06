@@ -131,19 +131,14 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
         // Event Date Filter
         if (!is_null($filters['event_date'])) {
-            $events = $events->where(function ($q) use($filters) {
-                $q
-                    ->where('event_date', 'LIKE', '%' . $filters['event_date'] . '%');
-            });
+            $events->where('event_date', 'LIKE', '%' . $filters['event_date'] . '%');
         }
         
         // Year Filter
         if (!is_null($filters['year'])) {
-            $events = $events->where(function ($q) use($filters) {
-                $q
-                    ->where('event_date', 'LIKE', '%' . $filters['year'] . '%');
-            });
+            $events->whereYear('event_date', $filters['year']);
         }
+
 
         // Event Filter
         if (!is_null($filters['event'])) {
@@ -169,11 +164,11 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
         switch ($filters['sort']) {
             case Filter::SORT_LATEST:
-                $events = $events->orderBy('event_date');
+                $events->orderBy('event_date');
                 break;
 
             default:
-                $events = $events->orderBy('created_at');
+                $events->orderBy('created_at');
                 break;
         }
 

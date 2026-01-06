@@ -58,6 +58,24 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         'page' => 1,
 
         /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'year' => null,
+
+        /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'region' => null,
+
+        /**
+         * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'agegroup' => null,
+
+        /**
          * Max eventMatch per page
          *
          * Maximum number of eventMatchs shown per page. When 0 or null is passed, will get every eventMatch
@@ -72,51 +90,124 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $this->teamPositionService = $teamPositionService;
     }
 
+    // public function listEventMatches(array $userFilters = []): Paginate
+    // {
+    //     $eventMatches = $this->model->query();
+
+    //     $filters = array_merge($this->defaultEventMatchListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+    //     // Search Filter
+    //     if (!is_null($filters['q'])) {
+    //         $eventMatches = $eventMatches->where(function ($query) use ($filters) {
+    //             $query->whereHas('team1', function ($q) use ($filters) {
+    //                 $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
+    //             })->orWhereHas('team2', function ($q) use ($filters) {
+    //                 $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
+    //             });
+    //         });
+    //     }
+
+    //     switch ($filters['sort']) {
+    //     case Filter::SORT_A_TO_Z:
+    //         $eventMatches = $eventMatches
+    //             ->join('teams as team1', 'event_matches.team1', '=', 'team1.id')
+    //             ->join('teams as team2', 'event_matches.team2', '=', 'team2.id')
+    //             ->select('event_matches.*')
+    //             ->orderBy('team1.name')
+    //             ->orderBy('team2.name');
+    //         break;
+
+    //     case Filter::SORT_Z_TO_A:
+    //         $eventMatches = $eventMatches
+    //             ->join('teams as team1', 'event_matches.team1', '=', 'team1.id')
+    //             ->join('teams as team2', 'event_matches.team2', '=', 'team2.id')
+    //             ->select('event_matches.*')
+    //             ->orderByDesc('team1.name')
+    //             ->orderByDesc('team2.name');
+    //         break;
+
+    //     default:
+    //         $eventMatches = $eventMatches->orderBy('created_at');
+    //         break;
+    //     }
+
+    //     return new Paginate($eventMatches, $filters['max_eventMatch_per_page'], $filters['page'], 'eventMatches');
+    // }
+
     public function listEventMatches(array $userFilters = []): Paginate
     {
-        $eventMatches = $this->model->query();
+        $filters = array_merge(
+            $this->defaultEventMatchListFilters,
+            array_filter($userFilters, fn ($f) => $f !== null)
+        );
 
-        $filters = array_merge($this->defaultEventMatchListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+        $query = $this->model->query()
+            ->select('event_matches.*')
+            ->join('events', 'event_matches.event_id', '=', 'events.id')
+            ->whereNull('events.deleted_at');
 
-        // Search Filter
-        if (!is_null($filters['q'])) {
-            $eventMatches = $eventMatches->where(function ($query) use ($filters) {
-                $query->whereHas('team1', function ($q) use ($filters) {
-                    $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
-                })->orWhereHas('team2', function ($q) use ($filters) {
-                    $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
+        if (!empty($filters['year'])) {
+            $query->whereYear('events.event_date', $filters['year']);
+        }
+
+        if (!empty($filters['region'])) {
+            $query->where('events.region_id', $filters['region']);
+        }
+
+        if (!empty($filters['agegroup'])) {
+            $query->where('events.agegroup_id', $filters['agegroup']);
+        }
+
+        if (!empty($filters['q'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->whereHas('team1', function ($t) use ($filters) {
+                    $t->where('name', 'like', "%{$filters['q']}%");
+                })->orWhereHas('team2', function ($t) use ($filters) {
+                    $t->where('name', 'like', "%{$filters['q']}%");
                 });
             });
         }
 
         switch ($filters['sort']) {
-        case Filter::SORT_A_TO_Z:
-            $eventMatches = $eventMatches
-                ->join('teams as team1', 'event_matches.team1', '=', 'team1.id')
-                ->join('teams as team2', 'event_matches.team2', '=', 'team2.id')
-                ->select('event_matches.*')
-                ->orderBy('team1.name')
-                ->orderBy('team2.name');
-            break;
+            case Filter::SORT_A_TO_Z:
+                $query
+                    ->leftJoin('teams as t1', 'event_matches.team1', '=', 't1.id')
+                    ->leftJoin('teams as t2', 'event_matches.team2', '=', 't2.id')
+                    ->orderBy('t1.name')
+                    ->orderBy('t2.name');
+                break;
 
-        case Filter::SORT_Z_TO_A:
-            $eventMatches = $eventMatches
-                ->join('teams as team1', 'event_matches.team1', '=', 'team1.id')
-                ->join('teams as team2', 'event_matches.team2', '=', 'team2.id')
-                ->select('event_matches.*')
-                ->orderByDesc('team1.name')
-                ->orderByDesc('team2.name');
-            break;
+            case Filter::SORT_Z_TO_A:
+                $query
+                    ->leftJoin('teams as t1', 'event_matches.team1', '=', 't1.id')
+                    ->leftJoin('teams as t2', 'event_matches.team2', '=', 't2.id')
+                    ->orderByDesc('t1.name')
+                    ->orderByDesc('t2.name');
+                break;
 
-        default:
-            $eventMatches = $eventMatches->orderBy('created_at');
-            break;
+            default:
+                $query
+                    ->orderBy('events.event_date')
+                    ->orderBy('events.time');
+                break;
         }
 
-         $maxPerPage = is_null($userFilters['max_eventMatch_per_page']) ? $eventMatches->count() : $filters['max_eventMatch_per_page'];
+        $query->with([
+            'event:id,event_date,region_id,agegroup_id,time',
+            'team1:id,name',
+            'team2:id,name',
+            'field:id,name',
+        ]);
 
-        return new Paginate($eventMatches, $maxPerPage, $filters['page'], 'eventMatches');
+        return new Paginate(
+            $query,
+            $filters['max_eventMatch_per_page'],
+            $filters['page'],
+            'eventMatches'
+        );
     }
+
+
 
     public function retrieveEventMatch(int $id): EventMatch
     {
