@@ -18,7 +18,6 @@ class TeamPosition extends Model
     protected $with = [
         'team',
         'event'
-
     ];
 
     public function team()

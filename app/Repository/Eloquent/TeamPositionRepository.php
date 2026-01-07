@@ -4,9 +4,12 @@ namespace App\Repository\Eloquent;
 
 use App\Models\TeamPosition;
 use App\Models\EventMatch;
+use App\Models\Team;
+use App\Models\Event;
 use App\Modules\TeamPosition\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
+use Illuminate\Pagination\LengthAwarePaginator;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\TeamPositionRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
@@ -74,6 +77,12 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
 
         /**
          * event keyword
+         * This filters the events with a keyword. When this value is null, this filter is skipped.
+         */
+        'round' => null,
+
+        /**
+         * event keyword
          * This filters the teamPositions with a keyword. When this value is null, this filter is skipped.
          */
         'series' => null,
@@ -85,54 +94,121 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
         $this->storageService = $storageService;
     }
 
+    // public function listTeamPositions(array $userFilters = []): Paginate
+    // {
+    //     $teamPositions = $this->model->query();
+        
+        
+    //     $filters = array_merge($this->defaultTeamPositionListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+    //     // Search Filter
+    //     if (!is_null($filters['q'])) {
+    //         $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
+    //             $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
+    //         });
+    //     }
+
+    //     // Year Filter
+    //     if (!is_null($filters['year'])) {
+    //         $teamPositions = $teamPositions->whereHas('event', function ($q) use ($filters) {
+    //             $q->where('event_date', 'LIKE', '%' . $filters['year'] . '%');
+    //         });
+    //     }
+
+    //     // Event Filter
+    //     if (!is_null($filters['event'])) {
+    //         $teamPositions = $teamPositions->where(function ($q) use($filters) {
+    //             $q
+    //                 ->where('event_id', 'LIKE', '%' . $filters['event'] . '%');
+    //         });
+    //     }
+
+        
+
+    //     if (!is_null($filters['series']) || !is_null($filters['agegroup'])) {
+    //         $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
+    //             if (!is_null($filters['series'])) {
+    //                 $q->where('series_id', '=', $filters['series']);
+    //             }
+    //         });
+    //     }
+
+    //     if (!is_null($filters['agegroup']) || !is_null($filters['agegroup'])) {
+    //         $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
+    //             if (!is_null($filters['agegroup'])) {
+    //                 $q->where('agegroup_id', '=', $filters['agegroup']);
+    //             }
+    //         });
+    //     }
+
+        
+    //     switch ($filters['sort']) {
+    //         case Filter::SORT_A_TO_Z:
+    //             $teamPositions = $teamPositions->orderBy('for');
+    //             break;
+
+    //         case Filter::SORT_Z_TO_A:
+    //             $teamPositions = $teamPositions->orderByDesc('for');
+    //             break;
+
+    //         case Filter::SORT_POINTS:
+    //             $teamPositions = $teamPositions->orderByDesc('points')->orderByDesc('difference');
+    //             break;
+
+    //         default:
+    //             $teamPositions = $teamPositions->orderBy('created_at');
+    //             break;
+    //     }
+
+    //     $maxPerPage = is_null($userFilters['max_teamPosition_per_page']) ? $teamPositions->count() : $filters['max_teamPosition_per_page'];
+
+    //     return new Paginate($teamPositions, $maxPerPage, $filters['page'], 'teamPositions');
+    // }
+
     public function listTeamPositions(array $userFilters = []): Paginate
     {
         $teamPositions = $this->model->query();
-        
-        
-        $filters = array_merge($this->defaultTeamPositionListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
-        // Search Filter
+        $filters = array_merge(
+            $this->defaultTeamPositionListFilters,
+            array_filter($userFilters, fn ($f) => !is_null($f))
+        );
+
+        // Search Filter (Team Name)
         if (!is_null($filters['q'])) {
-            $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
+            $teamPositions->whereHas('team', function ($q) use ($filters) {
                 $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
             });
         }
 
-        // Year Filter
-        if (!is_null($filters['year'])) {
-            $teamPositions = $teamPositions->whereHas('event', function ($q) use ($filters) {
+        // Event-related filters
+        $teamPositions->whereHas('event', function ($q) use ($filters) {
+            if (!is_null($filters['year'])) {
                 $q->where('event_date', 'LIKE', '%' . $filters['year'] . '%');
-            });
-        }
+            }
 
-        // Event Filter
+            if (!empty($filters['round'])) {
+                $q->where('round', $filters['round']);
+            }
+        });
+
+        // Event ID filter (direct)
         if (!is_null($filters['event'])) {
-            $teamPositions = $teamPositions->where(function ($q) use($filters) {
-                $q
-                    ->where('event_id', 'LIKE', '%' . $filters['event'] . '%');
-            });
+            $teamPositions->where('event_id', $filters['event']);
         }
 
-        
+        // Team-related filters
+        $teamPositions->whereHas('team', function ($q) use ($filters) {
+            if (!is_null($filters['series'])) {
+                $q->where('series_id', $filters['series']);
+            }
 
-        if (!is_null($filters['series']) || !is_null($filters['agegroup'])) {
-            $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
-                if (!is_null($filters['series'])) {
-                    $q->where('series_id', '=', $filters['series']);
-                }
-            });
-        }
+            if (!is_null($filters['agegroup'])) {
+                $q->where('agegroup_id', $filters['agegroup']);
+            }
+        });
 
-        if (!is_null($filters['agegroup']) || !is_null($filters['agegroup'])) {
-            $teamPositions = $teamPositions->whereHas('team', function ($q) use ($filters) {
-                if (!is_null($filters['agegroup'])) {
-                    $q->where('agegroup_id', '=', $filters['agegroup']);
-                }
-            });
-        }
-
-        
+        // Sorting
         switch ($filters['sort']) {
             case Filter::SORT_A_TO_Z:
                 $teamPositions = $teamPositions->orderBy('for');
@@ -151,10 +227,83 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_teamPosition_per_page']) ? $teamPositions->count() : $filters['max_teamPosition_per_page'];
-
-        return new Paginate($teamPositions, $maxPerPage, $filters['page'], 'teamPositions');
+        return new Paginate(
+            $teamPositions,
+            $teamPositions->count(),
+            $filters['page'],
+            'teamPositions'
+        );
     }
+
+    public function listOfTeamPositions(array $userFilters = [])
+    {
+        $filters = array_merge(
+            $this->defaultTeamPositionListFilters,
+            array_filter($userFilters, fn($f) => !is_null($f))
+        );
+
+        $query = $this->model->query()
+            ->with(['team:id,name,series_id,agegroup_id', 'event:id,event_date,round']);
+
+        // Team name search
+        if (!empty($filters['q'])) {
+            $query->whereHas('team', fn($q) =>
+                $q->where('name', 'LIKE', '%' . $filters['q'] . '%')
+            );
+        }
+
+        // Event filters
+        if (!empty($filters['year'])) {
+            $query->whereHas('event', fn($q) =>
+                $q->where('event_date', 'LIKE', '%' . $filters['year'] . '%')
+            );
+        }
+        if (!empty($filters['round'])) {
+            $query->whereHas('event', fn($q) =>
+                $q->where('round', $filters['round'])
+            );
+        }
+        if (!empty($filters['event'])) {
+            $query->where('event_id', $filters['event']);
+        }
+
+        // Team filters
+        if (!empty($filters['series'])) {
+            $query->whereHas('team', fn($q) =>
+                $q->where('series_id', $filters['series'])
+            );
+        }
+        if (!empty($filters['agegroup'])) {
+            $query->whereHas('team', fn($q) =>
+                $q->where('agegroup_id', $filters['agegroup'])
+            );
+        }
+
+        // Sorting
+        switch ($filters['sort'] ?? null) {
+            case Filter::SORT_A_TO_Z:
+                $query->orderBy('for');
+                break;
+            case Filter::SORT_Z_TO_A:
+                $query->orderByDesc('for');
+                break;
+            case Filter::SORT_POINTS:
+                $query->orderByDesc('points')
+                    ->orderByDesc('difference');
+                break;
+            default:
+                $query->orderBy('created_at');
+                break;
+        }
+
+        // Fetch all records
+        $result =  $query->get();
+
+        return [
+            'all_positions' => $result
+        ];
+    }
+
 
     public function retrieveTeamPosition(int $id): TeamPosition
     {

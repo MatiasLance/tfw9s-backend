@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Models\TeamPosition;
 use App\Modules\Utility\Pagination\Paginate;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 
@@ -32,6 +33,8 @@ interface TeamPositionRepositoryInterface
      * @return Paginate<teamPosition>
      */
     public function listTeamPositions(array $userFilters = []): Paginate;
+
+    public function listOfTeamPositions(array $userFilters = []);
 
     /**
      * Retrieve an teamPosition

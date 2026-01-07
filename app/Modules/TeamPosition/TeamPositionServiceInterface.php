@@ -4,6 +4,7 @@ namespace App\Modules\TeamPosition;
 
 use App\Models\TeamPosition;
 use App\Modules\Utility\Pagination\Paginate;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 interface teamPositionServiceInterface
@@ -16,6 +17,8 @@ interface teamPositionServiceInterface
      * @return Paginate<teamPosition>
      */
     public function listTeamPositions(array $filters = []): Paginate;
+
+    public function listOfTeamPositions(array $filters = []);
 
     /**
      * Retrieve an teamPosition
