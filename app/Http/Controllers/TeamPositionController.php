@@ -27,6 +27,7 @@ class TeamPositionController extends Controller
         $agegroup = $request->query('agegroup', null);
         $series = $request->query('series', null);
         $region = $request->query('region', null);
+        $round = $request->query('round', null);
 
         $filter = [
             'q' => $query,
@@ -38,11 +39,45 @@ class TeamPositionController extends Controller
             'agegroup' => $agegroup,
             'series' => $series,
             'region' => $region,
+            'round' => $round
         ];
 
         $teamPositions = $this->teamPositionService->listTeamPositions($filter);
 
         $message->setContent(200, 'TeamPositions retrieved', '', $teamPositions->toArray());
+
+        return $message->render();
+    }
+
+    public function listOfTeamPositions(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $maxTeamPositionsPerPage = $request->query('maxTeamPositionsPerPage', null);
+        $event = $request->query('event', null);
+        $year = $request->query('year', null);
+        $agegroup = $request->query('agegroup', null);
+        $series = $request->query('series', null);
+        $region = $request->query('region', null);
+        $round = $request->query('round', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'max_teamPosition_per_page' => $maxTeamPositionsPerPage,
+            'event' => $event,
+            'year' => $year,
+            'agegroup' => $agegroup,
+            'series' => $series,
+            'region' => $region,
+            'round' => $round
+        ];
+
+        $teamPositions = $this->teamPositionService->listOfTeamPositions($filter);
+
+        $message->setContent(200, 'TeamPositions retrieved', '', $teamPositions);
 
         return $message->render();
     }

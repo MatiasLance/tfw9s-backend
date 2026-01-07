@@ -4,6 +4,7 @@ namespace App\Modules\TeamPosition;
 
 use App\Models\TeamPosition;
 use App\Modules\Utility\Pagination\Paginate;
+use Illuminate\Pagination\LengthAwarePaginator;
 use App\Repository\TeamPositionRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -24,6 +25,11 @@ class TeamPositionService implements TeamPositionServiceInterface
     public function listTeamPositions(array $filters = []): Paginate
     {
         return $this->teamPositionRepository->listTeamPositions($filters);
+    }
+
+    public function listOfTeamPositions(array $filters = [])
+    {
+        return $this->teamPositionRepository->listOfTeamPositions($filters);
     }
 
     public function retrieveTeamPosition(int $id): TeamPosition

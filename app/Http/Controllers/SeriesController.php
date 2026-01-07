@@ -47,6 +47,18 @@ class SeriesController extends Controller
         return $message->render();
     }
 
+    public function listOfSeriesName()
+    {
+        $series = Series::query()
+            ->orderBy('name')
+            ->pluck('name', 'id');
+
+        return response()->json([
+            'series' => $series
+        ]);
+    }
+
+
     public function retrieve(Message $message, int $id)
     {
         $series = $this->seriesService->retrieveSeries($id);
