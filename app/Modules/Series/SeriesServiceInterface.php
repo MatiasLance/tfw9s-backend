@@ -19,6 +19,8 @@ interface SeriesServiceInterface
      */
     public function listSeries(array $filters = []): Paginate;
 
+    public function listOfSeries(array $filters = []): Paginate;
+
     /**
      * Retrieve an Series
      *

@@ -28,6 +28,11 @@ class SeriesService implements SeriesServiceInterface
         return $this->seriesRepository->listSeries($filters);
     }
 
+    public function listOfSeries(array $filters = []): Paginate
+    {
+        return $this->seriesRepository->listOfSeries($filters);
+    }
+
     public function retrieveSeries(int $id): Series
     {
         return $this->seriesRepository->retrieveSeries($id);
