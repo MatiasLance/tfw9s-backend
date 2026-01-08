@@ -281,6 +281,10 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix("series")->group(function() {
         Route::get('/', 'App\Http\Controllers\SeriesController@list');
+        Route::prefix('paginated')->group(function() {
+            Route::get('/', 'App\Http\Controllers\SeriesController@paginatedList');
+        });
+        Route::get('/', 'App\Http\Controllers\SeriesController@list');
         Route::get('/names', 'App\Http\Controllers\SeriesController@listOfSeriesName');
         Route::get('/{id}', 'App\Http\Controllers\SeriesController@retrieve');
         Route::get('/token/{key}', 'App\Http\Controllers\SeriesController@decrypt');

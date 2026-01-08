@@ -47,6 +47,35 @@ class SeriesController extends Controller
         return $message->render();
     }
 
+    public function paginatedList(Request $request, Message $message)
+    {
+        $query = $request->query('q', null);
+        $sort = $request->query('sort', null);
+        $page = $request->query('page', null);
+        $type = $request->query('type', null);
+        $withFixing = $request->query('withFixing', null);
+        $maxSeriesPerPage = $request->query('maxSeriesPerPage', null);
+        $eventDate = $request->query('eventDate', null);
+        $isPaused = $request->query('isPaused', null);
+
+        $filter = [
+            'q' => $query,
+            'sort' => $sort,
+            'page' => $page,
+            'type' => $type,
+            'withFixing' => $withFixing,
+            'max_series_per_page' => $maxSeriesPerPage,
+            'event_date' => $eventDate,
+            'is_paused' => $isPaused,
+        ];
+
+        $series = $this->seriesService->listOfSeries($filter);
+
+        $message->setContent(200, 'Series retrieved', '', $series->toArray());
+
+        return $message->render();
+    }
+
     public function listOfSeriesName()
     {
         $series = Series::query()

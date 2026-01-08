@@ -34,6 +34,8 @@ interface SeriesRepositoryInterface
      */
     public function listSeries(array $userFilters = []): Paginate;
 
+    public function listOfSeries(array $userFilters = []): Paginate;
+
     /**
      * Retrieve an series
      *
