@@ -35,7 +35,7 @@ class PaymentService implements PaymentServiceInterface
         return $paymentGateway->createIndividualRegistration($discountcode, $item, $metadata);
     }
 
-    public function createTeamRegistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null)
+    public function createTeamRegistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null, ?string $idempotencyKey = null)
     {
         $config = [
             'currency' => $currency

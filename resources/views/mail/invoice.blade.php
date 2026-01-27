@@ -138,7 +138,7 @@
                                                 <tr>
                                                     <td style="font-size: 14px; padding: 12px 8px; text-align: center; border-bottom: 1px solid #eeeeee;">{{ $lineItem->item->name }}</td>
                                                     <td style="font-size: 14px; padding: 12px 8px; text-align: center; border-bottom: 1px solid #eeeeee;">{{ $lineItem->item->snippet }}</td>
-                                                    <td style="font-size: 14px; padding: 12px 8px; text-align: center; border-bottom: 1px solid #eeeeee;">{{ $lineItem->selectedVariant->value }}</td>
+                                                    <td style="font-size: 14px; padding: 12px 8px; text-align: center; border-bottom: 1px solid #eeeeee;">{{ $lineItem->selectedVariant && $lineItem->selectedVariant>value ?? 'No variant available' }}</td>
                                                     <td style="font-size: 14px; padding: 12px 8px; text-align: center; border-bottom: 1px solid #eeeeee;">{{ $lineItem->quantity }}</td>
                                                     <td style="font-size: 14px; padding: 12px 8px; text-align: center; border-bottom: 1px solid #eeeeee;">${{ number_format($lineItem->value, 2) }}</td>
                                                     <td style="font-size: 14px; padding: 12px 8px; text-align: center; border-bottom: 1px solid #eeeeee;">${{ number_format($lineItem->total, 2) }}</td>

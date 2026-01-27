@@ -10,6 +10,26 @@ class TeamRegistration extends Model
     use HasFactory;
 
     // protected $appends = ['teams_with_agegroups'];
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+      'transaction_id',
+      'refund_id',
+      'payment_gateway',
+      'manager_email',
+      'coach_email',
+      'item_id',
+      'price',
+      'refund',
+      'is_verified'
+    ];
+
+    protected $casts = [
+        'is_verified' => 'boolean'
+    ];
 
     public function getOrderNumberAttribute()
     {

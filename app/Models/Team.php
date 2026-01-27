@@ -11,6 +11,20 @@ class Team extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $fillable = [
+        'registration_id',
+        'name',
+        'agegroup_id',
+        'series_id',
+        'region_id',
+        'coach_name',
+        'coach_mobile',
+        'coach_email',
+        'manager_name',
+        'manager_mobile',
+        'player_limit'
+    ];
+
     protected $hidden = [
         'deleted_at',
         'created_at',

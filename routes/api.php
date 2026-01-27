@@ -143,10 +143,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/team/checkout', 'App\Http\Controllers\TeamRegistrationController@checkout');
         Route::post('/indiv/verify', 'App\Http\Controllers\IndividualRegistrationController@verify');
         Route::post('/team/verify', 'App\Http\Controllers\TeamRegistrationController@verify');
-        Route::post('/indiv/stripe/calculation', 'App\Http\Controllers\IndividualRegistrationController@initialStripeCalculation');
-        Route::post('/indiv/afterpay/calculation', 'App\Http\Controllers\IndividualRegistrationController@initialAfterPayCalculation');
-        Route::post('/team/stripe/calculation', 'App\Http\Controllers\TeamRegistrationController@initialStripeCalculation');
-        Route::post('/team/afterpay/calculation', 'App\Http\Controllers\TeamRegistrationController@initialAfterPayCalculation');
+        Route::post('/indiv/stripe/calculation', 'App\Http\Controllers\IndividualRegistrationController@initialStripeCalculation')
+             ->middleware(['throttle:calculations']);
+        Route::post('/indiv/afterpay/calculation', 'App\Http\Controllers\IndividualRegistrationController@initialAfterPayCalculation')
+             ->middleware(['throttle:calculations']);
+        Route::post('/team/stripe/calculation', 'App\Http\Controllers\TeamRegistrationController@initialStripeCalculation')
+             ->middleware(['throttle:calculations']);
+        Route::post('/team/afterpay/calculation', 'App\Http\Controllers\TeamRegistrationController@initialAfterPayCalculation')
+             ->middleware(['throttle:calculations']);
     });
 
     Route::prefix('discountcode')->group(function() {

@@ -20,8 +20,11 @@ use App\Modules\Payment\PaymentGateway;
 use App\Modules\Payment\PaymentStatus;
 use Stripe\PaymentIntent;
 use Stripe\StripeClient;
+use Stripe\Exception\ApiErrorException;
 use App\Models\IndividualRegistration;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
+use Illuminate\Support\Facades\Log;
 
 class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -327,67 +330,126 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         }
     }
 
-    public function createTeamRegistration($discountcode, string $item, array $metadata = [])
+    // public function createTeamRegistration($discountcode, string $item, array $metadata = [])
+    // {
+    //     $calculatedTotal = $this->calculateTotalTeamRegistration($item);
+
+    //     $seriesItem = [
+    //         'item_id' => $calculatedTotal['currentItem']->id,
+    //         'price' => $calculatedTotal['regularPrice'],
+    //     ];
+
+    //     $metadata['line_item'] = json_encode($seriesItem);
+
+    //     $productValue = [
+    //         'amount' => $calculatedTotal['totalPrice'],
+    //         'currency' => $this->currency,
+    //         'automatic_payment_methods' => [
+    //             'enabled' => true,
+    //         ],
+    //         'metadata' => $metadata,
+    //     ];
+
+    //     $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+
+    //     $responseValues = [
+    //         'stripeToken' => $paymentIntent->client_secret,
+    //         'paymentIntentId' => $paymentIntent->id
+    //     ];
+
+    //     return response()->json($responseValues);
+    // }
+
+    public function createTeamRegistration($discountcode, string $item, array $metadata = [], ?string $idempotencyKey = null)
     {
-        $calculatedTotal = $this->calculateTotalTeamRegistration($item);
+        if (empty($item)) {
+            throw new InvalidArgumentException('Item identifier cannot be empty');
+        }
 
-        $seriesItem = [
-            'item_id' => $calculatedTotal['currentItem']->id,
-            'price' => $calculatedTotal['regularPrice'],
-        ];
+        try {
 
-        $metadata['line_item'] = json_encode($seriesItem);
+            $calculatedTotal = $this->calculateTotalTeamRegistration($item);
 
-        $productValue = [
-            'amount' => $calculatedTotal['totalPrice'],
-            'currency' => $this->currency,
-            'automatic_payment_methods' => [
-                'enabled' => true,
-            ],
-            'metadata' => $metadata,
-        ];
+            if (!isset($calculatedTotal['currentItem'], $calculatedTotal['regularPrice'], $calculatedTotal['totalPrice'])) {
+               throw new RuntimeException('Invalid calculation response structure');
+            }
 
-        $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+            $lineItemData = [
+                'item_id' => $calculatedTotal['currentItem']->id,
+                'price' => $calculatedTotal['regularPrice'],
+            ];
 
-        $responseValues = [
-            'stripeToken' => $paymentIntent->client_secret,
-            'paymentIntentId' => $paymentIntent->id
-        ];
+            $paymentMetadata = array_merge($metadata, ['line_item' => json_encode($lineItemData)]);
 
-        return response()->json($responseValues);
+            $productValue = [
+                'amount' => $calculatedTotal['totalPrice'],
+                'currency' => $this->currency,
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+                'metadata' => $paymentMetadata,
+            ];
+
+            $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+
+            $responseValues = [
+                'stripeToken' => $paymentIntent->client_secret,
+                'paymentIntentId' => $paymentIntent->id
+            ];
+
+            return response()->json($responseValues);
+
+        } catch(ApiErrorException $e) {
+            throw new TeamRegistrationException(
+                'Payment service temporarily unavailable. Please try again.',
+                previous: $e
+            );
+        }
     }
 
     public function verifyIndividualRegistration(string $paymentIntentId): PaymentStatus
     {
         $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
+        
+        if (!$paymentIntent) {
+            throw new RuntimeException('Payment intent not found');
+        }
 
         if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
             $registrationInformation = $paymentIntent->metadata;
 
-            $lineItem = json_decode($registrationInformation->line_item, true);
-            
-            $seriesRegistered = $this->individualRegistrationService->create(
-                                            $paymentIntent->id,
-                                            self::GATEWAY,
-                                            $registrationInformation->contactFirstName,
-                                            $registrationInformation->contactLastName,
-                                            $registrationInformation->contactPhoneNumber,
-                                            $registrationInformation->contactEmail,
-                                            $registrationInformation->playerFirstName,
-                                            $registrationInformation->playerLastName,
-                                            $registrationInformation->dob,
-                                            $registrationInformation->teamName,
-                                            $registrationInformation->ageGroup,
-                                            $paymentIntent->amount,
-                                            $lineItem['item_id'],
-                                        );
+            try {
+                $lineItem = json_decode($registrationInformation->line_item, true);
+                
+                if (!isset($lineItem['item_id'])) {
+                    throw new RuntimeException('Invalid line item structure');
+                }
 
+                $seriesRegistered = $this->individualRegistrationService->create(
+                    $paymentIntent->id,
+                    self::GATEWAY,
+                    $registrationInformation->contactFirstName,
+                    $registrationInformation->contactLastName,
+                    $registrationInformation->contactPhoneNumber,
+                    $registrationInformation->contactEmail,
+                    $registrationInformation->playerFirstName,
+                    $registrationInformation->playerLastName,
+                    $registrationInformation->dob,
+                    $registrationInformation->teamName,
+                    $registrationInformation->ageGroup,
+                    $paymentIntent->amount,
+                    $lineItem['item_id'],
+                );
 
-            if (!$seriesRegistered->is_verified) {
-                $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
-                $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
-
-                $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
+                if (!$seriesRegistered->is_verified) {
+                    $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+                }else{
+                    $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
+                    $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
+                }
+            } catch (Exception $e) {
+                Log::error($e);
+                report($e);
             }
         }
 
@@ -397,32 +459,46 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     public function verifyTeamRegistration(string $paymentIntentId): PaymentStatus
     {
         $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
+        
+        if (!$paymentIntent) {
+            throw new RuntimeException('Payment intent not found');
+        }
 
         if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
             $registrationInformation = $paymentIntent->metadata;
 
-            $lineItem = json_decode($registrationInformation->line_item, true);
+            try {
+                $lineItem = json_decode($registrationInformation->line_item, true);
+                
+                if (!isset($lineItem['item_id'])) {
+                    throw new RuntimeException('Invalid line item structure');
+                }
 
-            $seriesRegistered = $this->teamRegistrationService->create(
-                                            $paymentIntent->id,
-                                            self::GATEWAY,
-                                            $registrationInformation->coachesEmail,
-                                            $registrationInformation->coachesName,
-                                            $registrationInformation->coachesPhoneNumber,
-                                            $registrationInformation->managerEmail,
-                                            $registrationInformation->managerName,
-                                            $registrationInformation->managerPhoneNumber,
-                                            $registrationInformation->teamName,
-                                            $registrationInformation->ageGroup,
-                                            $paymentIntent->amount,
-                                            $lineItem['item_id'],
-                                        );
+                $seriesRegistered = $this->teamRegistrationService->create(
+                    $paymentIntent->id,
+                    self::GATEWAY,
+                    $registrationInformation->coachesEmail,
+                    $registrationInformation->coachesName,
+                    $registrationInformation->coachesPhoneNumber,
+                    $registrationInformation->managerEmail,
+                    $registrationInformation->managerName,
+                    $registrationInformation->managerPhoneNumber,
+                    $registrationInformation->teamName,
+                    $registrationInformation->ageGroup,
+                    $paymentIntent->amount,
+                    $lineItem['item_id'],
+                );
 
+                if (!$seriesRegistered->is_verified) {
+                    $this->teamRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+                }
 
-            if (!$seriesRegistered->is_verified) {
-                $this->teamRegistrationService->markAsVerified($seriesRegistered->transaction_id);
-
+                $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
                 $this->mailService->sendTeamRegistrationInvoice($seriesRegistered);
+
+            } catch (Exception $e) {
+                Log::error($e);
+                report($e);
             }
         }
 
@@ -627,10 +703,16 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         }
     }
     
-    public function updateAmount(string $paymentIntent, array $updateParams): bool
+    public function updateAmount(string $paymentIntentId, array $updateParams): bool
     {
-        $paymentIntent = $this->stripe->paymentIntents->update($paymentIntent, $updateParams);
-        return true;
+        try {
+            $this->stripe->paymentIntents->update($paymentIntentId, $updateParams);
+            return true;
+        } catch (ApiErrorException $e) {
+            Log::error($e);
+            report($e);
+            return false;
+        }
     }
 
     public function registrationRefund(string $transaction_id, int $amount): ?string
@@ -641,7 +723,8 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 'amount' => $amount,
             ]);
             return $refund->id;
-        } catch (\Stripe\Exception\ApiErrorException $e) {
+        } catch (ApiErrorException $e) {
+            Log::error($e);
             return null;
         }
     }
@@ -651,25 +734,33 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         try {
             $refund = $this->stripe->refunds->cancel($refund_id, []);
             return $refund->id;
-        } catch (\Stripe\Exception\ApiErrorException $e) {
-
+        } catch (ApiErrorException $e) {
+            Log::error($e);
             return null;
         }
     }
     
-    private function incrementMaxRegistrationIfAllowed(int $seriesId): void
+    protected function incrementMaxRegistrationIfAllowed(int $seriesId): void
     {
-        $series = Series::with('ageGroup')->findOrFail($seriesId);
-    
-        if ($series->type !== 'weekly' || !$series->ageGroup) {
-            return;
-        }
-    
-        $maxAge = $series->ageGroup->max_age;
-        $cap = ($maxAge <= 9) ? 12 : 15;
-    
-        if ($series->max_registration < $cap) {
-            $series->increment('max_registration');
+        try {
+            $series = Series::with('ageGroup')->findOrFail($seriesId);
+        
+            if ($series->type !== 'weekly' || !$series->ageGroup) {
+                return;
+            }
+        
+            $maxAge = $series->ageGroup->max_age;
+            $cap = ($maxAge <= 9) ? 12 : 15;
+        
+            if ($series->max_registration < $cap) {
+                $series->increment('max_registration');
+            }
+        } catch (ModelNotFoundException $e) {
+            Log::error($e);
+            report($e);
+        } catch (Exception $e) {
+            Log::error($e);
+            report($e);
         }
     }
     

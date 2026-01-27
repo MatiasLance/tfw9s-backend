@@ -73,6 +73,7 @@
                                                         @foreach($order->players as $player)
                                                             <div><span style="font-weight: bold; display: block;">Player Name:</span>
                                                             {{ ($player->player_firstname ?? 'unknown') . ' ' . ($player->player_lastname ?? 'unknown') }}
+                                                            @dd($player->player_firstname)
                                                             </div>
                                                         @endforeach
                                                     @else
@@ -213,7 +214,7 @@
                                         <tbody>
                                             <tr>
                                                 <td colspan="2" style="font-size: 16px; font-weight: bold; color: #666666; padding-bottom: 0.7rem;">
-                                                    Payment Method ({{ ucfirst($order->payment_gateway->value) }})
+                                                    Payment Method ({{ ucfirst($order->payment_gateway) }})
                                                 </td>
                                             </tr>
                                             <tr>
