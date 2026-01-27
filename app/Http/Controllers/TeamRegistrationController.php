@@ -26,12 +26,19 @@ class TeamRegistrationController extends Controller
 
     public function checkout(Request $request)
     {
-        $item = $request->input('item');
-        $metadata = $request->input('metadata', []);
-        $paymentMethod = $request->input('payment_method');
-        $discountcode = $request->input('discountcode');
+        $validated = $request->validate([
+            'item' => 'required|integer|exists:series,id',
+            'payment_method' => 'required|string',
+            'metadata' => 'nullable|array',
+            'discountcode' => 'nullable|string',
+        ]);
 
-        return $this->paymentService->createTeamRegistration($discountcode, $paymentMethod, $item, $metadata);
+        return $this->paymentService->createTeamRegistration(
+            $validated['discountcode'] ?? null,
+            $validated['payment_method'],
+            $validated['item'],
+            $validated['metadata'] ?? []
+        );
     }
 
     public function verify(Request $request, Message $message)

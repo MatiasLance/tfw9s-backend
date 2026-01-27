@@ -22,62 +22,82 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
 
     public function findByTransactionId(string $transactionId): ?TeamRegistration
     {
-    return $this->model->where('transaction_id', $transactionId)->first();
+        return $this->model
+            ->where('transaction_id', $transactionId)
+            ->first();
     }
 
-    public function create(string $paymentIntentId, PaymentGateway $gateway, string $coachesEmail, string $coachesName, string $coachesPhoneNumber, string $managerEmail, string $managerName, string $managerPhoneNumber, string $teamName, string $ageGroup, int $amount, int $item_id)
-    {
+    public function create(
+        string $paymentIntentId,
+        PaymentGateway $gateway,
+        string $coachesEmail,
+        string $coachesName,
+        string $coachesPhoneNumber,
+        string $managerEmail,
+        string $managerName,
+        string $managerPhoneNumber,
+        string $teamName,
+        string $ageGroup,
+        int $amount,
+        int $item_id
+    ): TeamRegistration {
         $existingRegistration = $this->findByTransactionId($paymentIntentId);
 
-        if (!is_null($existingRegistration)) {
-          return $existingRegistration;
+        if ($existingRegistration !== null) {
+            return $existingRegistration;
         }
 
-        $reg = new TeamRegistration();
-        $reg->transaction_id = $paymentIntentId;
-        $reg->payment_gateway = $gateway;
-        $reg->coach_email = $coachesEmail;
-        $reg->manager_email = $managerEmail;
-        $reg->price = $amount;
-        $reg->item_id = $item_id;
-        $reg->is_verified = false;
+        return DB::transaction(function () use (
+            $paymentIntentId,
+            $gateway,
+            $coachesEmail,
+            $coachesName,
+            $coachesPhoneNumber,
+            $managerEmail,
+            $managerName,
+            $managerPhoneNumber,
+            $teamName,
+            $ageGroup,
+            $amount,
+            $item_id
+        ) {
+            $reg = $this->model->create([
+                'transaction_id' => $paymentIntentId,
+                'payment_gateway' => $gateway->value,
+                'coach_email' => $coachesEmail,
+                'manager_email' => $managerEmail,
+                'price' => $amount,
+                'item_id' => $item_id,
+                'is_verified' => false,
+            ]);
 
-        $team = new Team();
-        $team->coach_email = $coachesEmail;
-        $team->coach_name = $coachesName;
-        $team->coach_mobile = $coachesPhoneNumber;
-        $team->manager_email = $managerEmail;
-        $team->manager_name = $managerName;
-        $team->manager_mobile = $managerPhoneNumber;
-        $team->series_id = $item_id;
-        $team->name = $teamName;
-        $team->agegroup_id = $ageGroup;
+            Team::create([
+                'registration_id' => $reg->id,
+                'coach_email' => $coachesEmail,
+                'coach_name' => $coachesName,
+                'coach_mobile' => $coachesPhoneNumber,
+                'manager_email' => $managerEmail,
+                'manager_name' => $managerName,
+                'manager_mobile' => $managerPhoneNumber,
+                'series_id' => $item_id,
+                'name' => $teamName,
+                'agegroup_id' => $ageGroup,
+            ]);
 
-        $teamLimit = TeamLimit::where('series_id', $item_id)
-            ->whereHas('ageGroups', function ($query) use ($ageGroup) {
-            $query->where('agegroup_id', $ageGroup);
-        })
-        ->first();
+            TeamLimit::where('series_id', $item_id)
+                ->whereHas('ageGroups', fn($query) => $query->where('agegroup_id', $ageGroup))
+                ->increment('teamcount');
 
-        DB::transaction(function() use ($reg, $team, $teamLimit) {
-            $reg->save();
-            $team->registration_id = $reg->id;
-            $team->save();
-
-            $teamLimit->teamcount += 1;
-            $teamLimit->save();
+            return $reg;
         });
-
-        return $reg;
     }
 
     public function markAsVerified(string $transactionId): bool
     {
-        $seriesRegistration = $this->findByTransactionId($transactionId);
-        $seriesRegistration->is_verified = true;
-
-        return DB::transaction(function() use($seriesRegistration) {
-            return $seriesRegistration->save();
+        return DB::transaction(function () use ($transactionId) {
+            return $this->model
+                ->where('transaction_id', $transactionId)
+                ->update(['is_verified' => true]) > 0;
         });
     }
 
