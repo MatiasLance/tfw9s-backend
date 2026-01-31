@@ -443,7 +443,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
                 if (!$seriesRegistered->is_verified) {
                     $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
-                }else{
                     $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
                     $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
                 }
@@ -491,10 +490,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
                 if (!$seriesRegistered->is_verified) {
                     $this->teamRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+                    $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
+                    $this->mailService->sendTeamRegistrationInvoice($seriesRegistered);
                 }
-
-                $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
-                $this->mailService->sendTeamRegistrationInvoice($seriesRegistered);
 
             } catch (Exception $e) {
                 Log::error($e);

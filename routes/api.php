@@ -411,4 +411,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/sendSMSNotification', 'App\Http\Controllers\SMSController@sendLinkViaSMS');
         Route::post('/testSendSMSNotification', 'App\Http\Controllers\SMSController@testTwilioConnection');
     });
+
+    Route::post('/registration-form-status', 'App\Http\Controllers\RegistrationFormStatusController@store');
+
+    Route::get('/registration-form-status/{id}', 'App\Http\Controllers\RegistrationFormStatusController@retrieve');
 });
