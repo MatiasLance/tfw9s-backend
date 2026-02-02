@@ -65,6 +65,11 @@ class Series extends Model
         return $this->belongsTo(AgeGroup::class, 'agegroup_id');
     }
 
+    public function registrationFormStatus()
+    {
+        return $this->hasOne(RegistrationFormStatus::class, 'series_id');
+    }
+
     public function getThumbnailAttribute()
     {
         $media = $this->media;
