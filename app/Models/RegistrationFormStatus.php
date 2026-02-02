@@ -21,8 +21,8 @@ class RegistrationFormStatus extends Model
         'series_id' => 'integer'
     ];
 
-    public function series()
-    {
-        $this->hasOne(Series::class, 'seried_id', 'id');
-    }
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }
