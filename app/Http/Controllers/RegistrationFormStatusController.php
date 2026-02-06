@@ -8,9 +8,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 use ModelNotFoundException;
+use App\Services\NotifyService;
 
 class RegistrationFormStatusController extends Controller
 {
+
+    protected $notifyService;
+
+    public function __construct(NotifyService $notifyService)
+    {
+        $this->notifyService = $notifyService;
+    }
+
     public function retrieve(int $id)
     {
 
@@ -45,6 +54,19 @@ class RegistrationFormStatusController extends Controller
         }
 
         $isEnabled = $timer->is_show_count_down_timer;
+
+        $data = [
+            'success' => true,
+            'message' => $isEnabled 
+                ? 'Countdown timer is currently enabled.' 
+                : 'Countdown timer is currently disabled.',
+            'data' => [
+                'is_show_count_down_timer' => $isEnabled,
+                'date' => $timer->date ? $timer->date->format('Y-m-d') : null,
+            ]
+        ];
+
+        $this->notifyService->sendNotification($data);
         
         return response()->json([
             'success' => true,
@@ -92,12 +114,14 @@ class RegistrationFormStatusController extends Controller
             if($response->is_show_count_down_timer){
                 return response()->json([
                     'success' => true,
-                    'message' => 'Registration countdown timer is has been turned on.'
+                    'message' => 'Registration countdown timer is has been turned on.',
+                    'id' => $response->series_id
                 ]);
             }else{
                 return response()->json([
                     'success' => false,
-                    'message' => 'The registration countdown timer has been successfully turned off.'
+                    'message' => 'The registration countdown timer has been successfully turned off.',
+                    'id' => $response->series_id
                 ]);
             }
 
