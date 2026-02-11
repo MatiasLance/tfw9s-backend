@@ -19,4 +19,19 @@ class NotifyService
             ]
         ]);
     }
+
+    public function sendNotificationForRegistrationAvailability(array $data)
+    {
+        $url = env('SOCKET_URL', 'http://socket:3001') . '/check-registration-availability';
+        
+        Http::post($url, [
+            'event' => 'registration-form-availability',
+            'payload' => [
+                'available' => $data['available'],
+                'current_count' => $data['current_count'],
+                'remaining_slots' => $data['remaining_slots'],
+                'max_teams' => $data['max_teams']
+            ]
+        ]);
+    }
 }

@@ -25,6 +25,7 @@ use App\Models\IndividualRegistration;
 use Ramsey\Uuid\Uuid;
 use RuntimeException;
 use Illuminate\Support\Facades\Log;
+use App\Models\WaitingLounge;
 
 class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -360,14 +361,13 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     //     return response()->json($responseValues);
     // }
 
-    public function createTeamRegistration($discountcode, string $item, array $metadata = [], ?string $idempotencyKey = null)
+    public function createTeamRegistration($discountcode, string $item, array $metadata = [], ?string $clientToken)
     {
         if (empty($item)) {
             throw new InvalidArgumentException('Item identifier cannot be empty');
         }
 
         try {
-
             $calculatedTotal = $this->calculateTotalTeamRegistration($item);
 
             if (!isset($calculatedTotal['currentItem'], $calculatedTotal['regularPrice'], $calculatedTotal['totalPrice'])) {
@@ -379,7 +379,10 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 'price' => $calculatedTotal['regularPrice'],
             ];
 
-            $paymentMetadata = array_merge($metadata, ['line_item' => json_encode($lineItemData)]);
+            $paymentMetadata = array_merge($metadata, [
+              'line_item' => json_encode($lineItemData),
+              'client_token' => $clientToken
+            ]);
 
             $productValue = [
                 'amount' => $calculatedTotal['totalPrice'],
@@ -492,6 +495,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                     $this->teamRegistrationService->markAsVerified($seriesRegistered->transaction_id);
                     $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
                     $this->mailService->sendTeamRegistrationInvoice($seriesRegistered);
+
+                    // Clean up lounge now that they are officially "checking out"
+                    WaitingLounge::where('client_id', $registrationInformation->client_token)->delete();
                 }
 
             } catch (Exception $e) {

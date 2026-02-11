@@ -45,7 +45,7 @@ interface PaymentServiceInterface
      */
     public function createIndividualRegistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null);
 
-    public function createTeamRegistration($discountcode, string $gateway, string $item, array $metadata = [], $currency = null, ?string $idempotencyKey = null);
+    public function createTeamRegistration($discountcode, string $gateway, string $item, array $metadata = [], string $token);
 
 
     /**

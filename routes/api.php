@@ -412,7 +412,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/testSendSMSNotification', 'App\Http\Controllers\SMSController@testTwilioConnection');
     });
 
-    Route::post('/registration-form-status', 'App\Http\Controllers\RegistrationFormStatusController@store');
+    Route::prefix('registration-form-status')->group(function() {
+        Route::post('/', 'App\Http\Controllers\RegistrationFormStatusController@store');
+        Route::get('/{id}', 'App\Http\Controllers\RegistrationFormStatusController@retrieve');
+    });
 
-    Route::get('/registration-form-status/{id}', 'App\Http\Controllers\RegistrationFormStatusController@retrieve');
+    Route::prefix('lounge')->group(function() {
+        Route::post('/check', 'App\Http\Controllers\LoungeController@checkQueue');
+        Route::get('/stats/{itemId}', 'App\Http\Controllers\LoungeController@getLiveStats');
+    });
 });

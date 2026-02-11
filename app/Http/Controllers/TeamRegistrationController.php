@@ -9,6 +9,8 @@ use App\Models\DiscountCode;
 use App\Models\ToggleTaxControl;
 use App\Modules\Payment\PaymentServiceInterface;
 use App\Modules\Http\Message;
+use App\Models\TeamLimit;
+use App\Models\WaitingLounge;
 
 class TeamRegistrationController extends Controller
 {
@@ -31,13 +33,44 @@ class TeamRegistrationController extends Controller
             'payment_method' => 'required|string',
             'metadata' => 'nullable|array',
             'discountcode' => 'nullable|string',
+            'lounge_token' => 'nullable|string',
+            'client_id' => 'nullable|string'
         ]);
+
+        try {
+            $tokenData = decrypt($validated['lounge_token']);
+
+            if ($tokenData['id'] !== $validated['client_id'] || $tokenData['exp'] < now()->timestamp) {
+                return response()->json([
+                  'success' => false,
+                  'message' => 'Queue session expired. Please re-enter the lounge.'
+                ]);
+            }
+
+            $hasActiveSlot = WaitingLounge::where('client_id', $validated['client_id'])
+                ->where('series_id', $validated['item'])
+                ->exists();
+
+            if (!$hasActiveSlot) {
+                return response()->json([
+                  'success' => false,
+                  'message' => 'Your checkout window has timed out.'
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid security token.'
+            ]);
+        }
 
         return $this->paymentService->createTeamRegistration(
             $validated['discountcode'] ?? null,
             $validated['payment_method'],
             $validated['item'],
-            $validated['metadata'] ?? []
+            $validated['metadata'] ?? [],
+            $validated['client_id']
         );
     }
 
@@ -141,4 +174,18 @@ class TeamRegistrationController extends Controller
         ]);
     }
 
+    /**
+     * Determines if the lounge should be enforced.
+     * We trigger this when spots are getting low (e.g., less than 5 left).
+     */
+    protected function isLoungeRequired($seriesId)
+    {
+        $limit = TeamLimit::where('series_id', $seriesId)->first();
+        
+        if (!$limit) return false;
+
+        $remaining = $limit->team_limit - $limit->teamcount;
+
+        return $remaining <= 5; 
+    }
 }
