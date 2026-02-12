@@ -44,15 +44,6 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 COPY . .
 
-ARG USER_ID
-ARG GROUP_ID
-
-RUN groupadd -g $GROUP_ID lance && \
-    useradd -l -u $USER_ID -g $GROUP_ID -m -s /bin/bash lance && \
-    chown -R lance:lance /var/www/html
-
-USER lance
-
 EXPOSE 9000
 
 CMD ["php-fpm"]
