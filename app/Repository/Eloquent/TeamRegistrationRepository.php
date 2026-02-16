@@ -84,9 +84,9 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
                 'agegroup_id' => $ageGroup,
             ]);
 
-            // TeamLimit::where('series_id', $item_id)
-            //     ->whereHas('ageGroups', fn($query) => $query->where('agegroup_id', $ageGroup))
-            //     ->increment('teamcount');
+            TeamLimit::where('series_id', $item_id)
+                ->whereHas('ageGroups', fn($query) => $query->where('agegroup_id', $ageGroup))
+                ->increment('teamcount');
 
             return $reg;
         });
