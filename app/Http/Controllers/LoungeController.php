@@ -6,10 +6,18 @@ use Illuminate\Http\Request;
 use App\Models\WaitingLounge;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\NotifyService;
 
 class LoungeController extends Controller
 {
     const MAX_ACTIVE_CHECKOUTS = 5; 
+
+    protected $notifyService;
+
+    public function __construct(NotifyService $notifyService)
+    {
+        $this->notifyService = $notifyService;
+    }
 
     public function checkQueue(Request $request)
     {
@@ -60,6 +68,14 @@ class LoungeController extends Controller
         $activeInLounge = WaitingLounge::where('series_id', $itemId)
             ->where('expires_at', '>', now())
             ->count();
+        
+        $data = [
+            'active_shoppers' => $activeInLounge,
+            'slots_available' => max(0, self::MAX_ACTIVE_CHECKOUTS - $activeInLounge),
+            'total_limit' => self::MAX_ACTIVE_CHECKOUTS
+        ];
+
+        $this->notifyService->sendNotificationForLoungeStatus($data);
 
         return response()->json([
             'active_shoppers' => $activeInLounge,

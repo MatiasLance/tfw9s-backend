@@ -26,6 +26,8 @@ use Ramsey\Uuid\Uuid;
 use RuntimeException;
 use Illuminate\Support\Facades\Log;
 use App\Models\WaitingLounge;
+use App\Jobs\SendTeamRegistrationInvoice;
+use App\Models\TeamRegistration;
 
 class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -460,6 +462,11 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
     public function verifyTeamRegistration(string $paymentIntentId): PaymentStatus
     {
+        $existingRegistration = TeamRegistration::where('transaction_id', $paymentIntentId)->first();
+        if ($existingRegistration && $existingRegistration->is_verified) {
+            return 'complete';
+        }
+
         $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
         
         if (!$paymentIntent) {
@@ -494,7 +501,8 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 if (!$seriesRegistered->is_verified) {
                     $this->teamRegistrationService->markAsVerified($seriesRegistered->transaction_id);
                     $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
-                    $this->mailService->sendTeamRegistrationInvoice($seriesRegistered);
+                    // $this->mailService->sendTeamRegistrationInvoice($seriesRegistered);
+                    SendTeamRegistrationInvoice::dispatch($seriesRegistered);
 
                     // Clean up lounge now that they are officially "checking out"
                     WaitingLounge::where('client_id', $registrationInformation->client_token)->delete();

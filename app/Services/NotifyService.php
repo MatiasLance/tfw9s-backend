@@ -20,17 +20,16 @@ class NotifyService
         ]);
     }
 
-    public function sendNotificationForRegistrationAvailability(array $data)
+    public function sendNotificationForLoungeStatus(array $data)
     {
-        $url = env('SOCKET_URL', 'http://socket:3001') . '/check-registration-availability';
+        $url = env('SOCKET_URL', 'http://socket:3001') . '/lounge-status';
         
         Http::post($url, [
-            'event' => 'registration-form-availability',
+            'event' => 'check-lounge-status',
             'payload' => [
-                'available' => $data['available'],
-                'current_count' => $data['current_count'],
-                'remaining_slots' => $data['remaining_slots'],
-                'max_teams' => $data['max_teams']
+                'active_shoppers' => $data['active_shoppers'],
+                'slots_available' => $data['slots_available'],
+                'total_limit' => $data['total_limit']
             ]
         ]);
     }
