@@ -464,7 +464,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     {
         $existingRegistration = TeamRegistration::where('transaction_id', $paymentIntentId)->first();
         if ($existingRegistration && $existingRegistration->is_verified) {
-            return 'complete';
+            return $this->matchStatus('succeeded');
         }
 
         $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
