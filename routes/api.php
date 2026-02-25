@@ -245,6 +245,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/update/{id}', 'App\Http\Controllers\EventMatchController@updatescore');
         Route::post('/{id}', 'App\Http\Controllers\EventMatchController@storeResult');
         Route::post('/updateresult/{id}', 'App\Http\Controllers\EventMatchController@updatedResult');
+        Route::post('/revert/{id}', 'App\Http\Controllers\EventMatchController@revertResultSubmitted');
     });
 
     Route::prefix("partnersponsors")->group(function() {

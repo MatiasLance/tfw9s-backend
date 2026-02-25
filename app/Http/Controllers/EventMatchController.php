@@ -103,6 +103,47 @@ class EventMatchController extends Controller
         return $message->render();
     }
 
+    public function revertResultSubmitted($id)
+    {
+        $eventMatch = EventMatch::find('id', $id);
+
+        if(!$eventMatch){
+            return response()->json([
+                'success' => false,
+                'message' => 'Match not found.'
+            ]);
+        }
+
+        if (!$match->submitted) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Result is not submitted yet.'
+            ]);
+        }
+
+        try {
+            DB::transaction(function () use ($match) {
+                $match->update([
+                    'submitted' => 0,
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Result reverted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Failed to revert match {$id}: " . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to revert result due to a server error.'
+            ], 500);
+        }
+
+    }
+
 }
 
 
