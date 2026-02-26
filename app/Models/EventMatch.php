@@ -21,6 +21,7 @@ class EventMatch extends Model
         'field_id',
         'team1',
         'team2',
+        'submitted',
     ];
 
     protected $with = [

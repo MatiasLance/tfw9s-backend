@@ -6,6 +6,9 @@ use App\Modules\Http\Message;
 use App\Modules\EventMatch\EventMatchServiceInterface;
 use Illuminate\Http\Request;
 use App\Models\EventMatch;
+use Illuminate\Support\Facades\DB;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class EventMatchController extends Controller
 {
@@ -103,9 +106,9 @@ class EventMatchController extends Controller
         return $message->render();
     }
 
-    public function revertResultSubmitted($id)
+    public function revertResultSubmitted(int $id)
     {
-        $eventMatch = EventMatch::find('id', $id);
+        $eventMatch = EventMatch::find($id);
 
         if(!$eventMatch){
             return response()->json([
@@ -114,7 +117,7 @@ class EventMatchController extends Controller
             ]);
         }
 
-        if (!$match->submitted) {
+        if (!$eventMatch->submitted) {
             return response()->json([
                 'success' => true,
                 'message' => 'Result is not submitted yet.'
@@ -122,8 +125,8 @@ class EventMatchController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($match) {
-                $match->update([
+            DB::transaction(function () use ($eventMatch) {
+                $eventMatch->update([
                     'submitted' => 0,
                 ]);
             });
