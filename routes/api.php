@@ -422,4 +422,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/check', 'App\Http\Controllers\LoungeController@checkQueue');
         Route::get('/stats/{itemId}', 'App\Http\Controllers\LoungeController@getLiveStats');
     });
+
+    Route::get('/api/version', function () {
+        return response()->json([
+            'version' => config('app.version', '1.0.0'),
+            'timestamp' => now()->toIso8601String()
+        ]);
+    });
 });

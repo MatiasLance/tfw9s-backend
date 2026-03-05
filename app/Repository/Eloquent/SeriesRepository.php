@@ -234,11 +234,11 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         }
 
         if (!empty($filters['type'])) {
-            $series->where('type', 'LIKE', "%{$filters['type']}%");
+            $series->where('type', $filters['type']);
         }
 
         if (!empty($filters['event_date'])) {
-            $series->where('start', 'LIKE', "%{$filters['event_date']}%");
+            $series->whereDate('start', $filters['event_date']);
         }
 
         if (isset($filters['is_paused'])) {
