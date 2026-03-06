@@ -58,8 +58,6 @@ class RegistrationFormStatusController extends Controller
         }
 
         $isEnabled = (bool) $timer->is_show_count_down_timer;
-        
-        // $formattedDate = $timer->opens_at ? $timer->opens_at->format('Y-m-d\TH:i') : null;
 
         $responseData = [
             'success' => true,
@@ -72,7 +70,7 @@ class RegistrationFormStatusController extends Controller
                 'timerMode' => $timer->timer_mode ?? ($timer->opens_at ? 'date' : 'duration'),
                 'countdownUnit' => $timer->countdown_unit ?? 'days',
                 'countdownValue' => $timer->countdown_value ?? 1,
-                'date' => $timer->opens_at,
+                'date' => $timer->opens_at ? $timer->opens_at->format('Y-m-d\TH:i') : null,
             ]
         ];
 
