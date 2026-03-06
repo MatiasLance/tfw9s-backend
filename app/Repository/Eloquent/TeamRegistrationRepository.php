@@ -38,6 +38,7 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
         string $managerPhoneNumber,
         string $teamName,
         string $ageGroup,
+        string $pool,
         int $amount,
         int $item_id
     ): TeamRegistration {
@@ -58,6 +59,7 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
             $managerPhoneNumber,
             $teamName,
             $ageGroup,
+            $pool,
             $amount,
             $item_id,
         ) {
@@ -82,6 +84,7 @@ class TeamRegistrationRepository extends BaseRepository implements TeamRegistrat
                 'series_id' => $item_id,
                 'name' => $teamName,
                 'agegroup_id' => $ageGroup,
+                'pool' => $pool
             ]);
 
             TeamLimit::where('series_id', $item_id)

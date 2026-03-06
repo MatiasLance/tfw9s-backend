@@ -22,7 +22,8 @@ class Team extends Model
         'coach_email',
         'manager_name',
         'manager_mobile',
-        'player_limit'
+        'player_limit',
+        'pool'
     ];
 
     protected $hidden = [
