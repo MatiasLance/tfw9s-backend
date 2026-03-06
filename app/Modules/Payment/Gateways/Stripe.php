@@ -494,6 +494,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                     $registrationInformation->managerPhoneNumber,
                     $registrationInformation->teamName,
                     $registrationInformation->ageGroup,
+                    $registrationInformation->pool,
                     $paymentIntent->amount,
                     $lineItem['item_id'],
                 );

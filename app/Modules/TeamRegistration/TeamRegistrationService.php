@@ -38,6 +38,7 @@ class TeamRegistrationService implements TeamRegistrationServiceInterface
         string $managerPhoneNumber,
         string $teamName,
         string $ageGroup,
+        string $pool,
         int $amount,
         int $item_id
     )
@@ -53,6 +54,7 @@ class TeamRegistrationService implements TeamRegistrationServiceInterface
             $coachesPhoneNumber,
             $teamName,
             $ageGroup,
+            $pool,
             $amount,
             $item_id
         );

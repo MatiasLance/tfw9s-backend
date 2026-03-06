@@ -47,6 +47,7 @@ interface TeamRegistrationServiceInterface
         string $managerPhoneNumber,
         string $teamName,
         string $ageGroup,
+        string $pool,
         int $amount,
         int $item_id
     );
