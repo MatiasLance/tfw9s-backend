@@ -255,16 +255,17 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         });
     }
 
-    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool
+    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool
     {
         $eventMatch = $this->find($id);
+
         $event_id = $eventMatch->event_id;
 
-        $eventMatch->team1_oldScore = $eventMatch->team1_score;
+        $eventMatch->team1_oldScore =  $eventMatch->team1_score;
         $eventMatch->team2_oldScore = $eventMatch->team2_score;
 
-        $eventMatch->team1_score = $team1_score;
-        $eventMatch->team2_score = $team2_score;
+        $eventMatch->team1_score =  $isAbandonedMatch  ? $team1_score + 1 : $team1_score;
+        $eventMatch->team2_score = $isAbandonedMatch ? $team2_score + 1 : $team1_score;
 
         if ($team1_score > $team2_score) {
             $eventMatch->winner = $eventMatch->team1;
@@ -277,6 +278,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             $eventMatch->losser = null;
         }
         $eventMatch->isDraw = ($team1_score == $team2_score);
+        $eventMatch->is_abandoned_match = $isAbandonedMatch;
 
         return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id) {
             $eventMatch->save();
@@ -305,7 +307,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
                         $addLoseCount2 = 'loss + ' . 0;
                         $addDrawCount1 = 'draw + ' . 0;
                         $addDrawCount2 = 'draw + ' . 0;
-                    } elseif ($t1OldScore < $t2OldScore) {
+                    } elseif ($t1OldScore < $t2OldScore) {  
                         $addWinCount1 = 'win + ' . 1;
                         $addWinCount2 = 'win - ' . 1;
                         $addLoseCount1 = 'loss - ' . 1;

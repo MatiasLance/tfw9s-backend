@@ -76,7 +76,7 @@ interface EventMatchRepositoryInterface
      *
      * @return bool
      */
-    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool;
+    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool;
 
     /**
      * Update an existing eventMatch instance
