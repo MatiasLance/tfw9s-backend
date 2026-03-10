@@ -62,7 +62,7 @@ interface EventMatchServiceInterface
      *
      * @return bool
      */
-    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool;
+    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool;
 
     /**
      * Create a new EventMatch

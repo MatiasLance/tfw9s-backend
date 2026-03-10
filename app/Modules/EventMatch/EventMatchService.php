@@ -39,9 +39,9 @@ class EventMatchService implements EventMatchServiceInterface
         return $this->eventMatchRepository->updateEventMatch($id, $event_id, $field_id, $team1, $team2);
     }
 
-    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score): bool
+    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool
     {
-        return $this->eventMatchRepository->updateEventMatchScore($id, $team1_score, $team2_score);
+        return $this->eventMatchRepository->updateEventMatchScore($id, $team1_score, $team2_score, $isAbandonedMatch);
     }
 
     public function storeResult(int $id, int $team1_score, int $team2_score): bool
