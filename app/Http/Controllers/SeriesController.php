@@ -80,7 +80,15 @@ class SeriesController extends Controller
     {
         $series = Series::query()
             ->orderBy('name')
-            ->pluck('name', 'id');
+            ->get()
+            ->map(function($series) {
+                return [
+                    'id' => $series->id,
+                    'name' => $series->name,
+                    'start' => $series->start,
+                    'end' => $series->end
+                ];
+            });
 
         return response()->json([
             'series' => $series
