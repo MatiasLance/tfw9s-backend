@@ -38,7 +38,8 @@ class Item extends Model
 
     protected $casts = [
         'is_featured' => 'boolean',
-        'isHideOutOfStock' => 'boolean'
+        'isHideOutOfStock' => 'boolean',
+        'colors' => 'array',
     ];
 
     public function price(): Attribute

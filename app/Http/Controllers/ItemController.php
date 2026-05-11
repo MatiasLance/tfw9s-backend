@@ -89,6 +89,14 @@ class ItemController extends Controller
         if ($request->has('size_variants')) {
             $sizeVariants = json_decode($request->input('size_variants'), true) ?? [];
         }
+
+        $colors = [];
+        if ($request->has('colors')) {
+            $decoded = json_decode($request->input('colors'), true);
+            if (is_array($decoded)) {
+                $colors = array_values(array_filter($decoded, 'is_string'));
+            }
+        }
         
         $categories = array_map(function($id) {
             return $this->categoryService->retrieveCategory(intval($id));
@@ -108,7 +116,8 @@ class ItemController extends Controller
             $categories, 
             $shippingId, 
             $tags,
-            $sizeVariants
+            $sizeVariants,
+            $colors
         );
 
         if ($item instanceof Item) {
@@ -270,6 +279,14 @@ class ItemController extends Controller
             $sizeVariants = json_decode($request->input('size_variants'), true) ?? [];
         }
 
+        $colors = [];
+        if ($request->has('colors')) {
+            $decoded = json_decode($request->input('colors'), true);
+            if (is_array($decoded)) {
+                $colors = array_values(array_filter($decoded, 'is_string'));
+            }
+        }
+
         $isSuccess = $this->itemService->updateItem(
             $id, 
             $name, 
@@ -285,7 +302,8 @@ class ItemController extends Controller
             $categories, 
             $shippingId, 
             $tags,
-            $sizeVariants
+            $sizeVariants,
+            $colors
         );
 
         if ($isSuccess) {

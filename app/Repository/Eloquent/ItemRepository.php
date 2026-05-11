@@ -264,6 +264,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         return $this->find($id)
                     ->load([
                         'parent:id,name',
+                        'categories:id,name,parent_id'
                     ])
                     ->append([
                         'categoryLineages',
@@ -288,7 +289,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     array $categories, 
     string $shippingId, 
     array $tags,
-    array $sizeVariants = []
+    array $sizeVariants = [],
+    array $colors = []
     ): Item
     {
         $item = new Item();
@@ -302,6 +304,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $item->is_on_sale = $isOnSale;
         $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
+        $item->colors = $colors;
 
         return DB::transaction(function() use($item, $categories, $tags, $media, $sizeVariants) {
             $item->save();
@@ -446,7 +449,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         array $categories, 
         string $shippingId, 
         array $tags,
-        array $sizeVariants = []
+        array $sizeVariants = [],
+        array $colors = []
     ): bool
     {
         $item = $this->find($id);
@@ -460,6 +464,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $item->is_on_sale = $isOnSale;
         $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
+        $item->colors = $colors;
 
         return DB::transaction(function() use($item, $categories, $tags, $media, $sizeVariants) {
             $item->categories()->detach();
