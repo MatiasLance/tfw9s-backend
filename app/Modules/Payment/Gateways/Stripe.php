@@ -153,6 +153,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 'size_variant_id' => $sizeVariantId,
                 'price' => $price,
                 'quantity' => $item['quantity'],
+                'selected_color' => $item['color']
             ];
 
             array_push($lineItems, $lineItem);
