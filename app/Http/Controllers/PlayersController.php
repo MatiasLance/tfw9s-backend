@@ -265,5 +265,21 @@ class PlayersController extends Controller
         }
     }
 
+    public function suggestNames(Request $request, Message $message)
+    {
+        $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:50'],
+        ]);
 
+        $query = $request->input('q');
+
+        $suggestions = $this->playersService->suggestNames($query, 10);
+
+        $message->setContent(200, 'Suggestions', '', [
+            'suggestions' => $suggestions,
+        ]);
+
+        return $message->render();
+
+    }
 }

@@ -7,7 +7,7 @@ use App\Models\Player;
 use DateTime;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\PlayersRepositoryInterface;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 class PlayersService implements PlayersServiceInterface
 {
@@ -118,4 +118,8 @@ class PlayersService implements PlayersServiceInterface
         return $this->playersRepository->cancelrefPlayer($id);
     }
 
+    public function suggestNames(string $query, int $limit): Collection
+    {
+        return $this->playersRepository->suggestNames($query, $limit);
+    }
 }

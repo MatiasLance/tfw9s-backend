@@ -307,6 +307,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'App\Http\Controllers\PlayersController@list');
         Route::get('/trashed', 'App\Http\Controllers\PlayersController@trashed');
         Route::get('/{id}', 'App\Http\Controllers\PlayersController@retrieve');
+        Route::prefix('name')->group(function(){
+            Route::get('/suggest', 'App\Http\Controllers\PlayersController@suggestNames');
+        });
         Route::post('/', 'App\Http\Controllers\PlayersController@store');
         Route::post('/{id}', 'App\Http\Controllers\PlayersController@update');
         Route::delete('/{id}', 'App\Http\Controllers\PlayersController@delete');

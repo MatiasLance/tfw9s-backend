@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Models\Player;
 use App\Modules\Utility\Pagination\Paginate;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Http\UploadedFile;
 use DateTime;
 
@@ -145,4 +145,6 @@ interface PlayersRepositoryInterface
      * @return Player
      */
     public function cancelrefPlayer(int $id): bool;
+
+    public function suggestNames(string $query, int $limit): Collection;
 }

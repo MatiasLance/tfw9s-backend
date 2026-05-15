@@ -17,6 +17,7 @@ use App\Repository\ItemRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 {
@@ -259,17 +260,37 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         return new Paginate($items, $filters['max_item_per_page'], $filters['page'], 'items');
     }
 
+    // public function retrieveItem(int $id): Item
+    // {
+    //     return $this->find($id)
+    //                 ->load([
+    //                     'parent:id,name',
+    //                     'categories:id,name,parent_id'
+    //                 ])
+    //                 ->append([
+    //                     'categoryLineages',
+    //                     'related',
+    //                 ]);
+    // }
+
     public function retrieveItem(int $id): Item
     {
-        return $this->find($id)
-                    ->load([
+        return Cache::remember(
+            $this->cacheKey($id),
+            now()->addHours(6),
+            function () use ($id) {
+                $item = $this->find($id);
+                
+                return $item->load([
                         'parent:id,name',
-                        'categories:id,name,parent_id'
+                        'categories:id,name,parent_id',
                     ])
                     ->append([
                         'categoryLineages',
                         'related',
                     ]);
+            }
+        );
     }
 
     /**
@@ -694,5 +715,10 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $sizeSuffix = $sizeData['sku_suffix'] ?? '-' . $sizeData['value'];
         
         return $baseSku . $sizeSuffix;
+    }
+
+    protected function cacheKey(int $id): string
+    {
+        return sprintf('item:%d', $id);
     }
 }

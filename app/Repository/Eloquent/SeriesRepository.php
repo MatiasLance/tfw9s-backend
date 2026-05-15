@@ -110,10 +110,6 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
         $filters = array_merge($this->defaultSeriesListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
-        // if (!is_null($filters['withFixing'])) {
-        //    $series = $series->has('event');
-        // }
-
         // Search Filter
         if (!is_null($filters['q'])) {
             $series = $series->where(function ($q) use($filters) {
@@ -162,58 +158,6 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
         return new Paginate($series, $maxPerPage, $filters['page'], 'series');
     }
 
-    // public function listOfSeries(array $userFilters = []): Paginate
-    // {
-    //     $series = $this->model->query()->with('ageGroup');
-
-    //     $filters = array_merge($this->defaultSeriesListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
-
-    //     // Search Filter
-    //     if (!is_null($filters['q'])) {
-    //         $series = $series->where(function ($q) use($filters) {
-    //             $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
-    //         });
-    //     }
-
-    //     if (!is_null($filters['type'])) {
-    //         $series = $series->where(function ($q) use($filters) {
-    //             $q->where('type', 'LIKE', '%' . $filters['type'] . '%');
-    //         });
-    //     }
-
-    //     if (!is_null($filters['event_date'])) {
-    //         $series = $series->where(function ($q) use($filters) {
-    //             $q->where('start', 'LIKE', '%' . $filters['event_date'] . '%');
-    //         });
-    //     }
-
-    //     if (!is_null($filters['is_paused'])) {
-    //         $series = $series->where('is_paused', $filters['is_paused']);
-    //     }
-
-    //     switch ($filters['sort']) {
-    //         case Filter::SORT_IS_PAUSED:
-    //             $series = $series->orderBy('is_paused');
-    //             break;
-    //         case Filter::SORT_A_TO_Z:
-    //             $series = $series->orderBy('name');
-    //             break;
-    //         case Filter::SORT_Z_TO_A:
-    //             $series = $series->orderByDesc('name');
-    //             break;
-    //         case Filter::SORT_START_DATE:
-    //             $series = $series->orderByDesc('start');
-    //             break;
-    //         default:
-    //             $series = $series->orderBy('created_at');
-    //             break;
-    //     }
-
-    //     $series = $series->with(['team']);
-        
-    //     return new Paginate($series, $filters['max_series_per_page'], $filters['page'], 'series');
-    // }
-
     public function listOfSeries(array $userFilters = []): paginate
     {
         $filters = array_merge(
@@ -223,7 +167,6 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
 
         $series = $this->model->query()
             ->with([
-                'ageGroup:id,name',
                 'team:id,series_id,name',
                 'media:id,imageable_id,path'
             ]);

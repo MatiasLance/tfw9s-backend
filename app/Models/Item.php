@@ -407,4 +407,15 @@ class Item extends Model
 
         return (float)$finalPrice;
     }
+
+    protected static function booted()
+    {
+        static::saved(function (Item $item) {
+            Cache::forget("item:{$item->id}");
+        });
+
+        static::deleted(function (Item $item) {
+            Cache::forget("item:{$item->id}");
+        });
+    }
 }
