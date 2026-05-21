@@ -114,7 +114,26 @@ class PlayersController extends Controller
         $agegroup_id = $request->input('agegroupID');
         $description = $request->input('description') ?? '';
         $series_id = $request->input('seriesID');
-        $media = $request->file('photo') ?? [];
+        $newPhoto = $request->file('photo') ?? [];
+
+        $existingPhoto = $request->input('photo') ?? [];
+        $newPhotoCount = count($newPhoto);
+        $existingPhotoCount = count($existingPhoto);
+
+        if (
+            $request->has('photo') &&
+            (
+                $newPhotoCount > 0 ||
+                $existingPhotoCount > 0
+            )
+        ) {
+            foreach ($existingPhoto as $existingPhotoHash) {
+                array_push($newPhoto, $existingPhotoHash);
+            }
+            $photo = $newPhoto;
+        } else {
+            $photo = null;
+        }
 
         $dob = new DateTime($dobstring);
 
@@ -131,7 +150,7 @@ class PlayersController extends Controller
             $agegroup_id,
             $description,
             $series_id,
-            $media
+            $photo
         );
 
         if ($isSuccess) {

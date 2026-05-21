@@ -249,7 +249,6 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $players->series_id = $series_id;
 
         return DB::transaction(function() use($players, $media) {
-
             if (!is_null($media)) {
                 $newMedia = array_filter($media, function ($file) {
                     return $file instanceof UploadedFile;
@@ -270,8 +269,8 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
                 }
 
                 foreach ($newMedia as $newFile) {
-                    $image = $this->storageService->store($newFile);
-                    $players->media()->save($image);
+                    $playerPhoto = $this->storageService->store($newFile);
+                    $players->media()->save($playerPhoto);
                 }
             } else {
                 foreach ($players->media as $existingMedia) {
