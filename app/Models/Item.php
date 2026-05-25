@@ -46,7 +46,15 @@ class Item extends Model
     public function price(): Attribute
     {
         return Attribute::make(
-            get: fn ($val) => $this->toPrice($val),
+            get: fn ($val) => $val === null ? 0 : $this->toPrice($val),
+            set: fn ($val) => $this->toCent($val),
+        );
+    }
+
+    public function saleprice(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($val) => $val === null ? 0 : $this->toPrice($val),
             set: fn ($val) => $this->toCent($val),
         );
     }

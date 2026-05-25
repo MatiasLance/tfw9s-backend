@@ -149,12 +149,24 @@ class ItemController extends Controller
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
-        $tags = $request->input('tags') ?? null;
         $isFeatured = $request->boolean('isFeatured') ?? null;
         $isRRP = $request->boolean('isRRP') ?? null;
         $isOnSale = $request->boolean('isOnSale') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
+
+        $sizeVariants = [];
+        if ($request->has('size_variants')) {
+            $sizeVariants = json_decode($request->input('size_variants'), true) ?? [];
+        }
+
+        $colors = [];
+        if ($request->has('colors')) {
+            $decoded = json_decode($request->input('colors'), true);
+            if (is_array($decoded)) {
+                $colors = array_values(array_filter($decoded, 'is_string'));
+            }
+        }
 
         if (!is_null($categoryId)) {
             $categories = array_map(function($id) {
@@ -164,7 +176,21 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $newItem = $this->itemService->duplicateItem($itemId, $name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $photo, $categories, $tags);
+        $newItem = $this->itemService->duplicateItem(
+                $itemId,
+                $name,
+                $description,
+                $price,
+                $saleprice,
+                $stock,
+                $isFeatured,
+                $isRRP,
+                $isOnSale,
+                $photo,
+                $categories,
+                $sizeVariants,
+                $colors
+            );
 
         if ($newItem instanceof Item) {
             $message->setContent(201, 'Item duplicated', '', [
@@ -179,8 +205,6 @@ class ItemController extends Controller
 
     public function storeItemVariant(Request $request, Message $message, int $itemId)
     {
-        $user = $request->user();
-
         $name = $request->input('name') ?? null;
         $description = $request->input('description') ?? null;
         $price = $request->input('price') ?? null;
@@ -195,13 +219,25 @@ class ItemController extends Controller
         if (is_numeric($stock)) {
             $stock = intval($stock);
         }
-        $tags = $request->input('tags') ?? null;
         $isFeatured = $request->boolean('isFeatured') ?? null;
         $isRRP = $request->boolean('isRRP') ?? null;
         $isOnSale = $request->boolean('isOnSale') ?? null;
         $isHideOutOfStock = $request->boolean('isHideOutOfStock') ?? null;
         $photo = $request->file('photo') ?? null;
         $categoryId = $request->input('categoryId') ?? null;
+        
+        $sizeVariants = [];
+        if ($request->has('size_variants')) {
+            $sizeVariants = json_decode($request->input('size_variants'), true) ?? [];
+        }
+
+        $colors = [];
+        if ($request->has('colors')) {
+            $decoded = json_decode($request->input('colors'), true);
+            if (is_array($decoded)) {
+                $colors = array_values(array_filter($decoded, 'is_string'));
+            }
+        }
 
         if (!is_null($categoryId)) {
             $categories = array_map(function($id) {
@@ -211,10 +247,25 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $newItem = $this->itemService->addItemVariant($itemId, $name, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $isHideOutOfStock, $photo, $categories, $tags);
+        $newItem = $this->itemService->addItemVariant(
+            $itemId,
+            $name,
+            $description,
+            $price,
+            $saleprice,
+            $stock,
+            $isFeatured,
+            $isRRP,
+            $isOnSale,
+            $isHideOutOfStock,
+            $photo,
+            $categories,
+            $sizeVariants,
+            $colors
+        );
 
         if ($newItem instanceof Item) {
-            $message->setContent(201, 'Item added as variant', '', [
+            $message->setContent(201, 'Variant added', '', [
                 'item' => $newItem
             ]);
         } else {

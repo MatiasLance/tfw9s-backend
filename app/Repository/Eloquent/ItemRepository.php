@@ -260,19 +260,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         return new Paginate($items, $filters['max_item_per_page'], $filters['page'], 'items');
     }
 
-    // public function retrieveItem(int $id): Item
-    // {
-    //     return $this->find($id)
-    //                 ->load([
-    //                     'parent:id,name',
-    //                     'categories:id,name,parent_id'
-    //                 ])
-    //                 ->append([
-    //                     'categoryLineages',
-    //                     'related',
-    //                 ]);
-    // }
-
     public function retrieveItem(int $id): Item
     {
         return Cache::remember(
@@ -365,7 +352,21 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     /**
      * @todo Check for the multiple photo update thing
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, ?array $media, ?array $categories, ?array $tags): Item
+    public function duplicateItem(
+        int $id,
+        ?string $title,
+        ?string $description,
+        ?float $price,
+        ?float $saleprice,
+        ?int $stock,
+        bool $isFeatured,
+        bool $isRRP,
+        bool $isOnSale,
+        ?array $media,
+        ?array $categories,
+        ?array $sizeVariants = [],
+        ?array $colors = []
+    ): Item
     {
         $oldItem = $this->find($id);
         $item = $oldItem->replicate();
@@ -393,8 +394,11 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($isOnSale)) {
             $item->is_on_sale = $isOnSale;
         }
+        if(!is_null($colors)){
+            $item->colors = $colors;
+        }
 
-        return DB::transaction(function() use($oldItem, $item, $categories, $tags, $media) {
+        return DB::transaction(function() use($oldItem, $item, $categories, $media) {
             $item->save();
 
             if (!is_null($categories)) {
@@ -404,17 +408,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             } else {
                 foreach ($oldItem->categories as $category) {
                     $item->categories()->attach($category);
-                }
-            }
-
-            if (!is_null($tags)) {
-                foreach ($tags as $tagId) {
-                    $tag = Tag::findOrFail($tagId);
-                    $item->tags()->attach($tag);
-                }
-            } else {
-                foreach ($oldItem->tags as $tag) {
-                    $item->tags()->attach($tag);
                 }
             }
 
@@ -434,14 +427,53 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 }
             }
 
+             // NEW: Handle size variants
+            if (!empty($sizeVariants)) {
+                $this->updateSizeVariants($item, $sizeVariants);
+                
+                // Update main item stock to be sum of all size variants
+                $totalStock = $item->sizeVariants()->sum('stock_quantity');
+                $item->stock = $totalStock;
+                $item->save();
+            }
+
             return $item;
         });
         
     }
 
-    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item
+    public function addItemVariant(
+        int $id,
+        ?string $title,
+        ?string $description,
+        ?float $price,
+        ?float $saleprice,
+        ?int $stock,
+        bool $isFeatured,
+        bool $isRRP,
+        bool $isOnSale,
+        bool $isHideOutOfStock,
+        ?array $media,
+        ?array $categories,
+        ?array $sizeVariants = [],
+        ?array $colors = []
+    ): Item
     {
-        $item = $this->duplicateItem($id, $title, $description, $price, $saleprice, $stock, $isFeatured, $isRRP, $isOnSale, $media, $categories, $tags);
+        $item = $this->duplicateItem(
+            $id,
+            $title,
+            $description,
+            $price,
+            $saleprice,
+            $stock,
+            $isFeatured,
+            $isRRP,
+            $isOnSale,
+            $media,
+            $categories,
+            $sizeVariants,
+            $colors
+        );
 
         return DB::transaction(function() use($item, $id){
             $item->parent_id = $id;

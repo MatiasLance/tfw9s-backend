@@ -19,7 +19,7 @@ Route::prefix('api')->group(function() {
         Route::prefix('auth')->group(function () {
             Route::post('login', 'App\Http\Controllers\AuthController@authenticate')->name('login');
             Route::post('logout', 'App\Http\Controllers\AuthController@logout')->name('logout');
-            Route::post('forgot-password', 'App\Http\Controllers\AuthController@forgotPassword')->name('forgotPassword');
+            Route::post('forgot-password', 'App\Http\Controllers\AuthController@forgotPassword')->name('forgotPassword')->middleware('throttle:forgot-password');
             Route::post('reset-password', 'App\Http\Controllers\AuthController@resetPassword')->name('resetPassword');
         });
     });
