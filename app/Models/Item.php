@@ -426,5 +426,11 @@ class Item extends Model
         static::deleted(function (Item $item) {
             Cache::forget("item:{$item->id}");
         });
+
+        static::deleting(function ($item) {
+            if (!$item->isForceDeleting()) {
+                $item->itemVariants()->delete();
+            }
+        });
     }
 }

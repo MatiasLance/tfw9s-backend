@@ -47,7 +47,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
          * 
          * Pass an item ID to retrieve the Item and its variants. When null, the filter is skipped.
          */
-        'itemVariant' => null,
+        'item_variant' => null,
 
         /**
          * Featured items filter
@@ -137,13 +137,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         }
 
         // Item variant filter (for color variants using parent/child relationship)
-        if (!is_null($filters['itemVariant'])) {
+        if (!is_null($filters['item_variant'])) {
             $areVariantsShown = true;
-            $variantItem = $this->find($filters['itemVariant']);
-
+            $variantItem = $this->find($filters['item_variant']);
+            
             $items = $items->where(function($q) use($variantItem){
-                $q
-                    ->where('id', $variantItem->id)
+                $q->where('id', $variantItem->id)
                     ->orWhere('parent_id', $variantItem->id);
             });
         }
@@ -244,7 +243,14 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         // UPDATED: Eager load relationships including size variants
         $items = $items->with([
             'variants' => function($query) {
-                $query->select('name', 'parent_id');
+                $query->select('id', 'name', 'parent_id', 'description', 'price', 'saleprice', 'stock', 'is_featured', 'show_rrp', 'is_on_sale', 'selected_shippingid', 'isHideOutOfStock', 'colors')
+                    ->with([
+                        'sizeVariants' => function($sizeQuery) {
+                            $sizeQuery->where('stock_quantity', '>', 0)
+                                ->orderBy('display_order')
+                                ->select('id', 'item_id', 'value', 'price_override', 'stock_quantity', 'sku');
+                        }
+                    ]);
             },
             'sizeVariants' => function($query) {
                 $query->where('stock_quantity', '>', 0)
@@ -284,21 +290,21 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
      * @todo Remove coupling to Tag model. Use tag repository or item service instead to find the tag
      */
     public function createItem(
-    string $title, 
-    string $description, 
-    float $price, 
-    float $saleprice, 
-    int $stock, 
-    bool $isFeatured, 
-    bool $isRRP, 
-    bool $isOnSale, 
-    bool $isHideOutOfStock, 
-    array $media, 
-    array $categories, 
-    string $shippingId, 
-    array $tags,
-    array $sizeVariants = [],
-    array $colors = []
+        string $title, 
+        string $description, 
+        float $price, 
+        float $saleprice, 
+        int $stock, 
+        bool $isFeatured, 
+        bool $isRRP, 
+        bool $isOnSale, 
+        bool $isHideOutOfStock, 
+        array $media, 
+        array $categories, 
+        string $shippingId, 
+        array $tags,
+        array $sizeVariants = [],
+        array $colors = []
     ): Item
     {
         $item = new Item();
@@ -369,7 +375,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     ): Item
     {
         $oldItem = $this->find($id);
+        
         $item = $oldItem->replicate();
+
         if (!is_null($title)) {
             $item->name = $title;
         }
@@ -394,11 +402,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         if (!is_null($isOnSale)) {
             $item->is_on_sale = $isOnSale;
         }
-        if(!is_null($colors)){
-            $item->colors = $colors;
-        }
 
-        return DB::transaction(function() use($oldItem, $item, $categories, $media) {
+        return DB::transaction(function() use($oldItem, $item, $categories, $media, $sizeVariants, $colors) {
             $item->save();
 
             if (!is_null($categories)) {
@@ -435,6 +440,22 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 $totalStock = $item->sizeVariants()->sum('stock_quantity');
                 $item->stock = $totalStock;
                 $item->save();
+            } else {
+                foreach ($oldItem->sizeVariants as $oldVariant) {
+                    $newVariant = $oldVariant->replicate();
+                    $newVariant->item()->associate($item);
+                    $newVariant->save();
+                }
+            }
+
+            if (!empty($colors)) {
+                $item->colors = $colors;
+            } else {
+                foreach ($oldItem->colors as $oldColor) {
+                    $newColor = $oldColor->replicate();
+                    $newColor->item()->associate($item);
+                    $newColor->save();
+                }
             }
 
             return $item;

@@ -27,7 +27,7 @@ class ItemController extends Controller
         $tag = $request->query('tags', null);
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
-        $itemVariant = $request->query('itemVariant', null);
+        $itemVariant = $request->query('item_variant', null);
         $maxItemsPerPage = $request->query('maxItemsPerPage', null);
 
         $filter = [
@@ -36,7 +36,7 @@ class ItemController extends Controller
             'tag' => $tag,
             'sort' => $sort,
             'page' => $page,
-            'itemVariant' => is_null($itemVariant) ? $itemVariant : intval($itemVariant),
+            'item_variant' => is_null($itemVariant) ? $itemVariant : intval($itemVariant),
             'max_item_per_page' => is_null($maxItemsPerPage) ? $maxItemsPerPage : intval($maxItemsPerPage),
         ];
 
