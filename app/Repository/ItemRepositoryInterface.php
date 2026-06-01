@@ -75,7 +75,8 @@ interface ItemRepositoryInterface
             string $shippingId, 
             array $tags,
             array $sizeVariants = [],
-            array $colors = []
+            array $colorVariants = [],
+            array $uploadedColorImages = []
         ): Item;
 
     /**
@@ -168,8 +169,9 @@ interface ItemRepositoryInterface
         array $categories, 
         string $shippingId, 
         array $tags,
-        array $sizeVariants = [], // ADD THIS NEW PARAMETER
-        array $colors = []
+        array $sizeVariants = [],
+        array $colorVariants = [],
+        array $uploadedColorImages = []
     ): bool;
 
     /**

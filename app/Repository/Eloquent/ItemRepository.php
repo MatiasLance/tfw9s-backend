@@ -93,7 +93,11 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         'in_stock' => null,
     ];
 
-    public function __construct(Item $item, StorageInterface $storageService, DiscountCode $discountCode)
+    public function __construct(
+        Item $item,
+        StorageInterface $storageService,
+        DiscountCode $discountCode
+    )
     {
         parent::__construct($item);
         $this->storageService = $storageService;
@@ -300,13 +304,14 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         bool $isOnSale, 
         bool $isHideOutOfStock, 
         array $media, 
-        array $categories, 
+        array $categoryIds, 
         string $shippingId, 
         array $tags,
         array $sizeVariants = [],
-        array $colors = []
-    ): Item
-    {
+        array $colorVariants = [],
+        array $uploadedColorImages = []
+    ): Item {
+        
         $item = new Item();
         $item->name = $title;
         $item->description = $description;
@@ -318,40 +323,51 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $item->is_on_sale = $isOnSale;
         $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
-        $item->colors = $colors;
+        
+        // Legacy colors column cleared; new system uses item_variants table
+        $item->colors = []; 
 
-        return DB::transaction(function() use($item, $categories, $tags, $media, $sizeVariants) {
+        return DB::transaction(function() use (
+            $item, 
+            $categoryIds, 
+            $tags, 
+            $media, 
+            $sizeVariants, 
+            $colorVariants, 
+            $uploadedColorImages,
+        ) {
             $item->save();
             
-            // Handle categories
-            foreach ($categories as $category) {
+            // 2. Attach Categories
+            foreach ($categoryIds as $category) {
                 $item->categories()->attach($category);
             }
 
-            // Handle tags if you have them
-            if (!empty($tags)) {
-                foreach ($tags as $tag) {
-                    $item->tags()->attach($tag);
-                }
+
+            // 3. Attach Tags
+            foreach ($tags as $tagId) {
+                $tag = Tag::findOrFail($tagId);
+                $item->tags()->attach($tag);
             }
 
-            // Handle media
+            // 4. Handle Main Product Media
             foreach ($media as $photo) {
                 $itemPhoto = $this->storageService->store($photo);
                 $item->media()->save($itemPhoto);
             }
 
-            // NEW: Handle size variants
+            // 5. Handle Size Variants
             if (!empty($sizeVariants)) {
                 $this->updateSizeVariants($item, $sizeVariants);
-                
-                // Update main item stock to be sum of all size variants
-                $totalStock = $item->sizeVariants()->sum('stock_quantity');
-                $item->stock = $totalStock;
-                $item->save();
             }
 
-            return $item->fresh(['categories', 'tags', 'media', 'sizeVariants']);
+            // 6. Handle Color Variants (Metadata + Image Mapping)
+            if (!empty($colorVariants)) {
+                $this->updateColorVariants($item, $colorVariants, $uploadedColorImages);
+            }
+
+            // 7. Return Fresh Item with Relationships
+            return $item->fresh(['categories', 'tags', 'media', 'itemVariants']);
         });
     }
 
@@ -524,7 +540,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         string $shippingId, 
         array $tags,
         array $sizeVariants = [],
-        array $colors = []
+        array $colorVariants = [],
+        array $uploadedColorImages = []
     ): bool
     {
         $item = $this->find($id);
@@ -538,9 +555,16 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $item->is_on_sale = $isOnSale;
         $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
-        $item->colors = $colors;
 
-        return DB::transaction(function() use($item, $categories, $tags, $media, $sizeVariants) {
+        return DB::transaction(function() use(
+                $item,
+                $categories,
+                $tags,
+                $media,
+                $sizeVariants,
+                $colorVariants, 
+                $uploadedColorImages,
+            ) {
             $item->categories()->detach();
             foreach ($categories as $category) {
                 $category->items()->attach($item);
@@ -701,65 +725,150 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
     }
 
     /**
-     * Update size variants for an item
+     * Update Size Variants
      */
     protected function updateSizeVariants(Item $item, array $sizeVariants): void
     {
-        // Get existing size variants to determine which to keep/delete
-        $existingVariants = $item->sizeVariants()->get()->keyBy('id');
+        $existingVariants = $item->itemVariants()
+            ->where('type', 'size')
+            ->get()
+            ->keyBy('id');
+        
         $updatedVariantIds = [];
-
         $sizeVariantType = Variant::getSizeVariant();
         $displayOrder = 0;
 
         foreach ($sizeVariants as $sizeData) {
-            // Skip if no size value provided
-            if (empty($sizeData['value'])) {
-                continue;
-            }
+            if (empty($sizeData['value'])) continue;
 
-            // Check if this is an existing variant (has ID) or new one
+            $updateData = [
+                'item_id' => $item->id,
+                'variant_id' => $sizeVariantType?->id,
+                'type' => 'size',
+                'value' => $sizeData['value'],
+                'price_override' => isset($sizeData['price_override']) && $sizeData['price_override'] !== '' 
+                    ? floatval($sizeData['price_override']) 
+                    : null,
+                'stock_quantity' => intval($sizeData['stock_quantity'] ?? 0),
+                'sku' => $this->generateSizeSku($item, $sizeData),
+                'display_order' => $displayOrder++,
+                'is_active' => true,
+            ];
+
             if (!empty($sizeData['id']) && $existingVariants->has($sizeData['id'])) {
-                // Update existing variant
-                $variant = $existingVariants->get($sizeData['id']);
-                $variant->update([
-                    'value' => $sizeData['value'],
-                    'price_override' => isset($sizeData['price_override']) && $sizeData['price_override'] !== '' 
-                        ? floatval($sizeData['price_override']) 
-                        : null,
-                    'stock_quantity' => intval($sizeData['stock_quantity'] ?? 0),
-                    'sku' => !empty($sizeData['sku_suffix']) ? $variant->sku : $this->generateSku($item, $sizeData),
-                    'display_order' => $displayOrder++,
-                ]);
+                $existingVariants->get($sizeData['id'])->update($updateData);
                 $updatedVariantIds[] = $sizeData['id'];
             } else {
-                // Create new variant
-                ItemVariant::create([
-                    'item_id' => $item->id,
-                    'variant_id' => $sizeVariantType->id,
-                    'value' => $sizeData['value'],
-                    'type' => 'size',
-                    'price_override' => isset($sizeData['price_override']) && $sizeData['price_override'] !== '' 
-                        ? floatval($sizeData['price_override']) 
-                        : null,
-                    'stock_quantity' => intval($sizeData['stock_quantity'] ?? 0),
-                    'sku' => $this->generateSku($item, $sizeData),
-                    'display_order' => $displayOrder++,
-                ]);
+                $newVariant = ItemVariant::create($updateData);
+                $updatedVariantIds[] = $newVariant->id;
             }
         }
 
-        // Delete variants that weren't included in the update
         $variantsToDelete = $existingVariants->keys()->diff($updatedVariantIds);
-        if ($variantsToDelete->count() > 0) {
+        if ($variantsToDelete->isNotEmpty()) {
             ItemVariant::whereIn('id', $variantsToDelete)->delete();
+        }
+    }
+
+    /**
+     * Update Color Variants (Metadata + Image Uploads)
+     */
+    protected function updateColorVariants(
+        Item $item, 
+        array $colorVariants, 
+        array $uploadedColorImages = []
+    ): void {
+        $existingVariants = $item->itemVariants()
+            ->where('type', 'color')
+            ->get()
+            ->keyBy('id');
+        
+        $updatedVariantIds = [];
+        $colorVariantType = Variant::getColorVariant();
+        $displayOrder = 0;
+
+        foreach ($colorVariants as $colorData) {
+            if (empty($colorData['name'])) continue;
+
+            $hexcode = null;
+            if (!empty($colorData['hexcode'])) {
+                $hex = strtoupper(trim($colorData['hexcode']));
+                if (preg_match('/^#([A-F0-9]{6}|[A-F0-9]{3})$/', $hex)) {
+                    $hexcode = strlen($hex) === 4 
+                        ? '#' . str_repeat(substr($hex, 1, 1), 2) 
+                            . str_repeat(substr($hex, 2, 1), 2) 
+                            . str_repeat(substr($hex, 3, 1), 2)
+                        : $hex;
+                }
+            }
+
+            $variantKey = $colorData['id'] ?? ('temp_' . ($colorData['sort_order'] ?? $displayOrder));
+
+            $updateData = [
+                'item_id' => $item->id,
+                'variant_id' => $colorVariantType?->id,
+                'type' => 'color',
+                'value' => $colorData['name'],
+                'hexcode' => $hexcode,
+                'use_image' => (bool) ($colorData['use_image'] ?? false),
+                'is_active' => (bool) ($colorData['is_active'] ?? true),
+                'price_override' => isset($colorData['price_override']) && $colorData['price_override'] !== '' 
+                    ? floatval($colorData['price_override']) 
+                    : null,
+                'stock_quantity' => intval($colorData['stock_quantity'] ?? 0),
+                'sku' => $colorData['sku'] ?? $this->generateColorSku($item, $colorData),
+                'display_order' => $displayOrder++,
+            ];
+
+            if (!empty($colorData['id']) && $existingVariants->has($colorData['id'])) {
+                $variant = $existingVariants->get($colorData['id']);
+                $variant->update($updateData);
+                $updatedVariantIds[] = $variant->id;
+                
+                if ($variant->use_image && isset($uploadedColorImages)) {
+                    $this->attachColorImage($variant, $uploadedColorImages);
+                }
+                
+            } else {
+                $variant = ItemVariant::create($updateData);
+                $updatedVariantIds[] = $variant->id;
+
+                if (isset($uploadedColorImages)) {
+                    $this->attachColorImage($variant, $uploadedColorImages);
+                }
+            }
+        }
+
+        $variantsToDelete = $existingVariants->keys()->diff($updatedVariantIds);
+        if ($variantsToDelete->isNotEmpty()) {
+            ItemVariant::whereIn('id', $variantsToDelete)->delete();
+        }
+    }
+
+    /**
+     * Helper: Attach uploaded image to color variant
+     */
+    protected function attachColorImage(ItemVariant $itemVariant, $media): void
+    {
+        try {
+            foreach($media as $photo){
+                $colorPhoto = $this->storageService->store($photo);
+                $itemVariant->media()->save($colorPhoto);
+                
+                $itemVariant->update(['image_path' => $colorPhoto->path ?? null]);
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Color image upload failed', [
+                'variant_id' => $variant->id,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
     /**
      * Generate SKU for size variant
      */
-    protected function generateSku(Item $item, array $sizeData): string
+    protected function generateSizeSku(Item $item, array $sizeData): string
     {
         // Generate base SKU from item name
         $baseSku = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $item->name), 0, 6));
@@ -768,6 +877,22 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $sizeSuffix = $sizeData['sku_suffix'] ?? '-' . $sizeData['value'];
         
         return $baseSku . $sizeSuffix;
+    }
+
+    /**
+     * Helper: Generate SKU for Color Variant
+     */
+    protected function generateColorSku(Item $item, array $colorData): string
+    {
+        $baseSku = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $item->name), 0, 6));
+        
+        if (!empty($colorData['sku_suffix'])) {
+            return $baseSku . $colorData['sku_suffix'];
+        }
+        
+        // Fallback: First 3 letters of color name
+        $colorSuffix = '-' . strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $colorData['name']), 0, 3));
+        return $baseSku . $colorSuffix;
     }
 
     protected function cacheKey(int $id): string

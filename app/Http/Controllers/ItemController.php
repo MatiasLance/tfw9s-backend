@@ -90,11 +90,36 @@ class ItemController extends Controller
             $sizeVariants = json_decode($request->input('size_variants'), true) ?? [];
         }
 
-        $colors = [];
-        if ($request->has('colors')) {
-            $decoded = json_decode($request->input('colors'), true);
+        $colorVariants = [];
+        if ($request->has('color_variants')) {
+            $decoded = json_decode($request->input('color_variants'), true);
+            
             if (is_array($decoded)) {
-                $colors = array_values(array_filter($decoded, 'is_string'));
+                foreach ($decoded as $index => $color) {
+                    if (!is_array($color) || empty($color['name'])) {
+                        continue;
+                    }
+                    
+                    $colorVariants[] = [
+                        'id' => $color['id'] ?? null,
+                        'name' => trim($color['name']),
+                        'hexcode' => strtoupper(trim($color['hexcode'] ?? '')),
+                        'use_image' => (bool) ($color['use_image'] ?? false),
+                        'is_active' => (bool) ($color['is_active'] ?? true),
+                        'sort_order' => $color['sort_order'] ?? $index,
+                        'price_override' => $this->sanitizeNumeric($color['price_override'] ?? null, 'float'),
+                        'stock_quantity' => $this->sanitizeNumeric($color['stock_quantity'] ?? 0, 'int', 0),
+                        'sku' => $color['sku'] ?? null,
+                        'sku_suffix' => $color['sku_suffix'] ?? null,
+                    ];
+                }
+            }
+        }
+
+        $uploadedColorImages = [];
+        if ($request->hasFile('color_images')) {
+            foreach ($request->file('color_images') as $key => $file) {
+                $uploadedColorImages[$key] = $file;
             }
         }
         
@@ -117,7 +142,8 @@ class ItemController extends Controller
             $shippingId, 
             $tags,
             $sizeVariants,
-            $colors
+            $colorVariants,
+            $uploadedColorImages
         );
 
         if ($item instanceof Item) {
@@ -330,11 +356,36 @@ class ItemController extends Controller
             $sizeVariants = json_decode($request->input('size_variants'), true) ?? [];
         }
 
-        $colors = [];
-        if ($request->has('colors')) {
-            $decoded = json_decode($request->input('colors'), true);
+        $colorVariants = [];
+        if ($request->has('color_variants')) {
+            $decoded = json_decode($request->input('color_variants'), true);
+            
             if (is_array($decoded)) {
-                $colors = array_values(array_filter($decoded, 'is_string'));
+                foreach ($decoded as $index => $color) {
+                    if (!is_array($color) || empty($color['name'])) {
+                        continue;
+                    }
+                    
+                    $colorVariants[] = [
+                        'id' => $color['id'] ?? null,
+                        'name' => trim($color['name']),
+                        'hexcode' => strtoupper(trim($color['hexcode'] ?? '')),
+                        'use_image' => (bool) ($color['use_image'] ?? false),
+                        'is_active' => (bool) ($color['is_active'] ?? true),
+                        'sort_order' => $color['sort_order'] ?? $index,
+                        'price_override' => $this->sanitizeNumeric($color['price_override'] ?? null, 'float'),
+                        'stock_quantity' => $this->sanitizeNumeric($color['stock_quantity'] ?? 0, 'int', 0),
+                        'sku' => $color['sku'] ?? null,
+                        'sku_suffix' => $color['sku_suffix'] ?? null,
+                    ];
+                }
+            }
+        }
+
+        $uploadedColorImages = [];
+        if ($request->hasFile('color_images')) {
+            foreach ($request->file('color_images') as $key => $file) {
+                $uploadedColorImages[$key] = $file;
             }
         }
 
@@ -353,8 +404,8 @@ class ItemController extends Controller
             $categories, 
             $shippingId, 
             $tags,
-            $sizeVariants,
-            $colors
+            $colorVariants,
+            $uploadedColorImages
         );
 
         if ($isSuccess) {
@@ -380,5 +431,32 @@ class ItemController extends Controller
         }
 
         return $message->render();
+    }
+
+    /**
+     * Sanitize and cast a value to a strict numeric type.
+     *
+     * @param mixed $value
+     * @param 'int'|'float' $type
+     * @param int|float $default
+     * @return int|float
+     */
+    protected function sanitizeNumeric(mixed $value, string $type = 'int', int|float $default = 0): int|float
+    {
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        $clean = is_string($value) ? trim($value) : $value;
+
+        if (!is_numeric($clean)) {
+            return $default;
+        }
+
+        if ($type === 'int') {
+            return (int) round((float) $clean);
+        }
+
+        return (float) $clean;
     }
 }

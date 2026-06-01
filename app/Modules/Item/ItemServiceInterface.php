@@ -62,7 +62,8 @@ interface ItemServiceInterface
         string $shippingId, 
         array $tags,
         array $sizeVariants = [],
-        array $colors = []
+        array $colorVariants = [],
+        array $uploadedColorImages = []
     ): Item;
 
     /**
@@ -159,7 +160,8 @@ interface ItemServiceInterface
         string $shippingId, 
         array $tags,
         array $sizeVariants = [],
-        array $colors = []
+        array $colorVariants = [],
+        array $uploadedColorImages = []
     ): bool;
 
     /**

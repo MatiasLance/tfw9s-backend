@@ -55,7 +55,8 @@ class ItemService implements ItemServiceInterface
         string $shippingId, 
         array $tags,
         array $sizeVariants = [],
-        array $colors = []
+        array $colorVariants = [],
+        array $uploadedColorImages = []
     ): Item {
         return $this->itemRepository->createItem(
             $title, 
@@ -72,7 +73,8 @@ class ItemService implements ItemServiceInterface
             $shippingId, 
             $tags,
             $sizeVariants,
-            $colors
+            $colorVariants,
+            $uploadedColorImages
         );
     }
 
@@ -160,7 +162,8 @@ class ItemService implements ItemServiceInterface
         string $shippingId, 
         array $tags,
         array $sizeVariants = [],
-        array $colors = []
+        array $colorVariants = [],
+        array $uploadedColorImages = []
     ): bool {
         return $this->itemRepository->updateItem(
             $id,
@@ -178,7 +181,8 @@ class ItemService implements ItemServiceInterface
             $shippingId, 
             $tags,
             $sizeVariants,
-            $colors
+            $colorVariants,
+            $uploadedColorImages
         );
     }
 
