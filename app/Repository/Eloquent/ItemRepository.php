@@ -610,11 +610,10 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
             if (!empty($sizeVariants)) {
                 $this->updateSizeVariants($item, $sizeVariants);
-                
-                $totalStock = $item->sizeVariants()->sum('stock_quantity');
-                $item->stock = $totalStock;
-            } else {
-                $item->sizeVariants()->delete();
+            }
+
+            if (!empty($colorVariants)) {
+                $this->updateColorVariants($item, $colorVariants, $uploadedColorImages);
             }
 
             return $item->save();
@@ -787,7 +786,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $colorVariantType = Variant::getColorVariant();
         $displayOrder = 0;
 
-        foreach ($colorVariants as $colorData) {
+        foreach ($colorVariants as $index => $colorData) {
             if (empty($colorData['name'])) continue;
 
             $hexcode = null;
@@ -802,7 +801,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 }
             }
 
-            $variantKey = $colorData['id'] ?? ('temp_' . ($colorData['sort_order'] ?? $displayOrder));
+            $variantKey = $colorData['id'] ?? ('temp_' . ($colorData['sort_order'] ?? $index));
 
             $updateData = [
                 'item_id' => $item->id,
@@ -820,21 +819,29 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 'display_order' => $displayOrder++,
             ];
 
+            $newFile = $uploadedColorImages[$colorData['id'] ?? ''] 
+                    ?? $uploadedColorImages[$variantKey] 
+                    ?? $uploadedColorImages[$index] 
+                    ?? null;
+                    
+            $hasNewFile = $newFile instanceof UploadedFile;
+
             if (!empty($colorData['id']) && $existingVariants->has($colorData['id'])) {
                 $variant = $existingVariants->get($colorData['id']);
                 $variant->update($updateData);
                 $updatedVariantIds[] = $variant->id;
                 
-                if ($variant->use_image && isset($uploadedColorImages)) {
-                    $this->attachColorImage($variant, $uploadedColorImages);
+                if ($hasNewFile) {
+                    $variant->media()->delete(); 
+                    $this->attachColorImage($variant, [$newFile]);
                 }
                 
             } else {
                 $variant = ItemVariant::create($updateData);
                 $updatedVariantIds[] = $variant->id;
 
-                if (isset($uploadedColorImages)) {
-                    $this->attachColorImage($variant, $uploadedColorImages);
+                if ($hasNewFile) {
+                    $this->attachColorImage($variant, [$newFile]);
                 }
             }
         }
@@ -850,8 +857,13 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
      */
     protected function attachColorImage(ItemVariant $itemVariant, $media): void
     {
+        $files = is_array($media) ? $media : [$media];
         try {
-            foreach($media as $photo){
+            foreach ($files as $photo) {
+                if (!$photo instanceof UploadedFile) {
+                    continue;
+                }
+
                 $colorPhoto = $this->storageService->store($photo);
                 $itemVariant->media()->save($colorPhoto);
                 
@@ -859,7 +871,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             }
         } catch (\Exception $e) {
             \Log::warning('Color image upload failed', [
-                'variant_id' => $variant->id,
+                'variant_id' => $itemVariant->id,
                 'error' => $e->getMessage()
             ]);
         }

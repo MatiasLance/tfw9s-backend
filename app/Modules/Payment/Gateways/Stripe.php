@@ -186,8 +186,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         $addTax = $tax?->getAddTaxValue();
         $gstInclusive = $toggleTaxControl?->isToggleControle2();
 
-        $productTotal = $totalProduct['totalProduct'];
+        $productTotal = $totalProduct['totalProduct'] * 100;
         $shippingFee = ($metadata['shipOption'] === 'delivery') ? 1000 : 0;
+
 
         if ($gstInclusive) {
             $totalBeforeTax = ($productTotal + $shippingFee) / (1 + ($addTax / 100));
@@ -356,36 +357,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             ]);
         }
     }
-
-    // public function createTeamRegistration($discountcode, string $item, array $metadata = [])
-    // {
-    //     $calculatedTotal = $this->calculateTotalTeamRegistration($item);
-
-    //     $seriesItem = [
-    //         'item_id' => $calculatedTotal['currentItem']->id,
-    //         'price' => $calculatedTotal['regularPrice'],
-    //     ];
-
-    //     $metadata['line_item'] = json_encode($seriesItem);
-
-    //     $productValue = [
-    //         'amount' => $calculatedTotal['totalPrice'],
-    //         'currency' => $this->currency,
-    //         'automatic_payment_methods' => [
-    //             'enabled' => true,
-    //         ],
-    //         'metadata' => $metadata,
-    //     ];
-
-    //     $paymentIntent = $this->stripe->paymentIntents->create($productValue);
-
-    //     $responseValues = [
-    //         'stripeToken' => $paymentIntent->client_secret,
-    //         'paymentIntentId' => $paymentIntent->id
-    //     ];
-
-    //     return response()->json($responseValues);
-    // }
 
     public function createTeamRegistration($discountcode, string $item, array $metadata = [], ?string $clientToken)
     {

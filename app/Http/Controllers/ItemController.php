@@ -404,6 +404,7 @@ class ItemController extends Controller
             $categories, 
             $shippingId, 
             $tags,
+            $sizeVariants,
             $colorVariants,
             $uploadedColorImages
         );
