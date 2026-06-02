@@ -95,7 +95,8 @@ interface ItemServiceInterface
         ?array $media,
         ?array $categories,
         ?array $sizeVariants = [],
-        ?array $colors = []
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
     ): Item;
 
     /**
@@ -125,7 +126,8 @@ interface ItemServiceInterface
         ?array $media,
         ?array $categories,
         ?array $sizeVariants = [],
-        ?array $colors = []
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
     ): Item;
 
     /**

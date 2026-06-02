@@ -387,7 +387,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         ?array $media,
         ?array $categories,
         ?array $sizeVariants = [],
-        ?array $colors = []
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
     ): Item
     {
         $oldItem = $this->find($id);
@@ -419,7 +420,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             $item->is_on_sale = $isOnSale;
         }
 
-        return DB::transaction(function() use($oldItem, $item, $categories, $media, $sizeVariants, $colors) {
+        return DB::transaction(function() use($oldItem, $item, $categories, $media, $sizeVariants, $colorVariants, $uploadedColorImages) {
             $item->save();
 
             if (!is_null($categories)) {
@@ -448,30 +449,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 }
             }
 
-             // NEW: Handle size variants
             if (!empty($sizeVariants)) {
                 $this->updateSizeVariants($item, $sizeVariants);
-                
-                // Update main item stock to be sum of all size variants
-                $totalStock = $item->sizeVariants()->sum('stock_quantity');
-                $item->stock = $totalStock;
-                $item->save();
-            } else {
-                foreach ($oldItem->sizeVariants as $oldVariant) {
-                    $newVariant = $oldVariant->replicate();
-                    $newVariant->item()->associate($item);
-                    $newVariant->save();
-                }
             }
 
-            if (!empty($colors)) {
-                $item->colors = $colors;
-            } else {
-                foreach ($oldItem->colors as $oldColor) {
-                    $newColor = $oldColor->replicate();
-                    $newColor->item()->associate($item);
-                    $newColor->save();
-                }
+            if (!empty($colorVariants)) {
+                $this->updateColorVariants($item, $colorVariants, $uploadedColorImages);
             }
 
             return $item;
@@ -493,7 +476,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         ?array $media,
         ?array $categories,
         ?array $sizeVariants = [],
-        ?array $colors = []
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
     ): Item
     {
         $item = $this->duplicateItem(
@@ -509,7 +493,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             $media,
             $categories,
             $sizeVariants,
-            $colors
+            $colorVariants,
+            $uploadedColorImages
         );
 
         return DB::transaction(function() use($item, $id){

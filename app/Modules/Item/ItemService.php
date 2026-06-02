@@ -91,7 +91,8 @@ class ItemService implements ItemServiceInterface
         ?array $media,
         ?array $categories,
         ?array $sizeVariants = [],
-        ?array $colors = []
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
     ): Item
     {
         return $this->itemRepository->duplicateItem(
@@ -107,7 +108,8 @@ class ItemService implements ItemServiceInterface
             $media,
             $categories,
             $sizeVariants,
-            $colors
+            $colorVariants,
+            $uploadedColorImages
         );
     }
 
@@ -125,7 +127,8 @@ class ItemService implements ItemServiceInterface
         ?array $media,
         ?array $categories,
         ?array $sizeVariants = [],
-        ?array $colors = []
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
     ): Item
     {
         return $this->itemRepository->addItemVariant(
@@ -142,7 +145,8 @@ class ItemService implements ItemServiceInterface
             $media,
             $categories,
             $sizeVariants,
-            $colors
+            $colorVariants,
+            $uploadedColorImages
         );
     }
     

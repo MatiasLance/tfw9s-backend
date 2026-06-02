@@ -105,7 +105,8 @@ interface ItemRepositoryInterface
         ?array $media,
         ?array $categories,
         ?array $sizeVariants = [],
-        ?array $colors = []
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
     ): Item;
 
     /**
@@ -135,7 +136,8 @@ interface ItemRepositoryInterface
         ?array $media,
         ?array $categories,
         ?array $sizeVariants = [],
-        ?array $colors = []
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
     ): Item;
 
     /**
