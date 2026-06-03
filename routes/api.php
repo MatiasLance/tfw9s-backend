@@ -112,6 +112,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('items')->group(function () {
         Route::get('/', 'App\Http\Controllers\ItemController@list');
         Route::get('/{itemId}', 'App\Http\Controllers\ItemController@retrieve');
+        Route::prefix('status')->group(function () {
+            Route::post('/', 'App\Http\Controllers\ItemController@toggleItemStatus');
+        });
         Route::post('/{id}', 'App\Http\Controllers\ItemController@update');
         Route::delete('/{id}', 'App\Http\Controllers\ItemController@delete');
     });

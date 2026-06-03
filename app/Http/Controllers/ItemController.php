@@ -7,6 +7,9 @@ use App\Modules\Categories\CategoryServiceInterface;
 use App\Modules\Http\Message;
 use App\Modules\Item\ItemServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
 
 class ItemController extends Controller
 {
@@ -484,6 +487,62 @@ class ItemController extends Controller
         }
 
         return $message->render();
+    }
+
+    /**
+     * Toggle the active state of an item.
+     *
+     * Makes an item visible or hidden to end users. Requires ownership
+     * or explicit permission to modify the item.
+     */
+    public function toggleItemStatus(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'id'        => ['required', 'integer', 'exists:items,id'],
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $item = Item::find($validated['id']);
+
+        if ($item->is_active === $validated['is_active']) {
+            return response()->json([
+                'message'  => $item->is_active
+                    ? 'Item is already visible.'
+                    : 'Item is already hidden.',
+                'is_active' => $item->is_active,
+            ]);
+        }
+
+        $updated = DB::table('items')
+            ->where('id', $validated['id'])
+            ->update(['is_active' => $validated['is_active']]);
+
+        if (! $updated) {
+            Log::warning('Item status toggle had no effect.', [
+                'item_id'   => $validated['id'],
+                'user_id'   => $request->user()?->id,
+                'is_active' => $validated['is_active'],
+            ]);
+
+            return response()->json([
+                'message' => 'Unable to update item status. Please try again.',
+            ], 500);
+        }
+
+        $item->refresh();
+
+        Log::info('Item status toggled.', [
+            'item_id'   => $item->id,
+            'user_id'   => $request->user()?->id,
+            'is_active' => $item->is_active,
+        ]);
+
+        return response()->json([
+            'message'   => $item->is_active
+                ? 'Item is now visible to users.'
+                : 'Item is now hidden from users.',
+            'is_active' => $item->is_active,
+        ]);
     }
 
     /**

@@ -45,8 +45,11 @@ class Item extends Model
 
     protected $casts = [
         'is_featured' => 'boolean',
+        'is_on_sale' => 'boolean',
+        'is_active' => 'boolean',
         'isHideOutOfStock' => 'boolean',
         'colors' => 'array',
+        'show_rrp' => 'boolean'
     ];
 
     // =========================================================================
