@@ -27,7 +27,10 @@ use RuntimeException;
 use Illuminate\Support\Facades\Log;
 use App\Models\WaitingLounge;
 use App\Jobs\SendTeamRegistrationInvoice;
+use App\Jobs\SendOrderInvoice;
 use App\Models\TeamRegistration;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -139,11 +142,11 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             $onSale = $currentItem->isOnSale();
 
             if ($onSale && $hasDiscount) {
-                $price = $salePrice * (1 - $discountRate);
+                $price = (int) round($salePrice * (1 - $discountRate));
             } elseif ($onSale && !$hasDiscount) {
                 $price = $salePrice;
             } elseif (!$onSale && $hasDiscount) {
-                $price = $regularPrice * (1 - $discountRate);
+                $price = (int) round($regularPrice * (1 - $discountRate));
             } else {
                 $price = $regularPrice;
             }
@@ -153,12 +156,27 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 'size_variant_id' => $sizeVariantId,
                 'price' => $price,
                 'quantity' => $item['quantity'],
+                'selected_color' => $item['color'] ?? null
             ];
 
             array_push($lineItems, $lineItem);
         }
 
-        $metadata['line_items'] = json_encode($lineItems);
+        $cartToken = Str::random(16);
+        $cartPayload = [
+            'line_items' => $lineItems,
+            'discount_code' => $discountCode,
+            'grand_total' => null,
+            'metadata' => $metadata,
+            'created_at' => now()->timestamp,
+        ];
+        
+
+        Cache::put(
+            "cart_pending:{$cartToken}",
+            $cartPayload,
+            now()->addMinutes(15)
+        );
 
         $totalProduct = $this->calculateTotal($discountCode, $lineItems);
 
@@ -168,102 +186,109 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         $addTax = $tax?->getAddTaxValue();
         $gstInclusive = $toggleTaxControl?->isToggleControle2();
 
-        $productTotal = $totalProduct['totalProduct'];
+        $productTotal = $totalProduct['totalProduct'] * 100;
         $shippingFee = ($metadata['shipOption'] === 'delivery') ? 1000 : 0;
 
+
         if ($gstInclusive) {
-            // INCLUSIVE MODE: Tax included in both products and shipping
             $totalBeforeTax = ($productTotal + $shippingFee) / (1 + ($addTax / 100));
             $taxAmount = ($productTotal + $shippingFee) - $totalBeforeTax;
-            
-            $productBase = $productTotal / (1 + ($addTax / 100));
-            $shippingBase = $shippingFee / (1 + ($addTax / 100));
-            
             $grandTotal = $productTotal + $shippingFee;
-
-            $productValue = [
-                'amount' => $grandTotal,
-                'currency' => $this->currency,
-                'automatic_payment_methods' => [
-                    'enabled' => true,
-                ],
-                'metadata' => $metadata,
-            ];
-
-            $paymentIntent = $this->stripe->paymentIntents->create($productValue);
-
-            $responseValues = [
-                'totalProduct' => $grandTotal / 100,
-                'stripeToken' => $paymentIntent->client_secret,
-                'paymentIntentId' => $paymentIntent->id
-            ];
-
-            return response()->json($responseValues);
-            
         } else {
-            // EXCLUSIVE MODE: Tax added to both products AND shipping
-            $taxAmount = ($productTotal + $shippingFee) * ($addTax / 100);
+            $taxAmount = (int) round(($productTotal + $shippingFee) * ($addTax / 100));
             $grandTotal = $productTotal + $shippingFee + $taxAmount;
-
-            $productValue = [
-                'amount' => $grandTotal,
-                'currency' => $this->currency,
-                'automatic_payment_methods' => [
-                    'enabled' => true,
-                ],
-                'metadata' => $metadata,
-            ];
-
-            $paymentIntent = $this->stripe->paymentIntents->create($productValue);
-
-            $responseValues = [
-                'totalProduct' => $grandTotal / 100,
-                'stripeToken' => $paymentIntent->client_secret,
-                'paymentIntentId' => $paymentIntent->id
-            ];
-
-            return response()->json($responseValues);
         }
-    }  
+
+        $cartPayload['grand_total'] = $grandTotal;
+        Cache::put("cart_pending:{$cartToken}", $cartPayload, now()->addMinutes(15));
+
+        $stripeMetadata = array_merge(
+            array_filter($metadata, function($v) {
+                return is_string($v) || is_numeric($v) || is_bool($v);
+            }),
+            [
+                'cart_token' => $cartToken,
+                'ship_option' => $metadata['shipOption'] ?? 'pickup',
+            ]
+        );
+
+        $productValue = [
+            'amount' => $grandTotal,
+            'currency' => $this->currency,
+            'automatic_payment_methods' => ['enabled' => true],
+            'metadata' => $stripeMetadata,
+        ];
+
+        $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+
+        return response()->json([
+            'totalProduct' => $grandTotal / 100,
+            'stripeToken' => $paymentIntent->client_secret,
+            'paymentIntentId' => $paymentIntent->id
+        ]);
+    }
 
     public function verify(string $paymentIntentId): PaymentStatus
     {
         $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
 
         if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
-            $shippingInformation = $paymentIntent->metadata;
+            $meta = $paymentIntent->metadata;
+            $cartToken = $meta->cart_token ?? null;
+            
+            $cachedCart = $cartToken ? Cache::get("cart_pending:{$cartToken}") : null;
+            
+            if (!$cachedCart) {
+                report(new Exception("Cart cache miss for token: {$cartToken}"));
+                return $this->matchStatus('failed');
+            }
 
-            $lineItems = json_decode($shippingInformation->line_items, true);
+            if ((int) $paymentIntent->amount !== (int) ($cachedCart['grand_total'] ?? 0)) {
+                report(new Exception("Amount mismatch: Stripe {$paymentIntent->amount} vs cached {$cachedCart['grand_total']}"));
+                return $this->matchStatus('failed');
+            }
+
+            $lineItems = $cachedCart['line_items'];
+            $shippingInformation = (object) array_merge(
+                $cachedCart['metadata'] ?? [],
+                ['line_items' => $lineItems]
+            );
 
             $order = $this->orderService->create(
-                                            $paymentIntent->id,
-                                            self::GATEWAY,
-                                            $shippingInformation->firstName,
-                                            $shippingInformation->lastName,
-                                            $shippingInformation->phoneNumber,
-                                            $shippingInformation->email,
-                                            $shippingInformation->shipOption ?? null,
-                                            $shippingInformation->address ?? null,
-                                            $shippingInformation->postCode ?? null,
-                                            $shippingInformation->remarks,
-                                            $paymentIntent->amount,
-                                            $lineItems,
-                                        );
+                $paymentIntent->id,
+                self::GATEWAY,
+                $shippingInformation->firstName ?? null,
+                $shippingInformation->lastName ?? null,
+                $shippingInformation->phoneNumber ?? null,
+                $shippingInformation->email ?? null,
+                $shippingInformation->shipOption ?? null,
+                $shippingInformation->address ?? null,
+                $shippingInformation->postCode ?? null,
+                $shippingInformation->remarks ?? null,
+                $paymentIntent->amount,
+                $lineItems,
+            );
 
             if (!$order->is_verified) {
                 $this->orderService->markAsVerified($order->transaction_id);
 
                 foreach ($lineItems as $item) {
-                    try
-                    {
-                        $this->itemService->decreaseStocks($item['item_id'], $item['quantity'], $item['size_variant_id'], true);
-                    }
-                    catch(ItemStockCannotBeLowerThanZeroException $e) {
+                    try {
+                        $this->itemService->decreaseStocks(
+                            $item['item_id'], 
+                            $item['quantity'], 
+                            $item['size_variant_id'] ?? null, 
+                            true
+                        );
+                    } catch(ItemStockCannotBeLowerThanZeroException $e) {
                         report($e);
                     }
                 }
-
-                $this->mailService->sendInvoice($order);
+                SendOrderInvoice::dispatch($order);
+            }
+            
+            if ($cartToken) {
+                Cache::forget("cart_pending:{$cartToken}");
             }
         }
 
@@ -332,36 +357,6 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             ]);
         }
     }
-
-    // public function createTeamRegistration($discountcode, string $item, array $metadata = [])
-    // {
-    //     $calculatedTotal = $this->calculateTotalTeamRegistration($item);
-
-    //     $seriesItem = [
-    //         'item_id' => $calculatedTotal['currentItem']->id,
-    //         'price' => $calculatedTotal['regularPrice'],
-    //     ];
-
-    //     $metadata['line_item'] = json_encode($seriesItem);
-
-    //     $productValue = [
-    //         'amount' => $calculatedTotal['totalPrice'],
-    //         'currency' => $this->currency,
-    //         'automatic_payment_methods' => [
-    //             'enabled' => true,
-    //         ],
-    //         'metadata' => $metadata,
-    //     ];
-
-    //     $paymentIntent = $this->stripe->paymentIntents->create($productValue);
-
-    //     $responseValues = [
-    //         'stripeToken' => $paymentIntent->client_secret,
-    //         'paymentIntentId' => $paymentIntent->id
-    //     ];
-
-    //     return response()->json($responseValues);
-    // }
 
     public function createTeamRegistration($discountcode, string $item, array $metadata = [], ?string $clientToken)
     {

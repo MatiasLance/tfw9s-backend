@@ -74,7 +74,9 @@ interface ItemRepositoryInterface
             array $categories, 
             string $shippingId, 
             array $tags,
-            array $sizeVariants = []
+            array $sizeVariants = [],
+            array $colorVariants = [],
+            array $uploadedColorImages = []
         ): Item;
 
     /**
@@ -90,7 +92,22 @@ interface ItemRepositoryInterface
      * @param null|array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param null|array<Tags> $tags Array of tags that this item will have
      */
-    public function duplicateItem(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, ?array $media, ?array $categories, ?array $tags): Item;
+    public function duplicateItem(
+        int $id,
+        ?string $title,
+        ?string $description,
+        ?float $price,
+        ?float $saleprice,
+        ?int $stock,
+        bool $isFeatured,
+        bool $isRRP,
+        bool $isOnSale,
+        ?array $media,
+        ?array $categories,
+        ?array $sizeVariants = [],
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
+    ): Item;
 
     /**
      * Add another item as a variant of an existing Item. Arguments can be optionally passed to overwrite parent item values
@@ -105,7 +122,23 @@ interface ItemRepositoryInterface
      * @param null|array<Category> $categories Categories on which this item will be under. Can be empty for uncategorized items.
      * @param null|array<Tags> $tags Array of tags that this item will have
      */
-    public function addItemVariant(int $id, ?string $title, ?string $description, ?float $price, ?float $saleprice, ?int $stock, bool $isFeatured, bool $isRRP, bool $isOnSale, bool $isHideOutOfStock, ?array $media, ?array $categories, ?array $tags): Item;
+    public function addItemVariant(
+        int $id,
+        ?string $title,
+        ?string $description,
+        ?float $price,
+        ?float $saleprice,
+        ?int $stock,
+        bool $isFeatured,
+        bool $isRRP,
+        bool $isOnSale,
+        bool $isHideOutOfStock,
+        ?array $media,
+        ?array $categories,
+        ?array $sizeVariants = [],
+        ?array $colorVariants = [],
+        ?array $uploadedColorImages = []
+    ): Item;
 
     /**
      * Update an existing Item instance
@@ -138,7 +171,9 @@ interface ItemRepositoryInterface
         array $categories, 
         string $shippingId, 
         array $tags,
-        array $sizeVariants = [] // ADD THIS NEW PARAMETER
+        array $sizeVariants = [],
+        array $colorVariants = [],
+        array $uploadedColorImages = []
     ): bool;
 
     /**

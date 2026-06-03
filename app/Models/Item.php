@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Item extends Model
 {
@@ -29,25 +30,66 @@ class Item extends Model
 
     protected $appends = [
         'snippet',
-        'isVariant' => 'is_variant',
-        'hasVariants' => 'has_variants',
-        'hasSizeVariants' => 'has_size_variants',
-        'availableSizes' => 'available_sizes',
-        'displayPrice' => 'display_price',
+        'isVariant',
+        'hasVariants',
+        'hasSizeVariants',
+        'hasColorVariants',
+        'availableSizes',
+        'availableColors',
+        'displayPrice',
+        // Optional: Auto-include API helpers in JSON responses
+        // 'colorVariantsForApi',
+        // 'sizeVariantsForApi',
+        // 'allVariantsForApi',
     ];
 
     protected $casts = [
         'is_featured' => 'boolean',
-        'isHideOutOfStock' => 'boolean'
+        'is_on_sale' => 'boolean',
+        'is_active' => 'boolean',
+        'isHideOutOfStock' => 'boolean',
+        'colors' => 'array',
+        'show_rrp' => 'boolean'
     ];
+
+    // =========================================================================
+    // PRICE ATTRIBUTES (Cents in DB → Dollars via Accessor)
+    // =========================================================================
 
     public function price(): Attribute
     {
         return Attribute::make(
-            get: fn ($val) => $this->toPrice($val),
+            get: fn ($val) => $val === null ? 0 : $this->toPrice($val),
             set: fn ($val) => $this->toCent($val),
         );
     }
+
+    public function saleprice(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($val) => $val === null ? 0 : $this->toPrice($val),
+            set: fn ($val) => $this->toCent($val),
+        );
+    }
+
+    public function centPrice(): int
+    {
+        return (int) $this->getAttributes()['price'];
+    }
+
+    public function centSalePrice(): int
+    {
+        return (int) $this->getAttributes()['saleprice'];
+    }
+
+    public function isOnSale(): bool
+    {
+        return (bool) $this->getAttributes()['is_on_sale'];
+    }
+
+    // =========================================================================
+    // VARIANT TYPE CHECKS
+    // =========================================================================
 
     public function getIsVariantAttribute()
     {
@@ -60,35 +102,18 @@ class Item extends Model
     }
 
     /**
-     * Related items
-     *
-     * For some reason Laravel cannot detect accessors that have an uppercase letter on it.
-     *
-     * @return Attribute
+     * Related items (legacy variant system via parent_id)
      */
     public function related(): Attribute
     {
         return Attribute::make(
-            get: function() {
-                return $this->variants;
-            }
+            get: fn() => $this->variants,
         );
     }
 
-    public function centPrice(): int
-    {
-        return $this->getAttributes()['price'];
-    }
-
-    public function centSalePrice(): int
-    {
-        return $this->getAttributes()['saleprice'];
-    }
-
-    public function isOnSale(): bool
-    {
-        return $this->getAttributes()['is_on_sale'];
-    }
+    // =========================================================================
+    // RELATIONSHIPS
+    // =========================================================================
 
     public function categories()
     {
@@ -102,9 +127,10 @@ class Item extends Model
 
     public function media()
     {
-        return $this->morphMany('App\Models\Media', 'imageable');
+        return $this->morphMany(\App\Models\Media::class, 'imageable');
     }
 
+    // Legacy variant system (parent_id hierarchy)
     public function variants()
     {
         return $this->hasMany(Item::class, 'parent_id', 'id');
@@ -115,45 +141,31 @@ class Item extends Model
         return $this->belongsTo(Item::class, 'parent_id', 'id');
     }
 
-    // =========================================================================
-    // NEW METHODS FOR SIZE VARIANTS
-    // =========================================================================
-
-    /**
-     * Get all item variants (colors and sizes)
-     */
+    // New variant system (item_variants table for size/color)
     public function itemVariants()
     {
         return $this->hasMany(ItemVariant::class);
     }
 
-    /**
-     * Get color variants only
-     */
     public function colorVariants()
     {
         return $this->hasMany(ItemVariant::class)->where('type', 'color');
     }
 
-    /**
-     * Get size variants only  
-     */
     public function sizeVariants()
     {
         return $this->hasMany(ItemVariant::class)->where('type', 'size');
     }
 
-    /**
-     * Check if product has size variants
-     */
+    // =========================================================================
+    // SIZE VARIANT ACCESSORS
+    // =========================================================================
+
     public function getHasSizeVariantsAttribute()
     {
         return $this->sizeVariants()->exists();
     }
 
-    /**
-     * Get available size options with pricing
-     */
     public function getAvailableSizesAttribute()
     {
         if (!$this->has_size_variants) {
@@ -162,9 +174,10 @@ class Item extends Model
 
         return $this->sizeVariants()
             ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
             ->orderBy('display_order')
             ->get()
-            ->map(function($variant) {
+            ->map(function ($variant) {
                 return [
                     'id' => $variant->id,
                     'size' => $variant->value,
@@ -177,9 +190,6 @@ class Item extends Model
             });
     }
 
-    /**
-     * Get minimum price across all size variants
-     */
     public function getMinSizePriceAttribute()
     {
         if (!$this->has_size_variants) {
@@ -188,14 +198,12 @@ class Item extends Model
 
         $minPrice = $this->sizeVariants()
             ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
             ->min('price_override');
 
-        return $minPrice ?? $this->centPrice();
+        return $minPrice !== null ? (int) $minPrice : $this->centPrice();
     }
 
-    /**
-     * Get maximum price across all size variants
-     */
     public function getMaxSizePriceAttribute()
     {
         if (!$this->has_size_variants) {
@@ -204,75 +212,267 @@ class Item extends Model
 
         $maxPrice = $this->sizeVariants()
             ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
             ->max('price_override');
 
-        return $maxPrice ?? $this->centPrice();
+        return $maxPrice !== null ? (int) $maxPrice : $this->centPrice();
     }
 
-    /**
-     * Get the display price (shows range if sizes have different prices)
-     */
-    public function getDisplayPriceAttribute()
-    {
-        if ($this->has_size_variants) {
-            $minPrice = $this->min_size_price;
-            $maxPrice = $this->max_size_price;
-            
-            $minPriceDisplay = $this->toPrice($minPrice);
-            $maxPriceDisplay = $this->toPrice($maxPrice);
-            
-            if ($minPrice !== $maxPrice) {
-                return "{$minPriceDisplay} - {$maxPriceDisplay}";
-            }
-            
-            return $minPriceDisplay;
-        }
-        
-        return $this->price;
-    }
-
-    /**
-     * Get the base price without size variations
-     * Useful for displaying the starting price
-     */
     public function getBasePriceDisplayAttribute()
     {
         return $this->price;
     }
 
-    /**
-     * Check if item has any variants (either color or size)
-     * This extends your existing has_variants logic
-     */
-    public function getHasVariantsAttribute()
+    // =========================================================================
+    // COLOR VARIANT ACCESSORS
+    // =========================================================================
+
+    public function getHasColorVariantsAttribute()
     {
-        return $this->variants()->exists() || 
-               $this->itemVariants()->exists();
+        return $this->colorVariants()->exists();
     }
 
-    /**
-     * Get all available variant combinations
-     * Useful for complex product pages with both color and size
-     */
+    public function getAvailableColorsAttribute()
+    {
+        if (!$this->has_color_variants) {
+            return collect();
+        }
+
+        return $this->colorVariants()
+            ->where('stock_quantity', '>=', 0)
+            ->where('is_active', true)
+            ->orderBy('display_order')
+            ->get()
+            ->map(function ($variant) {
+                return [
+                    'id' => $variant->id,
+                    'name' => $variant->value,
+                    'hexcode' => $variant->hexcode,
+                    'image_url' => $variant->image_url,
+                    'use_image' => (bool) $variant->use_image,
+                    'preview' => $variant->preview,
+                    'sku' => $variant->sku,
+                    'price' => $variant->calculated_price,
+                    'price_display' => $this->toPrice($variant->calculated_price),
+                    'in_stock' => $variant->in_stock,
+                    'stock_quantity' => $variant->stock_quantity,
+                    'is_active' => (bool) $variant->is_active,
+                    'sort_order' => $variant->display_order,
+                ];
+            });
+    }
+
+    public function getMinColorPriceAttribute()
+    {
+        if (!$this->has_color_variants) {
+            return $this->centPrice();
+        }
+
+        $minPrice = $this->colorVariants()
+            ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
+            ->min('price_override');
+
+        return $minPrice !== null ? (int) $minPrice : $this->centPrice();
+    }
+
+    public function getMaxColorPriceAttribute()
+    {
+        if (!$this->has_color_variants) {
+            return $this->centPrice();
+        }
+
+        $maxPrice = $this->colorVariants()
+            ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
+            ->max('price_override');
+
+        return $maxPrice !== null ? (int) $maxPrice : $this->centPrice();
+    }
+
+    public function findColorVariant(string $identifier)
+    {
+        // Try matching by name first
+        $variant = $this->colorVariants()
+            ->where('value', $identifier)
+            ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
+            ->first();
+
+        // Fallback: match by hexcode
+        if (!$variant && str_starts_with($identifier, '#')) {
+            $variant = $this->colorVariants()
+                ->where('hexcode', strtoupper($identifier))
+                ->where('stock_quantity', '>', 0)
+                ->where('is_active', true)
+                ->first();
+        }
+
+        return $variant;
+    }
+
+    public function isColorInStock(string $identifier): bool
+    {
+        $variant = $this->findColorVariant($identifier);
+        return $variant ? $variant->in_stock : false;
+    }
+
+    public function getPriceForColor(string $identifier)
+    {
+        $variant = $this->findColorVariant($identifier);
+        return $variant ? $this->toPrice($variant->calculated_price) : $this->price;
+    }
+
+    // =========================================================================
+    // PRICE CALCULATION HELPERS (Consistent: Return Dollars)
+    // =========================================================================
+
+    public function getPriceForSizeVariant(?int $sizeVariantId = null): float
+    {
+        if (!$sizeVariantId) {
+            return (float) $this->price;
+        }
+
+        $sizeVariant = $this->sizeVariants()->find($sizeVariantId);
+        
+        if ($sizeVariant && $sizeVariant->calculated_price > 0) {
+            return (float) $sizeVariant->calculated_price;
+        }
+
+        return (float) $this->price;
+    }
+
+    public function getPriceForColorVariant(?int $colorVariantId = null): float
+    {
+        if (!$colorVariantId) {
+            return (float) $this->price;
+        }
+
+        $colorVariant = $this->colorVariants()->find($colorVariantId);
+        
+        if ($colorVariant && $colorVariant->calculated_price > 0) {
+            return (float) $colorVariant->calculated_price;
+        }
+
+        return (float) $this->price;
+    }
+
+    public function calculateFinalPrice(
+        ?int $variantId = null, 
+        bool $hasDiscount = false, 
+        float $discountRate = 0
+    ): float {
+        $basePrice = $variantId 
+            ? ($this->getPriceForSizeVariant($variantId) ?: $this->getPriceForColorVariant($variantId))
+            : (float) $this->price;
+            
+        $salePrice = (float) $this->saleprice;
+        $onSale = $this->isOnSale();
+
+        if ($onSale && $hasDiscount) {
+            return $salePrice * (1 - $discountRate);
+        } elseif ($onSale) {
+            return $salePrice;
+        } elseif ($hasDiscount) {
+            return $basePrice * (1 - $discountRate);
+        }
+        
+        return $basePrice;
+    }
+
+    public function getDisplayPriceAttribute()
+    {
+        $prices = [];
+
+        // Collect size variant prices (stored as cents in DB)
+        if ($this->has_size_variants) {
+            $sizePrices = $this->sizeVariants()
+                ->where('stock_quantity', '>', 0)
+                ->where('is_active', true)
+                ->pluck('price_override')
+                ->filter()
+                ->map(fn($p) => (int) $p);
+            
+            if ($sizePrices->isNotEmpty()) {
+                $prices = array_merge($prices, $sizePrices->toArray());
+            } else {
+                $prices[] = $this->centPrice();
+            }
+        }
+        
+        // Collect color variant prices
+        if ($this->has_color_variants) {
+            $colorPrices = $this->colorVariants()
+                ->where('stock_quantity', '>', 0)
+                ->where('is_active', true)
+                ->pluck('price_override')
+                ->filter()
+                ->map(fn($p) => (int) $p);
+            
+            if ($colorPrices->isNotEmpty()) {
+                $prices = array_merge($prices, $colorPrices->toArray());
+            } elseif (empty($prices)) {
+                $prices[] = $this->centPrice();
+            }
+        }
+
+        // Fallback to base price
+        if (empty($prices)) {
+            $prices[] = $this->centPrice();
+        }
+
+        $minPrice = min($prices);
+        $maxPrice = max($prices);
+        
+        $minDisplay = $this->toPrice($minPrice);
+        $maxDisplay = $this->toPrice($maxPrice);
+        
+        if ($minPrice !== $maxPrice) {
+            return "{$minDisplay} - {$maxDisplay}";
+        }
+        
+        return $minDisplay;
+    }
+
+    // =========================================================================
+    // VARIANT COMBINATIONS (Frontend-Ready)
+    // =========================================================================
+
+    public function getHasVariantsAttribute()
+    {
+        return $this->variants()->exists() || $this->itemVariants()->exists();
+    }
+
     public function getVariantCombinationsAttribute()
     {
         $colors = $this->colorVariants()
             ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
             ->get()
-            ->map(function($variant) {
+            ->map(function ($variant) {
                 return [
                     'id' => $variant->id,
                     'type' => 'color',
                     'value' => $variant->value,
+                    'name' => $variant->value,
+                    'hexcode' => $variant->hexcode,
+                    'image_url' => $variant->image_url,
+                    'use_image' => (bool) $variant->use_image,
+                    'preview' => $variant->preview,
                     'display_name' => $variant->value,
+                    'price' => $variant->calculated_price,
+                    'price_display' => $this->toPrice($variant->calculated_price),
+                    'sku' => $variant->sku,
                     'in_stock' => $variant->in_stock,
+                    'stock_quantity' => $variant->stock_quantity,
                 ];
             });
 
         $sizes = $this->sizeVariants()
             ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
             ->get()
-            ->map(function($variant) {
+            ->map(function ($variant) {
                 return [
                     'id' => $variant->id,
                     'type' => 'size',
@@ -280,7 +480,9 @@ class Item extends Model
                     'display_name' => $variant->value,
                     'price' => $variant->calculated_price,
                     'price_display' => $this->toPrice($variant->calculated_price),
+                    'sku' => $variant->sku,
                     'in_stock' => $variant->in_stock,
+                    'stock_quantity' => $variant->stock_quantity,
                 ];
             });
 
@@ -290,40 +492,62 @@ class Item extends Model
         ];
     }
 
-    /**
-     * Find a specific size variant by size value
-     */
     public function findSizeVariant(string $size)
     {
         return $this->sizeVariants()
             ->where('value', $size)
             ->where('stock_quantity', '>', 0)
+            ->where('is_active', true)
             ->first();
     }
 
-    /**
-     * Check if a specific size is in stock
-     */
     public function isSizeInStock(string $size): bool
     {
         $variant = $this->findSizeVariant($size);
         return $variant ? $variant->in_stock : false;
     }
 
-    /**
-     * Get price for a specific size
-     */
     public function getPriceForSize(string $size)
     {
         $variant = $this->findSizeVariant($size);
         return $variant ? $this->toPrice($variant->calculated_price) : $this->price;
     }
 
-    /**
-     * Retrieve the lingeages of the categories associated with this item.
-     *
-     * @return array
-     */
+    // =========================================================================
+    // API RESPONSE HELPERS
+    // =========================================================================
+
+    public function getColorVariantsForApiAttribute()
+    {
+        return $this->colorVariants()
+            ->orderBy('display_order')
+            ->get()
+            ->map->toApiArray();
+    }
+
+    public function getSizeVariantsForApiAttribute()
+    {
+        return $this->sizeVariants()
+            ->orderBy('display_order')
+            ->get()
+            ->map->toApiArray();
+    }
+
+    public function getAllVariantsForApiAttribute()
+    {
+        return [
+            'colors' => $this->colorVariantsForApi,
+            'sizes' => $this->sizeVariantsForApi,
+            'has_colors' => $this->has_color_variants,
+            'has_sizes' => $this->has_size_variants,
+            'price_range' => $this->display_price,
+        ];
+    }
+
+    // =========================================================================
+    // UTILITY METHODS
+    // =========================================================================
+
     public function getCategoryLineagesAttribute()
     {
         $lineages = [];
@@ -334,23 +558,19 @@ class Item extends Model
         return $lineages;
     }
 
-    public function getSnippetAttribute() {
+    public function getSnippetAttribute()
+    {
         $snippetLength = 160;
         if (isset($this->description) && !is_null($this->description)) {
             $sanitized = $this->sanitize($this->description);
             if (strlen($sanitized) > $snippetLength) {
                 return substr($sanitized, 0, $snippetLength) . '...';
-            } else {
-                return $sanitized;
             }
+            return $sanitized;
         }
+        return '';
     }
 
-    /**
-     * Remove the html tags and replace hard breaks with spaces.
-     *
-     * @return string
-     */
     protected function sanitize(string $value): string
     {
         $whitespacePattern = "/(<br( )?(\/)?>)|(<\/p>)/mi";
@@ -358,52 +578,27 @@ class Item extends Model
         $sanitized = strip_tags($sanitized);
         $sanitized = trim($sanitized);
         $sanitized = html_entity_decode($sanitized);
-
         return $sanitized;
     }
 
-    /**
-     * Get price for a specific size variant ID
-     */
-    public function getPriceForSizeVariant(?int $sizeVariantId = null): float
-    {
-        if (!$sizeVariantId) {
-            return (float)$this->centPrice();
-        }
+    // =========================================================================
+    // MODEL EVENTS & CACHE INVALIDATION
+    // =========================================================================
 
-        $sizeVariant = $this->sizeVariants()->find($sizeVariantId);
-        
-        if ($sizeVariant) {
-            // Use calculated_price if available, otherwise price_override, otherwise base price
-            if (isset($sizeVariant->calculated_price) && $sizeVariant->calculated_price > 0) {
-                return (float)$sizeVariant->calculated_price * 100;
-            } elseif (isset($sizeVariant->price_override) && $sizeVariant->price_override > 0) {
-                return (float)$sizeVariant->price_override;
+    protected static function booted()
+    {
+        static::saved(function (Item $item) {
+            Cache::forget("item:{$item->id}");
+        });
+
+        static::deleted(function (Item $item) {
+            Cache::forget("item:{$item->id}");
+        });
+
+        static::deleting(function ($item) {
+            if (!$item->isForceDeleting()) {
+                $item->itemVariants()->delete();
             }
-        }
-
-        return $this->centPrice();
-    }
-
-    /**
-     * Calculate final price with discount and sale logic for a specific size variant
-     */
-    public function calculateFinalPrice(?int $sizeVariantId = null, bool $hasDiscount = false, float $discountRate = 0): float
-    {
-        $basePrice = $this->getPriceForSizeVariant($sizeVariantId);
-        $salePrice = $this->centSalePrice();
-        $onSale = $this->isOnSale();
-
-        if ($onSale && $hasDiscount) {
-            $finalPrice = $salePrice * (1 - $discountRate);
-        } elseif ($onSale && !$hasDiscount) {
-            $finalPrice = $salePrice;
-        } elseif (!$onSale && $hasDiscount) {
-            $finalPrice = $basePrice * (1 - $discountRate);
-        } else {
-            $finalPrice = $basePrice;
-        }
-
-        return (float)$finalPrice;
+        });
     }
 }

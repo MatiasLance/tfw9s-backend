@@ -6,7 +6,7 @@ use App\Models\Player;
 use App\Models\User;
 use DateTime;
 use App\Modules\Utility\Pagination\Paginate;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 interface PlayersServiceInterface
 {
@@ -130,4 +130,6 @@ interface PlayersServiceInterface
      * @return Player
      */
     public function cancelrefPlayer(int $id): bool;
+
+    public function suggestNames(string $query, int $limit): Collection;
 }

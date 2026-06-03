@@ -64,5 +64,17 @@ class RouteServiceProvider extends ServiceProvider
                     ], 429);
                 });
         });
+
+        RateLimiter::for('forgot-password', function (Request $request) {
+            $email = strtolower($request->input('email'));
+
+            return Limit::perMinute(3)->by($request->ip() . '|' . $email)
+            ->response(function (Request $request, array $headers) {
+                    return response()->json([
+                        'message' => 'Too many registration requests. Please try again in',
+                        'retry_after' => $headers['Retry-After'] ?? 30
+                    ], 429);
+                });
+        });
     }
 }

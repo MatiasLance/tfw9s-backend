@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class AuthService implements AuthServiceInterface
 {
@@ -19,9 +20,10 @@ class AuthService implements AuthServiceInterface
         );
 
         if ($status === Password::RESET_THROTTLED) {
-            throw new RequestThrottledException('Password reset request throttled. Too many requests');
+            Log::error('Password reset request throttled. Too many requests.');
+            return;
         }
-
+        
         return true;
     }
 

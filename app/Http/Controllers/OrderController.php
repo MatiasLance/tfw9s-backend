@@ -121,16 +121,10 @@ class OrderController extends Controller
             $sizeVariantPrice = null;
             
             // Get price from size variant if available
-            if ($sizeVariantId && $currentItem->has_size_variants) {
-                $sizeVariants = is_array($currentItem->has_size_variants) 
-                    ? $currentItem->available_sizes 
-                    : json_decode($currentItem->available_sizes, true);
-                    
-                $sizeVariant = collect($sizeVariants)
-                    ->firstWhere('id', (int)$sizeVariantId);
-                    
-                if ($sizeVariant && isset($sizeVariant['price'])) {
-                    $sizeVariantPrice = $sizeVariant['price'] * 100;
+            if ($sizeVariantId) {
+                $sizeVariant = $currentItem->sizeVariants()->find($sizeVariantId);
+                if ($sizeVariant) {
+                    $sizeVariantPrice = $sizeVariant->calculated_price;
                 }
             }
 
@@ -167,7 +161,7 @@ class OrderController extends Controller
         $addTax = $tax?->getAddTaxValue();
         $gstInclusive = $toggleTaxControl?->isToggleControle2();
 
-        $productTotal = $totalProduct['totalProduct'];
+        $productTotal = $totalProduct['totalProduct'] * 100;
         $shippingFee = ($metadata['shipOption'] === 'delivery') ? 1000 : 0;
 
         if ($gstInclusive) {

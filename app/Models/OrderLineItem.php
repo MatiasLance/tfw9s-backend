@@ -17,6 +17,7 @@ class OrderLineItem extends Model
         'size_variant_id',
         'price',
         'quantity',
+        'selected_color',
     ];
 
     public function order()

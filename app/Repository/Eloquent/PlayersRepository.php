@@ -8,7 +8,7 @@ use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\PlayersRepositoryInterface;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use App\Models\IndividualRegistration;
 use App\Modules\Payment\PaymentServiceInterface;
@@ -249,7 +249,6 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $players->series_id = $series_id;
 
         return DB::transaction(function() use($players, $media) {
-
             if (!is_null($media)) {
                 $newMedia = array_filter($media, function ($file) {
                     return $file instanceof UploadedFile;
@@ -270,8 +269,8 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
                 }
 
                 foreach ($newMedia as $newFile) {
-                    $image = $this->storageService->store($newFile);
-                    $players->media()->save($image);
+                    $playerPhoto = $this->storageService->store($newFile);
+                    $players->media()->save($playerPhoto);
                 }
             } else {
                 foreach ($players->media as $existingMedia) {
@@ -394,6 +393,40 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
             return $player->restore();
         });
+    }
+
+    public function suggestNames(string $query, int $limit = 10): Collection
+    {
+        $query = preg_replace('/[^a-zA-Z\-\'\s]/', '', trim($query));
+        if (empty($query)) {
+            return collect();
+        }
+
+        $tokens = explode(' ', $query);
+        $firstToken = $tokens[0];
+        $secondToken = $tokens[1] ?? null;
+
+        $players = $this->model->query()
+            ->select('id', 'player_firstname', 'player_lastname')
+            ->where(function ($q) use ($firstToken, $secondToken) {
+                if ($secondToken) {
+                    $q->where('player_firstname', 'LIKE', $firstToken.'%')
+                    ->where('player_lastname', 'LIKE', $secondToken.'%');
+                } else {
+                    $q->where('player_firstname', 'LIKE', $firstToken.'%')
+                    ->orWhere('player_lastname', 'LIKE', $firstToken.'%');
+                }
+            })
+            ->orderByRaw('CHAR_LENGTH(player_firstname) ASC')
+            ->limit($limit)
+            ->get();
+
+        return $players->map(fn($p) => [
+            'id'    => $p->id,
+            'first_name' => $p->player_firstname,
+            'last_name' => $p->player_lastname,
+            'name'  => $p->player_firstname . ' ' . $p->player_lastname,
+        ]);
     }
 
 }

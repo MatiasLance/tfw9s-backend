@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
         Route::prefix('items')->group(function () {
             Route::post('/', 'App\Http\Controllers\ItemController@store');
             Route::post('/duplicate/{itemId}', 'App\Http\Controllers\ItemController@duplicate');
-            Route::patch('/addVariant/{itemId}', 'App\Http\Controllers\ItemController@storeItemVariant');
+            Route::post('/addVariant/{itemId}', 'App\Http\Controllers\ItemController@storeItemVariant');
             Route::patch('/{itemId}', 'App\Http\Controllers\ItemController@update');
             Route::delete('/{itemId}', 'App\Http\Controllers\ItemController@delete');
         });
@@ -112,6 +112,9 @@ Route::prefix('v1')->group(function () {
     Route::prefix('items')->group(function () {
         Route::get('/', 'App\Http\Controllers\ItemController@list');
         Route::get('/{itemId}', 'App\Http\Controllers\ItemController@retrieve');
+        Route::prefix('status')->group(function () {
+            Route::post('/', 'App\Http\Controllers\ItemController@toggleItemStatus');
+        });
         Route::post('/{id}', 'App\Http\Controllers\ItemController@update');
         Route::delete('/{id}', 'App\Http\Controllers\ItemController@delete');
     });
@@ -307,6 +310,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'App\Http\Controllers\PlayersController@list');
         Route::get('/trashed', 'App\Http\Controllers\PlayersController@trashed');
         Route::get('/{id}', 'App\Http\Controllers\PlayersController@retrieve');
+        Route::prefix('name')->group(function(){
+            Route::get('/suggest', 'App\Http\Controllers\PlayersController@suggestNames');
+        });
         Route::post('/', 'App\Http\Controllers\PlayersController@store');
         Route::post('/{id}', 'App\Http\Controllers\PlayersController@update');
         Route::delete('/{id}', 'App\Http\Controllers\PlayersController@delete');
