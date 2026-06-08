@@ -99,6 +99,14 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
                 Route::patch("/{id}", 'App\Http\Controllers\PaymentSettingController@update');
             });
         });
+
+        Route::prefix('terms')->group(function () {
+            Route::get('/', 'App\Http\Controllers\TermsAndConditionController@index');
+            Route::post('/', 'App\Http\Controllers\TermsAndConditionController@store');
+            Route::get('/{id}', 'App\Http\Controllers\TermsAndConditionController@show');
+            Route::put('/{id}', 'App\Http\Controllers\TermsAndConditionController@update');
+            Route::delete('/{id}', 'App\Http\Controllers\TermsAndConditionController@destroy');
+        });
     });
 });
 
@@ -427,6 +435,10 @@ Route::prefix('v1')->group(function () {
     Route::prefix('lounge')->group(function() {
         Route::post('/check', 'App\Http\Controllers\LoungeController@checkQueue');
         Route::get('/stats/{itemId}', 'App\Http\Controllers\LoungeController@getLiveStats');
+    });
+
+    Route::prefix('terms')->group(function () {
+        Route::get('/', 'App\Http\Controllers\TermsAndConditionController@index');
     });
 
     Route::get('/api/version', function () {

@@ -150,7 +150,9 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $query = $this->model->query()
             ->select('event_matches.*')
             ->join('events', 'event_matches.event_id', '=', 'events.id')
-            ->whereNull('events.deleted_at');
+            ->join('series', 'events.series_id', '=', 'series.id')
+            ->whereNull('events.deleted_at')
+            ->whereNull('series.deleted_at');
 
         if (!empty($filters['year'])) {
             $query->whereYear('events.event_date', $filters['year']);
@@ -203,7 +205,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         }
 
         $query->with([
-            'event:id,event_date,region_id,agegroup_id,time,round',
+            'event:id,event_date,region_id,agegroup_id,time,round,series_id',
             'team1:id,name',
             'team2:id,name',
             'field:id,name',
@@ -216,8 +218,6 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             'eventMatches'
         );
     }
-
-
 
     public function retrieveEventMatch(int $id): EventMatch
     {
@@ -255,7 +255,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         });
     }
 
-    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool
+        public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool
     {
         $eventMatch = $this->find($id);
 
@@ -265,7 +265,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $eventMatch->team2_oldScore = $eventMatch->team2_score;
 
         $eventMatch->team1_score =  $isAbandonedMatch  ? $team1_score + 1 : $team1_score;
-        $eventMatch->team2_score = $isAbandonedMatch ? $team2_score + 1 : $team1_score;
+        $eventMatch->team2_score = $isAbandonedMatch ? $team2_score + 1 : $team2_score;
 
         if ($team1_score > $team2_score) {
             $eventMatch->winner = $eventMatch->team1;
@@ -284,7 +284,6 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             $eventMatch->save();
 
             if ($eventMatch->submitted) {
-                
                 $t1OldScore = $eventMatch->team1_oldScore;
                 $t2OldScore = $eventMatch->team2_oldScore;
                 $t1score = $eventMatch->team1_score;
