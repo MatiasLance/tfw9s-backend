@@ -30,6 +30,10 @@ class EventMatch extends Model
         'field',
     ];
 
+    protected $casts = [
+        'is_abandoned_match' => 'boolean'
+    ];
+
     public function team1()
     {
         return $this->belongsTo(Team::class, 'team1')->withTrashed();

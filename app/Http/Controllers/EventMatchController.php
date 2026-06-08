@@ -63,7 +63,7 @@ class EventMatchController extends Controller
     {
         $team1_score = $request->input('team1_score') ?? '';
         $team2_score = $request->input('team2_score') ?? '';
-        $is_abandoned_match = $request->input('is_abandoned_match') ?? false;
+        $is_abandoned_match = $request->boolean('is_abandoned_match') ?? false;
 
         $isSuccess = $this->eventMatchService->updateEventMatchScore($id, $team1_score, $team2_score, $is_abandoned_match);
 
