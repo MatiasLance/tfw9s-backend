@@ -87,8 +87,6 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
          * Maximum number of eventMatchs shown per page. When 0 or null is passed, will get every eventMatch
          */
         'max_eventMatch_per_page' => self::MAX_PAGE_EVENTMATCHES,
-
-        'series' => null,
     ];
 
     public function __construct(EventMatch $eventMatch, StorageInterface $storageService, TeamPositionServiceInterface $teamPositionService)

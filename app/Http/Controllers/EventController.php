@@ -29,6 +29,7 @@ class EventController extends Controller
         $manager = $request->query('manager', null);
         $region = $request->query('region', null);
         $agegroup = $request->query('agegroup', null);
+        $seriesName = $request->query('series_name', null);
 
         $filter = [
             'q' => $query,
@@ -41,6 +42,7 @@ class EventController extends Controller
             'manager' => $manager,
             'region' => $region,
             'agegroup' => $agegroup,
+            'series_name' => $seriesName
         ];
 
         $events = $this->eventService->listEvents($filter);

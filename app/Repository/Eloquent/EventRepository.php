@@ -94,6 +94,8 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
          * This filters the events with a keyword. When this value is null, this filter is skipped.
          */
         'agegroup' => null,
+
+        'series_name' => null,
     ];
 
     public function __construct(Event $event, StorageInterface $storageService, EventMatchServiceInterface $eventmatchService)
@@ -105,7 +107,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
     public function listEvents(array $userFilters = []): Paginate
     {
-        $events = $this->model->query();
+        $events = $this->model->query()->whereNull('deleted_at');
 
         $filters = array_merge($this->defaultEventListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
 
@@ -119,19 +121,23 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                         $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
                     });
                 })
-                ->orWhereHas('series', function ($query) use ($filters) {
-                    $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
-                })
                 ->orWhereHas('agegroup', function ($query) use ($filters) {
                     $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
                 });
             });
         }
         
+        if (!is_null($filters['series_name'])) {
+            $events->whereHas('series', function ($query) use ($filters) {
+                $query->where('name', 'LIKE', '%' . $filters['series_name'] . '%');
+            });
+        }
 
         // Event Date Filter
         if (!is_null($filters['event_date'])) {
-            $events->where('event_date', 'LIKE', '%' . $filters['event_date'] . '%');
+            $events->whereHas('series', function ($query) use ($filters) {
+                $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
+            });
         }
         
         // Year Filter
@@ -172,9 +178,9 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
+        // $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
 
-        return new Paginate($events, $maxPerPage, $filters['page'], 'events');
+        return new Paginate($events, $filters['max_event_per_page'], $filters['page'], 'events');
     }
 
     public function retrieveEvent(int $id): Event
