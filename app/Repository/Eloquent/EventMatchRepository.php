@@ -96,50 +96,6 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         $this->teamPositionService = $teamPositionService;
     }
 
-    // public function listEventMatches(array $userFilters = []): Paginate
-    // {
-    //     $eventMatches = $this->model->query();
-
-    //     $filters = array_merge($this->defaultEventMatchListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
-
-    //     // Search Filter
-    //     if (!is_null($filters['q'])) {
-    //         $eventMatches = $eventMatches->where(function ($query) use ($filters) {
-    //             $query->whereHas('team1', function ($q) use ($filters) {
-    //                 $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
-    //             })->orWhereHas('team2', function ($q) use ($filters) {
-    //                 $q->where('name', 'LIKE', '%' . $filters['q'] . '%');
-    //             });
-    //         });
-    //     }
-
-    //     switch ($filters['sort']) {
-    //     case Filter::SORT_A_TO_Z:
-    //         $eventMatches = $eventMatches
-    //             ->join('teams as team1', 'event_matches.team1', '=', 'team1.id')
-    //             ->join('teams as team2', 'event_matches.team2', '=', 'team2.id')
-    //             ->select('event_matches.*')
-    //             ->orderBy('team1.name')
-    //             ->orderBy('team2.name');
-    //         break;
-
-    //     case Filter::SORT_Z_TO_A:
-    //         $eventMatches = $eventMatches
-    //             ->join('teams as team1', 'event_matches.team1', '=', 'team1.id')
-    //             ->join('teams as team2', 'event_matches.team2', '=', 'team2.id')
-    //             ->select('event_matches.*')
-    //             ->orderByDesc('team1.name')
-    //             ->orderByDesc('team2.name');
-    //         break;
-
-    //     default:
-    //         $eventMatches = $eventMatches->orderBy('created_at');
-    //         break;
-    //     }
-
-    //     return new Paginate($eventMatches, $filters['max_eventMatch_per_page'], $filters['page'], 'eventMatches');
-    // }
-
     public function listEventMatches(array $userFilters = []): Paginate
     {
         $filters = array_merge(
@@ -168,6 +124,10 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
 
         if (!empty($filters['round'])) {
             $query->where('events.round', $filters['round']);
+        }
+
+        if (!empty($filters['series'])) {
+            $query->where('series.name', 'like', "%{$filters['series']}%");
         }
 
         if (!empty($filters['q'])) {
@@ -206,6 +166,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
 
         $query->with([
             'event:id,event_date,region_id,agegroup_id,time,round,series_id',
+            'event.series:id,name',
             'team1:id,name',
             'team2:id,name',
             'field:id,name',
@@ -255,17 +216,20 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         });
     }
 
-        public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool
+    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool
     {
         $eventMatch = $this->find($id);
+        
+        $dbIsAbandonedMatch = $eventMatch->is_abandoned_match;
+        $dbIsSubmittedResult = $eventMatch->submitted;
 
         $event_id = $eventMatch->event_id;
 
         $eventMatch->team1_oldScore =  $eventMatch->team1_score;
         $eventMatch->team2_oldScore = $eventMatch->team2_score;
 
-        $eventMatch->team1_score =  $isAbandonedMatch  ? $team1_score + 1 : $team1_score;
-        $eventMatch->team2_score = $isAbandonedMatch ? $team2_score + 1 : $team2_score;
+        $eventMatch->team1_score = $team1_score;
+        $eventMatch->team2_score = $team2_score;
 
         if ($team1_score > $team2_score) {
             $eventMatch->winner = $eventMatch->team1;
@@ -278,9 +242,9 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             $eventMatch->losser = null;
         }
         $eventMatch->isDraw = ($team1_score == $team2_score);
-        $eventMatch->is_abandoned_match = $isAbandonedMatch;
+        $eventMatch->is_abandoned_match = $dbIsSubmittedResult === 0 ? $isAbandonedMatch : $dbIsAbandonedMatch;
 
-        return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id) {
+        return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id, $dbIsAbandonedMatch) {
             $eventMatch->save();
 
             if ($eventMatch->submitted) {

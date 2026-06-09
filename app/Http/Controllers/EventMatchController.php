@@ -28,6 +28,7 @@ class EventMatchController extends Controller
         $region = $request->query('region', null);
         $agegroup = $request->query('agegroup', null);
         $round = $request->query('round', null);
+        $series = $request->query('series', null);
         $maxEventMatchesPerPage = $request->query('maxEventMatchesPerPage', null);
 
         $filter = [
@@ -38,6 +39,7 @@ class EventMatchController extends Controller
             'region' => $region,
             'agegroup' => $agegroup,
             'round' => $round,
+            'series' => $series,
             'max_eventMatch_per_page' => $maxEventMatchesPerPage,
         ];
 
