@@ -25,6 +25,10 @@ class Series extends Model
         'media',
     ];
 
+    protected $casts = [
+        'is_paused' => 'boolean'
+    ];
+
     public function event()
     {
         return $this->hasMany(Event::class);
