@@ -96,6 +96,8 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         'agegroup' => null,
 
         'series_name' => null,
+
+        'is_submitted' => false,
     ];
 
     public function __construct(Event $event, StorageInterface $storageService, EventMatchServiceInterface $eventmatchService)
@@ -130,6 +132,13 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         if (!is_null($filters['series_name'])) {
             $events->whereHas('series', function ($query) use ($filters) {
                 $query->where('name', 'LIKE', '%' . $filters['series_name'] . '%');
+            });
+        }
+
+        if (!is_null($filters['is_submitted'])) {
+            $events->whereHas('eventmatch', function ($query) use ($filters) {
+                $submitted = filter_var($filters['is_submitted'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                $query->where('submitted', $submitted);
             });
         }
 

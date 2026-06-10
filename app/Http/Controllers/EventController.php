@@ -23,13 +23,14 @@ class EventController extends Controller
         $sort = $request->query('sort', null);
         $page = $request->query('page', null);
         $maxEventsPerPage = $request->query('maxEventsPerPage', null);
-        $eventDate = $request->query('eventDate', null);
+        $eventDate = $request->query('event_date', null);
         $event = $request->query('event', null);
         $year = $request->query('year', null);
         $manager = $request->query('manager', null);
         $region = $request->query('region', null);
         $agegroup = $request->query('agegroup', null);
         $seriesName = $request->query('series_name', null);
+        $isSubmitted = $request->query('submit', false);
 
         $filter = [
             'q' => $query,
@@ -42,7 +43,8 @@ class EventController extends Controller
             'manager' => $manager,
             'region' => $region,
             'agegroup' => $agegroup,
-            'series_name' => $seriesName
+            'series_name' => $seriesName,
+            'is_submitted' => $isSubmitted
         ];
 
         $events = $this->eventService->listEvents($filter);
