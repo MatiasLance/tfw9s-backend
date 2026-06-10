@@ -135,11 +135,22 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             });
         }
 
-        if (!is_null($filters['is_submitted'])) {
-            $events->whereHas('eventmatch', function ($query) use ($filters) {
-                $submitted = filter_var($filters['is_submitted'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-                $query->where('submitted', $submitted);
+        $submitted = filter_var(
+            $filters['is_submitted'] ?? null,
+            FILTER_VALIDATE_BOOLEAN,
+            FILTER_NULL_ON_FAILURE
+        );
+
+        if (!is_null($submitted)) {
+            // Only keep events that have at least one matching match
+            $events->whereHas('eventmatch', function ($q) use ($submitted) {
+                $q->where('submitted', $submitted);
             });
+
+            // Only load the matches that meet the condition
+            $events->with(['eventmatch' => function ($q) use ($submitted) {
+                $q->where('submitted', $submitted);
+            }]);
         }
 
         // Event Date Filter
