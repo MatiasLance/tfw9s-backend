@@ -135,7 +135,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
         // Event Date Filter
         if (!is_null($filters['event_date'])) {
-             $events->where('event_date', 'LIKE', '%' . $filters['event_date'] . '%');
+             $events->where('event_date', $filters['event_date']);
         }
         
         // Year Filter
