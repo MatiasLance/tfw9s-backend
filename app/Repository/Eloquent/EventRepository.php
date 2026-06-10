@@ -135,9 +135,7 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
 
         // Event Date Filter
         if (!is_null($filters['event_date'])) {
-            $events->whereHas('series', function ($query) use ($filters) {
-                $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
-            });
+             $events->where('event_date', 'LIKE', '%' . $filters['event_date'] . '%');
         }
         
         // Year Filter
@@ -178,10 +176,10 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 break;
         }
 
-        $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
-        return new Paginate($events, $maxPerPage, $filters['page'], 'events');
+        // $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
+        // return new Paginate($events, $maxPerPage, $filters['page'], 'events');
 
-        // return new Paginate($events, $filters['max_event_per_page'], $filters['page'], 'events');
+        return new Paginate($events, $filters['max_event_per_page'], $filters['page'], 'events');
     }
 
     public function retrieveEvent(int $id): Event
