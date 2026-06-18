@@ -341,7 +341,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 $metadata['teamName'],
                 $metadata['ageGroup'],
                 $calculatedTotal['totalPrice'],
-                $seriesItem['item_id']
+                $seriesItem['item_id'],
             );
 
 
@@ -574,7 +574,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         $taxAmount = 0;
 
-        if($discountCodeID !== 0){
+        if($discountCodeID !== 0 && !is_null($discountCodeID)){
             $discountCode = DiscountCode::where('id', $discountCodeID)->first();
             $discountRate = floatval($discountCode->rate);
 

@@ -4,6 +4,7 @@ namespace App\Repository\Eloquent;
 
 use App\Models\IndividualRegistration;
 use App\Models\Player;
+use App\Models\Team;
 use App\Modules\Payment\PaymentGateway;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\IndividualRegistrationRepositoryInterface;
@@ -24,14 +25,27 @@ class IndividualRegistrationRepository extends BaseRepository implements Individ
         return $this->model->where('transaction_id', $transactionId)->first();
     }
 
-    public function create(string $paymentIntentId, PaymentGateway $gateway, string $contactFirstName, string $contactLastName, string $contactPhoneNumber, string $contactEmail, string $playerFirstName, string $playerLastName, string $dob, int $team, string $ageGroup, int $amount, int $item_id)
-    {
-        $existingRegistration = $this->findByTransactionId($paymentIntentId);
+    public function create(
+        string $paymentIntentId,
+        PaymentGateway $gateway,
+        string $contactFirstName,
+        string $contactLastName,
+        string $contactPhoneNumber,
+        string $contactEmail,
+        string $playerFirstName,
+        string $playerLastName,
+        string $dob,
+        string $team,
+        string $ageGroup,
+        int $amount,
+        int $item_id,
+    ) {
 
+        $existingRegistration = $this->findByTransactionId($paymentIntentId);
         if (!is_null($existingRegistration)) {
-          return $existingRegistration;
+            return $existingRegistration;
         }
-        
+
         $reg = new IndividualRegistration();
         $reg->transaction_id = $paymentIntentId;
         $reg->payment_gateway = $gateway;
@@ -40,10 +54,14 @@ class IndividualRegistrationRepository extends BaseRepository implements Individ
         $reg->item_id = $item_id;
         $reg->is_verified = false;
 
-        $player = new Player();
-
-        DB::transaction(function() use ($reg, $player, $team, $contactFirstName, $contactLastName, $contactPhoneNumber, $contactEmail, $playerFirstName, $playerLastName, $dob, $ageGroup) {
+        DB::transaction(function () use (
+            $reg, $team, $contactFirstName, $contactLastName,
+            $contactPhoneNumber, $contactEmail, $playerFirstName,
+            $playerLastName, $dob, $ageGroup,
+        ) {
             $reg->save();
+
+            $player = new Player();
             $player->team_id = $team;
             $player->registration_id = $reg->id;
             $player->contact_firstname = $contactFirstName;
@@ -55,6 +73,18 @@ class IndividualRegistrationRepository extends BaseRepository implements Individ
             $player->dob = $dob;
             $player->agegroup_id = $ageGroup;
             $player->save();
+
+            $teamModel = Team::where('id', $team)->lockForUpdate()->first();
+
+            if (!$teamModel) {
+                throw new \RuntimeException('Team not found.');
+            }
+
+            if ($teamModel->player_limit <= 0) {
+                throw new \RuntimeException('No available slots in this team.');
+            }
+
+            $teamModel->decrement('player_limit');
         });
 
         return $reg;

@@ -407,7 +407,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $secondToken = $tokens[1] ?? null;
 
         $players = $this->model->query()
-            ->select('id', 'player_firstname', 'player_lastname')
+            ->select('id', 'team_id', 'agegroup_id', 'series_id', 'contact_firstname', 'contact_lastname', 'phone_number', 'email', 'player_firstname', 'player_lastname', 'dob')
             ->where(function ($q) use ($firstToken, $secondToken) {
                 if ($secondToken) {
                     $q->where('player_firstname', 'LIKE', $firstToken.'%')
@@ -423,8 +423,16 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
         return $players->map(fn($p) => [
             'id'    => $p->id,
+            'team_id' => $p->team_id,
+            'ageGroup_id' => $p->agegroup_id,
+            'series_id' => $p->series_id,
+            'parent_first_name' => $p->contact_firstname,
+            'parent_last_name' => $p->contact_lastname,
             'first_name' => $p->player_firstname,
             'last_name' => $p->player_lastname,
+            'phone_number' => $p->phone_number,
+            'email' => $p->email,
+            'date_of_birth' => $p->dob,
             'name'  => $p->player_firstname . ' ' . $p->player_lastname,
         ]);
     }

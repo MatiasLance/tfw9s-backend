@@ -38,10 +38,10 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
         string $playerFirstName,
         string $playerLastName,
         string $dob,
-        int $team,
+        string $team,
         string $ageGroup,
         int $amount,
-        int $item_id
+        int $item_id,
     )
     {
         return $this->individualRegistrationRepository->create(
@@ -57,7 +57,7 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
           $team,
           $ageGroup,
           $amount,
-          $item_id
+          $item_id,
         );
     }
 

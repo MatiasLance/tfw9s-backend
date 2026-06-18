@@ -170,7 +170,7 @@ class IndividualRegistrationController extends Controller
     {
         $item = $request->input('item');
         $amount = $request->input('amount');
-        $discountCodeID = $request->input('discountID');
+        $discountCodeID = !is_null($request->input('discountID')) ? $request->input('discountID') : 0;
         
         $tax = Tax::find(1);
         $master = ToggleTaxControl::find(1);
