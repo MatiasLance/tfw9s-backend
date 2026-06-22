@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
+use App\Services\NotifyService;
 
 class ItemController extends Controller
 {
@@ -17,10 +18,11 @@ class ItemController extends Controller
 
     protected CategoryServiceInterface $categoryService;
 
-    public function __construct(ItemServiceInterface $itemService, CategoryServiceInterface $categoryService)
+    public function __construct(ItemServiceInterface $itemService, CategoryServiceInterface $categoryService, NotifyService $notifyService)
     {
         $this->itemService = $itemService;
         $this->categoryService = $categoryService;
+        $this->notifyService = $notifyService;
     }
 
     public function list(Request $request, Message $message)
@@ -46,6 +48,8 @@ class ItemController extends Controller
         $paginatedItems = $this->itemService->listItems($filter);
 
         $message->setContent(200, 'Items retrieved', '', $paginatedItems->toArray());
+        
+        $this->notifyService->sendNotificationForItemList($message->render());
 
         return $message->render();
     }
@@ -130,6 +134,9 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
+        $has_shipping = $request->input('has_shipping');
+        $shipping_charge = $request->input('shipping_charge');
+
         $item = $this->itemService->createItem(
             $name, 
             $description, 
@@ -146,7 +153,9 @@ class ItemController extends Controller
             $tags,
             $sizeVariants,
             $colorVariants,
-            $uploadedColorImages
+            $uploadedColorImages,
+            $has_shipping,
+            $shipping_charge
         );
 
         if ($item instanceof Item) {
@@ -230,6 +239,9 @@ class ItemController extends Controller
             $categories = null;
         }
 
+        $has_shipping = $request->input('has_shipping');
+        $shipping_charge = $request->input('shipping_charge');
+
         $newItem = $this->itemService->duplicateItem(
                 $itemId,
                 $name,
@@ -244,7 +256,9 @@ class ItemController extends Controller
                 $categories,
                 $sizeVariants,
                 $colorVariants,
-                $uploadedColorImages
+                $uploadedColorImages,
+                $has_shipping,
+                $shipping_charge
             );
 
         if ($newItem instanceof Item) {
@@ -327,6 +341,9 @@ class ItemController extends Controller
             $categories = null;
         }
 
+        $has_shipping = $request->input('has_shipping');
+        $shipping_charge = $request->input('shipping_charge');
+
         $newItem = $this->itemService->addItemVariant(
             $itemId,
             $name,
@@ -342,7 +359,9 @@ class ItemController extends Controller
             $categories,
             $sizeVariants,
             $colorVariants,
-            $uploadedColorImages
+            $uploadedColorImages,
+            $has_shipping,
+            $shipping_charge
         );
 
         if ($newItem instanceof Item) {
@@ -444,6 +463,9 @@ class ItemController extends Controller
             }
         }
 
+        $has_shipping = $request->input('has_shipping');
+        $shipping_charge = $request->input('shipping_charge');
+
         $isSuccess = $this->itemService->updateItem(
             $id, 
             $name, 
@@ -461,7 +483,9 @@ class ItemController extends Controller
             $tags,
             $sizeVariants,
             $colorVariants,
-            $uploadedColorImages
+            $uploadedColorImages,
+            $has_shipping,
+            $shipping_charge
         );
 
         if ($isSuccess) {

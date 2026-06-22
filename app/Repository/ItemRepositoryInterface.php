@@ -76,7 +76,9 @@ interface ItemRepositoryInterface
             array $tags,
             array $sizeVariants = [],
             array $colorVariants = [],
-            array $uploadedColorImages = []
+            array $uploadedColorImages = [],
+            bool $hasShipping,
+            float $shippingCharge,
         ): Item;
 
     /**
@@ -106,7 +108,9 @@ interface ItemRepositoryInterface
         ?array $categories,
         ?array $sizeVariants = [],
         ?array $colorVariants = [],
-        ?array $uploadedColorImages = []
+        ?array $uploadedColorImages = [],
+        bool $hasShipping,
+        ?float $shippingCharge,
     ): Item;
 
     /**
@@ -137,7 +141,9 @@ interface ItemRepositoryInterface
         ?array $categories,
         ?array $sizeVariants = [],
         ?array $colorVariants = [],
-        ?array $uploadedColorImages = []
+        ?array $uploadedColorImages = [],
+        bool $hasShipping,
+        ?float $shippingCharge,
     ): Item;
 
     /**
@@ -173,7 +179,9 @@ interface ItemRepositoryInterface
         array $tags,
         array $sizeVariants = [],
         array $colorVariants = [],
-        array $uploadedColorImages = []
+        array $uploadedColorImages = [],
+        bool $hasShipping,
+        ?float $shippingCharge,
     ): bool;
 
     /**

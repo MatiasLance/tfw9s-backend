@@ -33,4 +33,16 @@ class NotifyService
             ]
         ]);
     }
+
+    public function sendNotificationForItemList($data)
+    {
+        $url = env('SOCKET_URL', 'http://socket:3001') . '/item-list';
+
+        Http::post($url, [
+            'event' => 'render-item-list',
+            'payload' => [
+                'data' => $data
+            ]
+        ]);
+    }
 }

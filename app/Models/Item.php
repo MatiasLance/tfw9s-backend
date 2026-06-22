@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Cache;
 
 class Item extends Model
 {
@@ -49,7 +48,8 @@ class Item extends Model
         'is_active' => 'boolean',
         'isHideOutOfStock' => 'boolean',
         'colors' => 'array',
-        'show_rrp' => 'boolean'
+        'show_rrp' => 'boolean',
+        'has_shipping' => 'boolean'
     ];
 
     // =========================================================================
@@ -587,14 +587,6 @@ class Item extends Model
 
     protected static function booted()
     {
-        static::saved(function (Item $item) {
-            Cache::forget("item:{$item->id}");
-        });
-
-        static::deleted(function (Item $item) {
-            Cache::forget("item:{$item->id}");
-        });
-
         static::deleting(function ($item) {
             if (!$item->isForceDeleting()) {
                 $item->itemVariants()->delete();

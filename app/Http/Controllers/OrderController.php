@@ -112,6 +112,7 @@ class OrderController extends Controller
         $hasDiscount = !empty($result);
 
         $lineItems = [];
+        $shippings = [];
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
@@ -150,7 +151,13 @@ class OrderController extends Controller
                 'quantity' => $item['quantity'],
             ];
 
+            $shipping = [
+                'has_shipping' => $currentItem->has_shipping,
+                'shipping_charge' => $currentItem->shipping_charge
+            ];
+
             array_push($lineItems, $lineItem);
+            array_push($shippings, $shipping);
         }
 
         $totalProduct = $this->calculateTotal($discountcode, $lineItems);
