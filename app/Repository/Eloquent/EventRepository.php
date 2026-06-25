@@ -96,6 +96,8 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
         'agegroup' => null,
 
         'series_name' => null,
+
+        'is_submitted' => false,
     ];
 
     public function __construct(Event $event, StorageInterface $storageService, EventMatchServiceInterface $eventmatchService)
@@ -133,11 +135,27 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
             });
         }
 
+        $submitted = filter_var(
+            $filters['is_submitted'] ?? null,
+            FILTER_VALIDATE_BOOLEAN,
+            FILTER_NULL_ON_FAILURE
+        );
+
+        if (!is_null($submitted)) {
+            // Only keep events that have at least one matching match
+            $events->whereHas('eventmatch', function ($q) use ($submitted) {
+                $q->where('submitted', $submitted);
+            });
+
+            // Only load the matches that meet the condition
+            $events->with(['eventmatch' => function ($q) use ($submitted) {
+                $q->where('submitted', $submitted);
+            }]);
+        }
+
         // Event Date Filter
         if (!is_null($filters['event_date'])) {
-            $events->whereHas('series', function ($query) use ($filters) {
-                $query->where('name', 'LIKE', '%' . $filters['q'] . '%');
-            });
+             $events->where('event_date', $filters['event_date']);
         }
         
         // Year Filter
@@ -177,8 +195,6 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 $events->orderBy('created_at');
                 break;
         }
-
-        // $maxPerPage = is_null($userFilters['max_event_per_page']) ? $events->count() : $filters['max_event_per_page'];
 
         return new Paginate($events, $filters['max_event_per_page'], $filters['page'], 'events');
     }

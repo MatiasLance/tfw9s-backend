@@ -17,7 +17,6 @@ use App\Repository\ItemRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 
 class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 {
@@ -272,22 +271,10 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
     public function retrieveItem(int $id): Item
     {
-        return Cache::remember(
-            $this->cacheKey($id),
-            now()->addHours(6),
-            function () use ($id) {
-                $item = $this->find($id);
-                
-                return $item->load([
-                        'parent:id,name',
-                        'categories:id,name,parent_id',
-                    ])
-                    ->append([
-                        'categoryLineages',
-                        'related',
-                    ]);
-            }
-        );
+        return Item::where('id', $id)
+        ->firstOrFail()
+        ->load(['parent:id,name', 'categories:id,name,parent_id'])
+        ->append(['categoryLineages', 'related']);
     }
 
     /**
@@ -309,7 +296,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         array $tags,
         array $sizeVariants = [],
         array $colorVariants = [],
-        array $uploadedColorImages = []
+        array $uploadedColorImages = [],
+        bool $hasShipping,
+        float $shippingCharge,
     ): Item {
         
         $item = new Item();
@@ -323,6 +312,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $item->is_on_sale = $isOnSale;
         $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
+        $item->has_shipping = $hasShipping;
+        $item->shipping_charge = $shippingCharge;
         
         // Legacy colors column cleared; new system uses item_variants table
         $item->colors = []; 
@@ -388,7 +379,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         ?array $categories,
         ?array $sizeVariants = [],
         ?array $colorVariants = [],
-        ?array $uploadedColorImages = []
+        ?array $uploadedColorImages = [],
+        bool $hasShipping,
+        ?float $shippingCharge,
     ): Item
     {
         $oldItem = $this->find($id);
@@ -418,6 +411,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         }
         if (!is_null($isOnSale)) {
             $item->is_on_sale = $isOnSale;
+        }
+        if (!is_null($hasShipping)) {
+            $item->has_shipping = $hasShipping;
+        }
+        if (!is_null($shippingCharge)) {
+            $item->shipping_charge= $shippingCharge;
         }
 
         return DB::transaction(function() use($oldItem, $item, $categories, $media, $sizeVariants, $colorVariants, $uploadedColorImages) {
@@ -477,7 +476,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         ?array $categories,
         ?array $sizeVariants = [],
         ?array $colorVariants = [],
-        ?array $uploadedColorImages = []
+        ?array $uploadedColorImages = [],
+        bool $hasShipping,
+        ?float $shippingCharge,
     ): Item
     {
         $item = $this->duplicateItem(
@@ -494,7 +495,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
             $categories,
             $sizeVariants,
             $colorVariants,
-            $uploadedColorImages
+            $uploadedColorImages,
+            $hasShipping,
+            $shippingCharge,
         );
 
         return DB::transaction(function() use($item, $id){
@@ -526,7 +529,9 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         array $tags,
         array $sizeVariants = [],
         array $colorVariants = [],
-        array $uploadedColorImages = []
+        array $uploadedColorImages = [],
+        bool $hasShipping,
+        ?float $shippingCharge,
     ): bool
     {
         $item = $this->find($id);
@@ -540,6 +545,8 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $item->is_on_sale = $isOnSale;
         $item->selected_shippingid = $shippingId;
         $item->isHideOutOfStock = $isHideOutOfStock;
+        $item->has_shipping = $hasShipping;
+        $item->shipping_charge = $shippingCharge;
 
         return DB::transaction(function() use(
                 $item,

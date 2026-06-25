@@ -46,10 +46,10 @@ interface IndividualRegistrationRepositoryInterface
         string $playerFirstName,
         string $playerLastName,
         string $dob,
-        int $team,
+        string $team,
         string $ageGroup,
         int $amount,
-        int $item_id
+        int $item_id,
     );
 
 

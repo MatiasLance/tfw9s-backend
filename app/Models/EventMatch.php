@@ -31,7 +31,8 @@ class EventMatch extends Model
     ];
 
     protected $casts = [
-        'is_abandoned_match' => 'boolean'
+        'is_abandoned_match' => 'boolean',
+        'submitted' => 'boolean'
     ];
 
     public function team1()

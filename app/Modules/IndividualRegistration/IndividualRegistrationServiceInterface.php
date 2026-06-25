@@ -28,7 +28,7 @@ interface IndividualRegistrationServiceInterface
      * @param string $email
      * @param string $player_firstname
      * @param string $player_lastname
-     * @param int $team
+     * @param string $team
      * @param string $dob
      * @param string $agegroup
      * @param integer $price
@@ -46,10 +46,10 @@ interface IndividualRegistrationServiceInterface
         string $playerFirstName,
         string $playerLastName,
         string $dob,
-        int $team,
+        string $team,
         string $ageGroup,
         int $amount,
-        int $item_id
+        int $item_id,
         );
 
     /**
