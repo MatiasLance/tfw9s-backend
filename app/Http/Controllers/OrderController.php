@@ -113,6 +113,7 @@ class OrderController extends Controller
 
         $lineItems = [];
         $shippings = [];
+        $shippingFee = 0;
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
@@ -160,6 +161,8 @@ class OrderController extends Controller
             array_push($shippings, $shipping);
         }
 
+        $hasDisabledShipping = collect($shippings)->contains('has_shipping', false);
+
         $totalProduct = $this->calculateTotal($discountcode, $lineItems);
 
         $tax = Tax::latest()->first();
@@ -169,7 +172,18 @@ class OrderController extends Controller
         $gstInclusive = $toggleTaxControl?->isToggleControle2();
 
         $productTotal = $totalProduct['totalProduct'] * 100;
-        $shippingFee = ($metadata['shipOption'] === 'delivery') ? 1000 : 0;
+
+        $items = collect($shippings);
+
+        $hasUnshippable = $items->contains('has_shipping', false);
+
+        if (!$hasUnshippable && ($metadata['shipOption'] === 'delivery')) {
+            // $firstShippable = $items->firstWhere('has_shipping', true);
+            // $shippingFee = $firstShippable['shipping_charge'] ?? 0;
+            $shippingFee = $items->sum('shipping_charge') * 100;
+        } else {
+            $shippingFee = 0;
+        }
 
         if ($gstInclusive) {
             // INCLUSIVE MODE: Tax included in both products and shipping

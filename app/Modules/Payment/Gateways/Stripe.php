@@ -108,7 +108,9 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     public function createOrder($discountCode, array $items, array $metadata = [])
     {
         $lineItems = [];
+        $shippings = [];
         $total = 0;
+        $shippingFee = 0;
 
         $discount = DiscountCode::where('code', $discountCode)->first();
         $hasDiscount = !empty($discount);
@@ -159,7 +161,13 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 'selected_color' => $item['color'] ?? null
             ];
 
+            $shipping = [
+                'has_shipping' => $currentItem->has_shipping,
+                'shipping_charge' => $currentItem->shipping_charge
+            ];
+
             array_push($lineItems, $lineItem);
+            array_push($shippings, $shipping);
         }
 
         $cartToken = Str::random(16);
@@ -187,7 +195,18 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         $gstInclusive = $toggleTaxControl?->isToggleControle2();
 
         $productTotal = $totalProduct['totalProduct'] * 100;
-        $shippingFee = ($metadata['shipOption'] === 'delivery') ? 1000 : 0;
+
+        $items = collect($shippings);
+        
+        $hasUnshippable = $items->contains('has_shipping', false);
+
+        if (!$hasUnshippable && ($metadata['shipOption'] === 'delivery')) {
+            $firstShippable = $items->firstWhere('has_shipping', true);
+            $shippingFee = $firstShippable['shipping_charge'] ?? 0;
+            // $shippingFee = $items->sum('shipping_charge') * 100;
+        } else {
+            $shippingFee = 0;
+        }
 
 
         if ($gstInclusive) {

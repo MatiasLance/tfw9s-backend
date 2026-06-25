@@ -204,6 +204,7 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix("agegroups")->group(function() {
+        Route::get('/retrieve-age-groups', 'App\Http\Controllers\AgeGroupController@index');
         Route::get('/', 'App\Http\Controllers\AgeGroupController@list');
         Route::get('/all', 'App\Http\Controllers\AgeGroupController@all');
         Route::get('/{id}', 'App\Http\Controllers\AgeGroupController@retrieve');
