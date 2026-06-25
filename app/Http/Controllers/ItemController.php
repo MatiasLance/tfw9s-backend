@@ -134,8 +134,8 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $has_shipping = $request->input('has_shipping');
-        $shipping_charge = $request->input('shipping_charge');
+        $has_shipping = $request->input('has_shipping') ?? false;
+        $shipping_charge = $request->input('shipping_charge') ?? 0;
 
         $item = $this->itemService->createItem(
             $name, 
@@ -239,8 +239,8 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $has_shipping = $request->input('has_shipping');
-        $shipping_charge = $request->input('shipping_charge');
+        $has_shipping = $request->input('has_shipping') ?? false;
+        $shipping_charge = $request->input('shipping_charge') ?? 0;
 
         $newItem = $this->itemService->duplicateItem(
                 $itemId,
@@ -341,8 +341,8 @@ class ItemController extends Controller
             $categories = null;
         }
 
-        $has_shipping = $request->input('has_shipping');
-        $shipping_charge = $request->input('shipping_charge');
+        $has_shipping = $request->input('has_shipping') ?? false;
+        $shipping_charge = $request->input('shipping_charge') ?? 0;
 
         $newItem = $this->itemService->addItemVariant(
             $itemId,
@@ -463,8 +463,8 @@ class ItemController extends Controller
             }
         }
 
-        $has_shipping = $request->input('has_shipping');
-        $shipping_charge = $request->input('shipping_charge');
+        $has_shipping = $request->input('has_shipping') ?? false;
+        $shipping_charge = $request->input('shipping_charge') ?? 0;
 
         $isSuccess = $this->itemService->updateItem(
             $id, 
