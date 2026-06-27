@@ -202,20 +202,19 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
         if (!$hasUnshippable && ($metadata['shipOption'] === 'delivery')) {
             $firstShippable = $items->firstWhere('has_shipping', true);
-            $shippingFee = $firstShippable['shipping_charge'] ?? 0;
+            $shippingFee = $firstShippable['shipping_charge'] * 100 ?? 0;
             // $shippingFee = $items->sum('shipping_charge') * 100;
         } else {
             $shippingFee = 0;
         }
 
-
         if ($gstInclusive) {
-            $totalBeforeTax = ($productTotal + $shippingFee) / (1 + ($addTax / 100));
-            $taxAmount = ($productTotal + $shippingFee) - $totalBeforeTax;
-            $grandTotal = $productTotal + $shippingFee;
+            $totalBeforeTax = ($productTotal + floatval($shippingFee)) / (1 + ($addTax / 100));
+            $taxAmount = ($productTotal + floatval($shippingFee)) - $totalBeforeTax;
+            $grandTotal = $productTotal + floatval($shippingFee);
         } else {
-            $taxAmount = (int) round(($productTotal + $shippingFee) * ($addTax / 100));
-            $grandTotal = $productTotal + $shippingFee + $taxAmount;
+            $taxAmount = (int) round(($productTotal + floatval($shippingFee)) * ($addTax / 100));
+            $grandTotal = $productTotal + floatval($shippingFee) + $taxAmount;
         }
 
         $cartPayload['grand_total'] = $grandTotal;
