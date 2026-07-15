@@ -20,7 +20,11 @@ class AgeGroupController extends Controller
 
     public function index(): JsonResponse
     {
-        $ageGroups = DB::select('SELECT id, name FROM age_groups ORDER BY name');
+        $ageGroups = DB::table('age_groups')
+            ->select('id', 'name')
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get();
         return response()->json($ageGroups);
     }
 
