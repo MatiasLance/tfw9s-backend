@@ -6,6 +6,8 @@ use App\Modules\Http\Message;
 use App\Modules\AgeGroup\AgeGroupServiceInterface;
 use Illuminate\Http\Request;
 use App\Models\AgeGroup;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 
 class AgeGroupController extends Controller
 {
@@ -14,6 +16,16 @@ class AgeGroupController extends Controller
     public function __construct(AgeGroupServiceInterface $ageGroupService)
     {
         $this->ageGroupService = $ageGroupService;
+    }
+
+    public function index(): JsonResponse
+    {
+        $ageGroups = DB::table('age_groups')
+            ->select('id', 'name')
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get();
+        return response()->json($ageGroups);
     }
 
     public function list(Request $request, Message $message)

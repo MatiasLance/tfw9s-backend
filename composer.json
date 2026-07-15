@@ -13,7 +13,7 @@
         "laravel/tinker": "^2.7",
         "paypal/paypal-checkout-sdk": "^1.0",
         "spatie/laravel-permission": "^6.4",
-        "square/square": "25.0.0.20221214",
+        "square/square": "^45.1",
         "stripe/stripe-php": "^8.12",
         "twilio/sdk": "^8.8"
     },
@@ -64,7 +64,10 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

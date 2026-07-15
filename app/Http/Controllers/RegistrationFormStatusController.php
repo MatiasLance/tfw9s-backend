@@ -52,7 +52,8 @@ class RegistrationFormStatusController extends Controller
                     'countdownUnit' => 'days',
                     'countdownValue' => 1,
                     'date' => null,
-                    'seriesId' => $id
+                    'seriesId' => $id,
+                    'serverTime' => null,
                 ]
             ]);
         }
@@ -71,11 +72,10 @@ class RegistrationFormStatusController extends Controller
                 'countdownUnit' => $timer->countdown_unit ?? 'days',
                 'countdownValue' => $timer->countdown_value ?? 1,
                 'date' => $timer->opens_at ? $timer->opens_at->format('Y-m-d\TH:i') : null,
+                'serverTime' => now()->format('Y-m-d\TH:i'),
             ]
         ];
 
-        $this->notifyService->sendNotification($responseData);
-        
         return response()->json($responseData);
     }
 
@@ -106,7 +106,7 @@ class RegistrationFormStatusController extends Controller
 
             if ($validated['isShowCountDownTimer']) {
                 if ($validated['timerMode'] === 'date') {
-                    $opensAt = Carbon::parse($validated['date']);
+                    $opensAt = Carbon::parse($validated['date'])->setTimezone('Australia/Sydney');
                 } else {
                     $unit = $validated['countdownUnit'];
                     $value = $validated['countdownValue'];
@@ -129,14 +129,24 @@ class RegistrationFormStatusController extends Controller
             DB::commit();
 
             $status = $config->is_show_count_down_timer ? 'enabled' : 'disabled';
-            
-            return response()->json([
+
+            $responseData = [
                 'success' => true,
                 'message' => "Registration countdown timer has been successfully {$status}.",
                 'data' => [
-                    'series_id' => $config->series_id
+                    'seriesId' => $config->series_id,
+                    'isShowCountDownTimer' => (bool) $config->is_show_count_down_timer,
+                    'timerMode' => $config->timer_mode ?? 'date',
+                    'countdownUnit' => $config->countdown_unit ?? 'days',
+                    'countdownValue' => $config->countdown_value ?? 1,
+                    'date' => $config->opens_at ? $config->opens_at->format('Y-m-d\TH:i') : null,
+                    'serverTime' => now()->format('Y-m-d\TH:i'),
                 ]
-            ]);
+            ];
+
+            $this->notifyService->sendNotification($responseData);
+
+            return response()->json($responseData);
 
         } catch (\Throwable $e) {
             DB::rollBack();
