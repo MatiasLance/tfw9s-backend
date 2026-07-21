@@ -96,9 +96,13 @@ class SeriesController extends Controller
     }
 
 
-    public function retrieve(Message $message, int $id)
+    public function retrieve(Request $request, Message $message, int $id)
     {
-        $series = $this->seriesService->retrieveSeries($id);
+        // Article pages do not need the full team collection. Keeping this
+        // enabled by default preserves the response used by registration and
+        // administration screens.
+        $includeTeams = $request->boolean('includeTeams', true);
+        $series = $this->seriesService->retrieveSeries($id, $includeTeams);
 
         $message->setContent(200, 'Series retrieved', '', [
             'series' => $series
@@ -284,5 +288,4 @@ class SeriesController extends Controller
         return $message->render();
     }
 }
-
 

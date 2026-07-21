@@ -33,9 +33,9 @@ class SeriesService implements SeriesServiceInterface
         return $this->seriesRepository->listOfSeries($filters);
     }
 
-    public function retrieveSeries(int $id): Series
+    public function retrieveSeries(int $id, bool $includeTeams = true): Series
     {
-        return $this->seriesRepository->retrieveSeries($id);
+        return $this->seriesRepository->retrieveSeries($id, $includeTeams);
     }
 
     public function createSeries($name, $type, $description, $address, $start, $end, $price, $media): Series

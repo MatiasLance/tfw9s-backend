@@ -10,7 +10,7 @@ use App\Models\ToggleTaxControl;
 use App\Modules\Payment\PaymentServiceInterface;
 use App\Modules\Http\Message;
 use App\Models\TeamLimit;
-use App\Models\WaitingLounge;
+use App\Services\LoungeService;
 
 class TeamRegistrationController extends Controller
 {
@@ -20,10 +20,15 @@ class TeamRegistrationController extends Controller
      * @var PaymentServiceInterface $paymentService
      */
     protected PaymentServiceInterface $paymentService;
+    protected LoungeService $loungeService;
 
-    public function __construct(PaymentServiceInterface $paymentService)
+    public function __construct(
+        PaymentServiceInterface $paymentService,
+        LoungeService $loungeService
+    )
     {
         $this->paymentService = $paymentService;
+        $this->loungeService = $loungeService;
     }
 
     public function checkout(Request $request)
@@ -33,36 +38,19 @@ class TeamRegistrationController extends Controller
             'payment_method' => 'required|string',
             'metadata' => 'nullable|array',
             'discountcode' => 'nullable|string',
-            'lounge_token' => 'nullable|string',
-            'client_id' => 'nullable|string'
+            'lounge_token' => 'required|string',
+            'client_id' => 'required|string|max:255'
         ]);
 
-        try {
-            $tokenData = decrypt($validated['lounge_token']);
-
-            if ($tokenData['id'] !== $validated['client_id'] || $tokenData['exp'] < now()->timestamp) {
-                return response()->json([
-                  'success' => false,
-                  'message' => 'Queue session expired. Please re-enter the lounge.'
-                ]);
-            }
-
-            $hasActiveSlot = WaitingLounge::where('client_id', $validated['client_id'])
-                ->where('series_id', $validated['item'])
-                ->exists();
-
-            if (!$hasActiveSlot) {
-                return response()->json([
-                  'success' => false,
-                  'message' => 'Your checkout window has timed out.'
-                ]);
-            }
-
-        } catch (\Exception $e) {
+        if (!$this->loungeService->hasValidActiveSession(
+            $validated['lounge_token'],
+            $validated['client_id'],
+            (int) $validated['item']
+        )) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid security token.'
-            ]);
+                'message' => 'Your checkout session has expired. Please re-enter the lounge.'
+            ], 409);
         }
 
         return $this->paymentService->createTeamRegistration(

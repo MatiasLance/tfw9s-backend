@@ -41,9 +41,10 @@ interface SeriesRepositoryInterface
      *
      * @param int $id
      *
+     * @param bool $includeTeams
      * @return series
      */
-    public function retrieveSeries(int $id): Series;
+    public function retrieveSeries(int $id, bool $includeTeams = true): Series;
 
     /**
      * Create a new series instance

@@ -28,6 +28,7 @@ class NotifyService
             'event' => 'check-lounge-status',
             'payload' => [
                 'active_shoppers' => $data['active_shoppers'],
+                'queued_shoppers' => $data['queued_shoppers'],
                 'slots_available' => $data['slots_available'],
                 'total_limit' => $data['total_limit']
             ]

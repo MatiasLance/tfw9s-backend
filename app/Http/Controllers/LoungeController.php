@@ -3,84 +3,42 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\WaitingLounge;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 use App\Services\NotifyService;
+use App\Services\LoungeService;
 
 class LoungeController extends Controller
 {
-    const MAX_ACTIVE_CHECKOUTS = 5; 
-
     protected $notifyService;
+    protected $loungeService;
 
-    public function __construct(NotifyService $notifyService)
+    public function __construct(
+        NotifyService $notifyService,
+        LoungeService $loungeService
+    )
     {
         $this->notifyService = $notifyService;
+        $this->loungeService = $loungeService;
     }
 
     public function checkQueue(Request $request)
     {
-        $itemId = $request->item;
-        $clientId = $request->client_id;
-        $now = Carbon::now();
-
-        return DB::transaction(function () use ($itemId, $clientId, $now) {
-            
-            WaitingLounge::where('series_id', $itemId)
-                ->where('expires_at', '<', $now)
-                ->delete();
-
-            $userEntry = WaitingLounge::updateOrCreate(
-                ['client_id' => $clientId, 'series_id' => $itemId],
-                ['expires_at' => $now->copy()->addSeconds(30)]
-            );
-
-            $rank = WaitingLounge::where('series_id', $itemId)
-                ->where('id', '<', $userEntry->id)
-                ->count();
-
-            if ($rank < self::MAX_ACTIVE_CHECKOUTS) {
-                return response()->json([
-                    'status' => 'pass',
-                    'token' => $this->generateToken($clientId, $itemId)
-                ]);
-            }
-
-            return response()->json([
-                'status' => 'waiting',
-                'position' => $rank - self::MAX_ACTIVE_CHECKOUTS + 1
-            ]);
-        });
-    }
-
-    private function generateToken($clientId, $itemId)
-    {
-        return encrypt([
-            'id' => $clientId,
-            'item' => $itemId,
-            'exp' => Carbon::now()->addMinutes(15)->timestamp
+        $validated = $request->validate([
+            'item' => 'required|integer|exists:series,id',
+            'client_id' => 'required|string|max:255',
         ]);
+
+        return response()->json($this->loungeService->checkIn(
+            (int) $validated['item'],
+            $validated['client_id']
+        ));
     }
 
     public function getLiveStats($itemId)
     {
-        $activeInLounge = WaitingLounge::where('series_id', $itemId)
-            ->where('expires_at', '>', now())
-            ->count();
-        
-        $data = [
-            'active_shoppers' => $activeInLounge,
-            'slots_available' => max(0, self::MAX_ACTIVE_CHECKOUTS - $activeInLounge),
-            'total_limit' => self::MAX_ACTIVE_CHECKOUTS
-        ];
+        $data = $this->loungeService->stats((int) $itemId);
 
         $this->notifyService->sendNotificationForLoungeStatus($data);
 
-        return response()->json([
-            'active_shoppers' => $activeInLounge,
-            'slots_available' => max(0, self::MAX_ACTIVE_CHECKOUTS - $activeInLounge),
-            'total_limit' => self::MAX_ACTIVE_CHECKOUTS
-        ]);
+        return response()->json($data);
     }
 }

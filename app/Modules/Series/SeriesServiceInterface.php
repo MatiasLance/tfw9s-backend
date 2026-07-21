@@ -26,9 +26,10 @@ interface SeriesServiceInterface
      *
      * @param int $id
      *
+     * @param bool $includeTeams
      * @return Series
      */
-    public function retrieveSeries(int $id): Series;
+    public function retrieveSeries(int $id, bool $includeTeams = true): Series;
 
     /**
      * Create a new Series

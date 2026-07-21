@@ -369,6 +369,12 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
             }
 
+            if (!empty($metadata['client_token'])) {
+                WaitingLounge::where('client_id', $metadata['client_token'])
+                    ->where('series_id', $seriesItem['item_id'])
+                    ->delete();
+            }
+
             return response()->json([
                 'amount' => $calculatedTotal['totalPrice'],
                 'transactionId' => $seriesRegistered->transaction_id
@@ -463,6 +469,12 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                     $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
                     $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
                     $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
+                }
+
+                if (isset($registrationInformation->client_token)) {
+                    WaitingLounge::where('client_id', $registrationInformation->client_token)
+                        ->where('series_id', $lineItem['item_id'])
+                        ->delete();
                 }
             } catch (Exception $e) {
                 Log::error($e);
