@@ -90,6 +90,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         'min_price' => null,
         'max_price' => null,
         'in_stock' => null,
+        'include_inactive' => false,
     ];
 
     public function __construct(
@@ -109,6 +110,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         $items = $this->model->query();
 
         $filters = array_merge($this->defaultItemListFilters, array_filter($userFilters, fn ($f) => !is_null($f)));
+
+        // Visibility must be applied before pagination so hidden products do not
+        // affect totals, page counts, or the contents of a public page.
+        if (! $filters['include_inactive']) {
+            $items->visible();
+        }
 
         // Search Filter
         if (!is_null($filters['q'])) {
@@ -135,7 +142,7 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         // Tags filter
         if (!is_null($filters['tags'])) {
             $items = $items->whereHas('tags', function($q) use($filters) {
-                $q->whereIn('id', $filters['tags']);
+                $q->whereIn('tags.id', $filters['tags']);
             });
         }
 
@@ -245,8 +252,12 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
 
         // UPDATED: Eager load relationships including size variants
         $items = $items->with([
-            'variants' => function($query) {
-                $query->select('id', 'name', 'parent_id', 'description', 'price', 'saleprice', 'stock', 'is_featured', 'show_rrp', 'is_on_sale', 'selected_shippingid', 'isHideOutOfStock', 'colors')
+            'variants' => function($query) use ($filters) {
+                if (! $filters['include_inactive']) {
+                    $query->visible();
+                }
+
+                $query->select('id', 'name', 'parent_id', 'description', 'price', 'saleprice', 'stock', 'is_featured', 'is_active', 'show_rrp', 'is_on_sale', 'selected_shippingid', 'isHideOutOfStock', 'colors')
                     ->with([
                         'sizeVariants' => function($sizeQuery) {
                             $sizeQuery->where('stock_quantity', '>', 0)
@@ -269,12 +280,25 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
         return new Paginate($items, $filters['max_item_per_page'], $filters['page'], 'items');
     }
 
-    public function retrieveItem(int $id): Item
+    public function retrieveItem(int $id, bool $includeInactive = false): Item
     {
-        return Item::where('id', $id)
-        ->firstOrFail()
-        ->load(['parent:id,name', 'categories:id,name,parent_id'])
-        ->append(['categoryLineages', 'related']);
+        $item = Item::query()->where('id', $id);
+
+        if (! $includeInactive) {
+            $item->visible();
+        }
+
+        return $item->firstOrFail()
+            ->load([
+                'parent:id,name',
+                'categories:id,name,parent_id',
+                'variants' => function ($query) use ($includeInactive) {
+                    if (! $includeInactive) {
+                        $query->visible();
+                    }
+                },
+            ])
+            ->append(['categoryLineages', 'related']);
     }
 
     /**
@@ -431,6 +455,10 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                     $item->categories()->attach($category);
                 }
             }
+
+            // replicate() copies the model columns but not many-to-many links.
+            // A true duplicate must retain its tags as well as its categories.
+            $item->tags()->sync($oldItem->tags->pluck('id')->all());
 
             if (!is_null($media)) {
                 foreach ($media as $itemMedia) {
@@ -592,11 +620,6 @@ class ItemRepository extends BaseRepository implements ItemRepositoryInterface
                 foreach ($newMedia as $newPhoto) {
                     $itemPhoto = $this->storageService->store($newPhoto);
                     $item->media()->save($itemPhoto);
-                }
-            } else {
-                foreach ($item->media as $existingMedia) {
-                    $this->storageService->delete($existingMedia);
-                    $existingMedia->delete();
                 }
             }
 

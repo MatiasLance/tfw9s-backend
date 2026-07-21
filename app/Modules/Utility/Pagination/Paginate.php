@@ -42,6 +42,9 @@ class Paginate
      */
     protected array $appends = [];
 
+    /** @var null|callable */
+    protected $itemTransformer = null;
+
     /**
      * @param Builder|Model $builder The data to paginate
      * @param null|int $itemsPerPage
@@ -135,8 +138,13 @@ class Paginate
         $items = $this->builder
                             ->skip($itemsToSkip)
                             ->take($this->itemsPerPage)
-                            ->get()
-                            ->append($appends);
+                            ->get();
+
+        if ($this->itemTransformer) {
+            $items->transform($this->itemTransformer);
+        }
+
+        $items->append($appends);
         return [
             'current_page' => $this->currentPage,
             'last_page' => $numberOfPages,
@@ -152,6 +160,13 @@ class Paginate
     public function setItemsPerPage(int $itemsPerPage): self
     {
         $this->itemsPerPage = $itemsPerPage;
+        return $this;
+    }
+
+    public function transformItems(callable $transformer): self
+    {
+        $this->itemTransformer = $transformer;
+
         return $this;
     }
 

@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class NotifyService
 {
@@ -35,15 +37,35 @@ class NotifyService
         ]);
     }
 
-    public function sendNotificationForItemList($data)
+    /**
+     * Broadcast a small invalidation event. Each browser then reloads its own
+     * current search/filter/page instead of receiving another user's result set.
+     */
+    public function sendItemChangedNotification(int $itemId, string $action, ?bool $isActive = null): void
     {
         $url = env('SOCKET_URL', 'http://socket:3001') . '/item-list';
 
-        Http::post($url, [
-            'event' => 'render-item-list',
-            'payload' => [
-                'data' => $data
-            ]
-        ]);
+        $payload = [
+            'item_id' => $itemId,
+            'action' => $action,
+        ];
+
+        if ($isActive !== null) {
+            $payload['is_active'] = $isActive;
+        }
+
+        try {
+            Http::timeout(2)->post($url, [
+                'event' => 'item-list-changed',
+                'payload' => $payload,
+            ]);
+        } catch (Throwable $exception) {
+            // A socket outage must not roll back or fail a successful item edit.
+            Log::warning('Unable to broadcast item list change.', [
+                'item_id' => $itemId,
+                'action' => $action,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 }

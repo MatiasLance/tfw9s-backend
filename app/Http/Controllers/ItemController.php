@@ -18,6 +18,8 @@ class ItemController extends Controller
 
     protected CategoryServiceInterface $categoryService;
 
+    protected NotifyService $notifyService;
+
     public function __construct(ItemServiceInterface $itemService, CategoryServiceInterface $categoryService, NotifyService $notifyService)
     {
         $this->itemService = $itemService;
@@ -34,13 +36,20 @@ class ItemController extends Controller
         $page = $request->query('page', null);
         $itemVariant = $request->query('item_variant', null);
         $maxItemsPerPage = $request->query('maxItemsPerPage', null);
+        $includeInactive = $request->boolean('include_inactive');
+
+        if ($includeInactive && ! $this->canManageItems($request)) {
+            abort(403, 'You are not authorized to view hidden items.');
+        }
 
         $filter = [
             'q' => $query,
             'category' => $category,
-            'tag' => $tag,
+            'tags' => is_null($tag) ? null : (array) $tag,
             'sort' => $sort,
             'page' => $page,
+            'featured' => $request->has('featured') ? $request->boolean('featured') : null,
+            'include_inactive' => $includeInactive,
             'item_variant' => is_null($itemVariant) ? $itemVariant : intval($itemVariant),
             'max_item_per_page' => is_null($maxItemsPerPage) ? $maxItemsPerPage : intval($maxItemsPerPage),
         ];
@@ -49,14 +58,12 @@ class ItemController extends Controller
 
         $message->setContent(200, 'Items retrieved', '', $paginatedItems->toArray());
         
-        $this->notifyService->sendNotificationForItemList($message->render());
-
         return $message->render();
     }
 
     public function retrieve(Request $request, Message $message, int $itemId)
     {
-        $item = $this->itemService->retrieveItem($itemId);
+        $item = $this->itemService->retrieveItem($itemId, $this->canManageItems($request));
 
         $message->setContent(200, 'Item retrieved', '', [
             'item' => $item
@@ -78,6 +85,8 @@ class ItemController extends Controller
         $saleprice = $request->input('salePrice');
         if (is_numeric($saleprice)) {
             $saleprice = floatval($saleprice);
+        } else {
+            $saleprice = 0.0;
         }
         $stock = $request->input('stock');
         if (is_numeric($stock)) {
@@ -90,7 +99,7 @@ class ItemController extends Controller
         $isHideOutOfStock = $request->boolean('isHideOutOfStock');
         $photo = $request->file('photo') ?? [];
         $categoryId = $request->input('categoryId') ?? [];
-        $shippingId = $request->input('selected_shippingid');
+        $shippingId = strval($request->input('selected_shippingid') ?? 0);
         
         $sizeVariants = [];
         if ($request->has('size_variants')) {
@@ -159,6 +168,7 @@ class ItemController extends Controller
         );
 
         if ($item instanceof Item) {
+            $this->notifyService->sendItemChangedNotification($item->id, 'created', $item->is_active);
             $message->setContent(201, 'Item created', '', [
                 'item' => $item->load(['sizeVariants', 'colorVariants', 'categories', 'media'])
             ]);
@@ -262,6 +272,7 @@ class ItemController extends Controller
             );
 
         if ($newItem instanceof Item) {
+            $this->notifyService->sendItemChangedNotification($newItem->id, 'created', $newItem->is_active);
             $message->setContent(201, 'Item duplicated', '', [
                 'item' => $newItem
             ]);
@@ -365,6 +376,7 @@ class ItemController extends Controller
         );
 
         if ($newItem instanceof Item) {
+            $this->notifyService->sendItemChangedNotification($newItem->id, 'created', $newItem->is_active);
             $message->setContent(201, 'Variant added', '', [
                 'item' => $newItem
             ]);
@@ -388,6 +400,8 @@ class ItemController extends Controller
         $saleprice = $request->input('salePrice');
         if (is_numeric($saleprice)) {
             $saleprice = floatval($saleprice);
+        } else {
+            $saleprice = 0.0;
         }
         $stock = $request->input('stock');
         if (is_numeric($stock)) {
@@ -423,7 +437,7 @@ class ItemController extends Controller
             return $this->categoryService->retrieveCategory(intval($id));
         }, $categoryId);
 
-        $shippingId = $request->input('selected_shippingid');
+        $shippingId = strval($request->input('selected_shippingid') ?? 0);
 
         $sizeVariants = [];
         if ($request->has('size_variants')) {
@@ -489,6 +503,7 @@ class ItemController extends Controller
         );
 
         if ($isSuccess) {
+            $this->notifyService->sendItemChangedNotification($id, 'updated');
             $message->setContent(200, 'Item updated');
         } else {
             $message->setContent(400, 'Item not updated');
@@ -500,11 +515,12 @@ class ItemController extends Controller
     public function delete(Request $request, Message $message, int $id)
     {
         $user = $request->user();
-        $item = $this->itemService->retrieveItem($id);
+        $item = $this->itemService->retrieveItem($id, true);
 
         $isSuccess = $this->itemService->deleteItem($user, $item);
 
         if ($isSuccess) {
+            $this->notifyService->sendItemChangedNotification($id, 'deleted', false);
             $message->setContent(200, 'Item deleted');
         } else {
             $message->setContent(400, 'Item not deleted');
@@ -521,6 +537,8 @@ class ItemController extends Controller
      */
     public function toggleItemStatus(Request $request): JsonResponse
     {
+        abort_unless($this->canManageItems($request), 403, 'You are not authorized to manage items.');
+
         $validated = $request->validate([
             'id'        => ['required', 'integer', 'exists:items,id'],
             'is_active' => ['required', 'boolean'],
@@ -555,6 +573,12 @@ class ItemController extends Controller
 
         $item->refresh();
 
+        $this->notifyService->sendItemChangedNotification(
+            $item->id,
+            'visibility_changed',
+            $item->is_active
+        );
+
         Log::info('Item status toggled.', [
             'item_id'   => $item->id,
             'user_id'   => $request->user()?->id,
@@ -567,6 +591,13 @@ class ItemController extends Controller
                 : 'Item is now hidden from users.',
             'is_active' => $item->is_active,
         ]);
+    }
+
+    private function canManageItems(Request $request): bool
+    {
+        $user = $request->user();
+
+        return $user !== null && $user->hasAnyRole(['admin', 'superadmin']);
     }
 
     /**

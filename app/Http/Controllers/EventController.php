@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Modules\Http\Message;
-use App\Modules\Event\EventServiceInterface;
-use Illuminate\Http\Request;
 use App\Models\Event;
+use App\Modules\Event\EventServiceInterface;
+use App\Modules\Http\Message;
 use DateTime;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class EventController extends Controller
 {
@@ -44,7 +46,7 @@ class EventController extends Controller
             'region' => $region,
             'agegroup' => $agegroup,
             'series_name' => $seriesName,
-            'is_submitted' => $isSubmitted
+            'is_submitted' => $isSubmitted,
         ];
 
         $events = $this->eventService->listEvents($filter);
@@ -59,7 +61,7 @@ class EventController extends Controller
         $event = $this->eventService->retrieveEvent($id);
 
         $message->setContent(200, 'Event retrieved', '', [
-            'event' => $event
+            'event' => $event,
         ]);
 
         return $message->render();
@@ -67,32 +69,23 @@ class EventController extends Controller
 
     public function store(Request $request, Message $message)
     {
-        $time = $request->input('time');
-        $round = $request->input('round');
-        $region_id = $request->input('region_id');
-        $agegroup_id = $request->input('agegroup_id');
-        $series_id = $request->input('series_id');
-        $datetimeString = $request->input('datetime');
-        $matches = $request->input('matches') ?? [];
+        $validated = $this->validateEvent($request, true);
+        $matches = $validated['matches'] ?? [];
+        $datetime = new DateTime($validated['datetime']);
 
-        /*
-        $name = $request->input('name') ?? '';
-        $description = $request->input('description') ?? '';
-        #submit datetime as string
-        $datetimeString = $request->input('datetime');
-        $manager_id = $request->input('manager_id');
-        $agegroup_id = $request->input('agegroup_id');
-        $series = $request->input('series');
-        $teamcount = $request->input('teamcount');
-        */
-
-        $datetime = new DateTime($datetimeString);
-
-        $event = $this->eventService->createEvent($time, $round, $region_id, $agegroup_id, $series_id, $datetime, $matches);
+        $event = $this->eventService->createEvent(
+            $validated['time'],
+            $validated['round'],
+            (int) $validated['region_id'],
+            (int) $validated['agegroup_id'],
+            (int) $validated['series_id'],
+            $datetime,
+            $matches
+        );
 
         if ($event instanceof Event) {
             $message->setContent(201, 'Event created', '', [
-                'event' => $event
+                'event' => $event,
             ]);
         } else {
             $message->setContent(400, 'Event not created');
@@ -103,25 +96,19 @@ class EventController extends Controller
 
     public function update(Request $request, Message $message, int $id)
     {
-        $time = $request->input('time');
-        $round = $request->input('round');
-        $region_id = $request->input('region_id');
-        $agegroup_id = $request->input('agegroup_id');
-        $datetimeString = $request->input('datetime');
-        $matches = $request->input('matches') ?? [];
+        $validated = $this->validateEvent($request, false);
+        $matches = $validated['matches'] ?? [];
+        $datetime = new DateTime($validated['datetime']);
 
-        /*
-        $name = $request->input('name') ?? '';
-        $description = $request->input('description') ?? '';
-        #submit datetime as string
-        $manager_id = $request->input('manager_id');
-        $series = $request->input('series');
-        $teamcount = $request->input('teamcount');
-        */
-
-        $datetime = new DateTime($datetimeString);
-
-        $isSuccess = $this->eventService->updateEvent($id, $time, $round, $region_id, $agegroup_id, $datetime, $matches);
+        $isSuccess = $this->eventService->updateEvent(
+            $id,
+            $validated['time'],
+            $validated['round'],
+            (int) $validated['region_id'],
+            (int) $validated['agegroup_id'],
+            $datetime,
+            $matches
+        );
 
         if ($isSuccess) {
             $message->setContent(200, 'Event updated');
@@ -134,7 +121,6 @@ class EventController extends Controller
 
     public function delete(Request $request, Message $message, int $id)
     {
-
         $user = $request->user();
         $event = $this->eventService->retrieveEvent($id);
 
@@ -169,7 +155,55 @@ class EventController extends Controller
 
         return $message->render();
     }
+
+    private function validateEvent(Request $request, bool $requireSeries): array
+    {
+        $rules = [
+            'time' => ['required', 'date_format:H:i'],
+            'round' => ['required', 'string', 'max:50'],
+            'region_id' => ['required', 'integer', 'exists:regions,id'],
+            'agegroup_id' => ['required', 'integer', 'exists:age_groups,id'],
+            'datetime' => ['required', 'date_format:Y-m-d'],
+            'matches' => ['nullable', 'array'],
+            'matches.*.id' => ['nullable', 'integer'],
+            'matches.*.field_id' => ['required', 'integer', 'distinct', 'exists:fields,id'],
+            'matches.*.team1' => ['required', 'integer', 'min:1', 'exists:teams,id'],
+            'matches.*.team2' => ['required', 'integer', 'min:0'],
+        ];
+
+        if ($requireSeries) {
+            $rules['series_id'] = ['required', 'integer', 'exists:series,id'];
+        }
+
+        $validated = $request->validate($rules);
+        $scheduledTeams = [];
+
+        foreach ($validated['matches'] ?? [] as $index => $match) {
+            $team1 = (int) $match['team1'];
+            $team2 = (int) $match['team2'];
+
+            if ($team2 > 0 && ! DB::table('teams')->where('id', $team2)->whereNull('deleted_at')->exists()) {
+                throw ValidationException::withMessages([
+                    "matches.{$index}.team2" => 'The selected Team 2 is invalid.',
+                ]);
+            }
+
+            if ($team2 > 0 && $team1 === $team2) {
+                throw ValidationException::withMessages([
+                    "matches.{$index}.team2" => 'A team cannot play against itself.',
+                ]);
+            }
+
+            foreach (array_filter([$team1, $team2]) as $teamId) {
+                if (isset($scheduledTeams[$teamId])) {
+                    throw ValidationException::withMessages([
+                        "matches.{$index}.team1" => 'A team cannot be scheduled in two fields at the same time.',
+                    ]);
+                }
+                $scheduledTeams[$teamId] = true;
+            }
+        }
+
+        return $validated;
+    }
 }
-
-
-

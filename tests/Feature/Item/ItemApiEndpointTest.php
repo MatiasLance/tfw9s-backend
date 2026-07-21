@@ -15,6 +15,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class ItemApiEndpointTest extends TestCase
@@ -72,6 +73,57 @@ class ItemApiEndpointTest extends TestCase
                     ],
                 ]
             );
+    }
+
+    public function test_hidden_items_are_excluded_before_public_pagination(): void
+    {
+        Item::factory()->count(17)->create(['is_active' => true]);
+        Item::factory()->count(3)->create(['is_active' => false]);
+
+        $firstPage = $this->getJson('/api/v1/items?maxItemsPerPage=15&page=1');
+
+        $firstPage
+            ->assertOk()
+            ->assertJsonPath('data.total_items', 17)
+            ->assertJsonPath('data.last_page', 2)
+            ->assertJsonCount(15, 'data.items');
+
+        $this->assertTrue(collect($firstPage->json('data.items'))->every('is_active'));
+
+        $this->getJson('/api/v1/items?maxItemsPerPage=15&page=2')
+            ->assertOk()
+            ->assertJsonPath('data.total_items', 17)
+            ->assertJsonCount(2, 'data.items');
+    }
+
+    public function test_public_user_cannot_request_hidden_items(): void
+    {
+        Item::factory()->create(['is_active' => false]);
+
+        $this->getJson('/api/v1/items?include_inactive=true')->assertForbidden();
+    }
+
+    public function test_admin_can_request_hidden_items(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        Sanctum::actingAs($admin);
+
+        Item::factory()->create(['is_active' => true]);
+        Item::factory()->create(['is_active' => false]);
+
+        $this->getJson('/api/v1/items?include_inactive=true')
+            ->assertOk()
+            ->assertJsonPath('data.total_items', 2)
+            ->assertJsonCount(2, 'data.items');
+    }
+
+    public function test_hidden_item_cannot_be_retrieved_publicly(): void
+    {
+        $item = Item::factory()->create(['is_active' => false]);
+
+        $this->getJson('/api/v1/items/' . $item->id)->assertNotFound();
     }
 
     public function test_filter_items()
@@ -428,7 +480,7 @@ class ItemApiEndpointTest extends TestCase
         $oldCategories = $item->categories;
         UploadedFile::fake()
                         ->image('test')
-                        ->storePubliclyAs('media/items', $oldMediaFileName, 'public');
+                        ->storePubliclyAs(dirname($oldMedia->path), $oldMediaFileName, 'public');
         $category_new_1 = Category::factory()->create();
         $category_new_2 = Category::factory()->create();
         $tags = Tag::factory(3)
@@ -521,7 +573,7 @@ class ItemApiEndpointTest extends TestCase
         $oldMediaFileName = explode('/', $oldMedia->path)[2];
         UploadedFile::fake()
                         ->image('test')
-                        ->storePubliclyAs('media/items', $oldMediaFileName, 'public');
+                        ->storePubliclyAs(dirname($oldMedia->path), $oldMediaFileName, 'public');
         $category = Category::factory()->create();
         $tags = Tag::factory(3)
                         ->create()

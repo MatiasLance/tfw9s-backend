@@ -6,91 +6,40 @@ use App\Models\EventMatch;
 use App\Models\TeamPosition;
 use App\Modules\EventMatch\Filter;
 use App\Modules\Storage\StorageInterface;
-use App\Modules\Utility\Pagination\Paginate;
 use App\Modules\TeamPosition\TeamPositionServiceInterface;
+use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\EventMatchRepositoryInterface;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class EventMatchRepository extends BaseRepository implements EventMatchRepositoryInterface
 {
-    /**
-     * Storage Module
-     *
-     * @var StorageInterface $storageService
-     */
     protected StorageInterface $storageService;
 
-    /**
-     * TeamPosition Module
-     *
-     * @var TeamPosition $teamPositionService
-     */
     protected TeamPositionServiceInterface $teamPositionService;
 
-
-    /**
-     * Default filters for retrieving list of eventMatchs
-     *
-     * @var array $defaultEventMatchListFilters
-     */
     protected array $defaultEventMatchListFilters = [
-        /**
-         * Search keyword
-         * This filters the eventMatchs with a keyword. When this value is null, this filter is skipped.
-         */
         'q' => null,
-
-        /**
-         * Sort
-         * Sorts the eventMatchs according to this value. By default, will sort the eventMatchs by their creation date.
-         * For the available sort values, check App\Modules\EventMatch\Filter
-         */
         'sort' => Filter::SORT_LATEST,
-
-        /**
-         * Pagination
-         * The current page of eventMatchs to get
-         */
         'page' => 1,
-
-        /**
-         * event keyword
-         * This filters the events with a keyword. When this value is null, this filter is skipped.
-         */
         'year' => null,
-
-        /**
-         * event keyword
-         * This filters the events with a keyword. When this value is null, this filter is skipped.
-         */
         'region' => null,
-
-        /**
-         * event keyword
-         * This filters the events with a keyword. When this value is null, this filter is skipped.
-         */
         'agegroup' => null,
-
-        /**
-         * event keyword
-         * This filters the events with a keyword. When this value is null, this filter is skipped.
-         */
         'round' => null,
-
-        /**
-         * Max eventMatch per page
-         *
-         * Maximum number of eventMatchs shown per page. When 0 or null is passed, will get every eventMatch
-         */
+        'series' => null,
+        'series_id' => null,
+        'event_date' => null,
+        'status' => null,
         'max_eventMatch_per_page' => self::MAX_PAGE_EVENTMATCHES,
     ];
 
-    public function __construct(EventMatch $eventMatch, StorageInterface $storageService, TeamPositionServiceInterface $teamPositionService)
-    {
+    public function __construct(
+        EventMatch $eventMatch,
+        StorageInterface $storageService,
+        TeamPositionServiceInterface $teamPositionService
+    ) {
         parent::__construct($eventMatch);
         $this->storageService = $storageService;
         $this->teamPositionService = $teamPositionService;
@@ -100,7 +49,7 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
     {
         $filters = array_merge(
             $this->defaultEventMatchListFilters,
-            array_filter($userFilters, fn ($f) => $f !== null)
+            array_filter($userFilters, fn ($filter) => $filter !== null)
         );
 
         $query = $this->model->query()
@@ -110,33 +59,44 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             ->whereNull('events.deleted_at')
             ->whereNull('series.deleted_at');
 
-        if (!empty($filters['year'])) {
+        if ($filters['year']) {
             $query->whereYear('events.event_date', $filters['year']);
         }
 
-        if (!empty($filters['region'])) {
+        if ($filters['event_date']) {
+            $query->whereDate('events.event_date', $filters['event_date']);
+        }
+
+        if ($filters['region']) {
             $query->where('events.region_id', $filters['region']);
         }
 
-        if (!empty($filters['agegroup'])) {
+        if ($filters['agegroup']) {
             $query->where('events.agegroup_id', $filters['agegroup']);
         }
 
-        if (!empty($filters['round'])) {
+        if ($filters['round']) {
             $query->where('events.round', $filters['round']);
         }
 
-        if (!empty($filters['series'])) {
-            $query->where('series.name', 'like', "%{$filters['series']}%");
+        if ($filters['series_id']) {
+            $query->where('events.series_id', $filters['series_id']);
+        } elseif ($filters['series']) {
+            $query->where('series.name', $filters['series']);
         }
 
-        if (!empty($filters['q'])) {
-            $query->where(function ($q) use ($filters) {
-                $q->whereHas('team1', function ($t) use ($filters) {
-                    $t->where('name', 'like', "%{$filters['q']}%");
-                })->orWhereHas('team2', function ($t) use ($filters) {
-                    $t->where('name', 'like', "%{$filters['q']}%");
-                });
+        if ($filters['status'] === 'complete') {
+            $query->where('event_matches.submitted', true);
+        } elseif ($filters['status'] === 'upcoming') {
+            $query->where('event_matches.submitted', false);
+        }
+
+        if ($filters['q']) {
+            $search = addcslashes($filters['q'], '%_\\');
+            $query->where(function ($matchQuery) use ($search) {
+                $matchQuery
+                    ->whereHas('team1', fn ($teamQuery) => $teamQuery->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('team2', fn ($teamQuery) => $teamQuery->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -160,24 +120,41 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             default:
                 $query
                     ->orderBy('events.event_date')
-                    ->orderBy('events.time');
-                break;
+                    ->orderBy('events.time')
+                    ->orderBy('event_matches.id');
         }
 
+        $teamRelations = ['field', 'agegroup', 'series', 'region'];
         $query->with([
-            'event:id,event_date,region_id,agegroup_id,time,round,series_id',
-            'event.series:id,name',
-            'team1:id,name',
-            'team2:id,name',
+            'event' => fn ($eventQuery) => $eventQuery
+                ->select('id', 'event_date', 'region_id', 'agegroup_id', 'time', 'round', 'series_id')
+                ->without(['manager', 'eventmatch'])
+                ->with(['series:id,name', 'agegroup:id,name', 'region:id,name']),
+            'team1' => fn ($teamQuery) => $teamQuery
+                ->select('id', 'name')
+                ->without($teamRelations)
+                ->with('media'),
+            'team2' => fn ($teamQuery) => $teamQuery
+                ->select('id', 'name')
+                ->without($teamRelations)
+                ->with('media'),
             'field:id,name',
         ]);
 
-        return new Paginate(
+        return (new Paginate(
             $query,
             $filters['max_eventMatch_per_page'],
             $filters['page'],
             'eventMatches'
-        );
+        ))->transformItems(function (EventMatch $match) {
+            foreach (['team1', 'team2'] as $relation) {
+                if ($match->relationLoaded($relation) && $match->getRelation($relation)) {
+                    $match->getRelation($relation)->setAppends([]);
+                }
+            }
+
+            return $match;
+        });
     }
 
     public function retrieveEventMatch(int $id): EventMatch
@@ -187,16 +164,16 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
 
     public function createEventMatch(int $event_id, int $field_id, int $team1, int $team2): EventMatch
     {
-        $eventMatch = new EventMatch();
-        $eventMatch->event_id = $event_id;
-        $eventMatch->field_id = $field_id;
-        $eventMatch->team1 = $team1;
-        $eventMatch->team2 = $team2;
+        return DB::transaction(function () use ($event_id, $field_id, $team1, $team2) {
+            $eventMatch = new EventMatch();
+            $eventMatch->event_id = $event_id;
+            $eventMatch->field_id = $field_id;
+            $eventMatch->team1 = $team1;
+            $eventMatch->team2 = $team2;
+            $eventMatch->save();
 
-        $this->teamPositionService->createTeamPosition($event_id, $team1);
-        $this->teamPositionService->createTeamPosition($event_id, $team2);
-
-        return DB::transaction(function() use($eventMatch) {
+            $this->teamPositionService->createTeamPosition($event_id, $team1);
+            $this->teamPositionService->createTeamPosition($event_id, $team2);
 
             return $eventMatch;
         });
@@ -204,270 +181,117 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
 
     public function updateEventMatch(int $id, int $event_id, int $field_id, int $team1, int $team2): bool
     {
-        $eventMatch = $this->find($id);
-        $eventMatch->event_id = $event_id;
-        $eventMatch->field_id = $field_id;
-        $eventMatch->team1 = $team1;
-        $eventMatch->team2 = $team2;
+        return DB::transaction(function () use ($id, $event_id, $field_id, $team1, $team2) {
+            [$eventMatch] = $this->lockEventMatchGroup($id);
+            $previousEventId = $eventMatch->event_id;
 
-        return DB::transaction(function() use($eventMatch) {
+            $eventMatch->event_id = $event_id;
+            $eventMatch->field_id = $field_id;
+            $eventMatch->team1 = $team1;
+            $eventMatch->team2 = $team2;
+            $saved = $eventMatch->save();
 
-            return $eventMatch->save();
+            if ($eventMatch->submitted) {
+                $this->rebuildStandings($previousEventId);
+                if ($previousEventId !== $event_id) {
+                    $this->rebuildStandings($event_id);
+                }
+            }
+
+            return $saved;
         });
     }
 
-    public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool
-    {
-        $eventMatch = $this->find($id);
-        
-        $dbIsAbandonedMatch = $eventMatch->is_abandoned_match;
-        $dbIsSubmittedResult = $eventMatch->submitted;
+    public function updateEventMatchScore(
+        int $id,
+        int $team1_score,
+        int $team2_score,
+        bool $isAbandonedMatch
+    ): bool {
+        return DB::transaction(function () use ($id, $team1_score, $team2_score, $isAbandonedMatch) {
+            [$eventMatch] = $this->lockEventMatchGroup($id);
 
-        $event_id = $eventMatch->event_id;
-
-        $eventMatch->team1_oldScore =  $eventMatch->team1_score;
-        $eventMatch->team2_oldScore = $eventMatch->team2_score;
-
-        $eventMatch->team1_score = $team1_score;
-        $eventMatch->team2_score = $team2_score;
-
-        if ($team1_score > $team2_score) {
-            $eventMatch->winner = $eventMatch->team1;
-            $eventMatch->losser = $eventMatch->team2;
-        } else if ($team2_score > $team1_score) {
-            $eventMatch->winner = $eventMatch->team2;
-            $eventMatch->losser = $eventMatch->team1;
-        } else {
-            $eventMatch->winner = null;
-            $eventMatch->losser = null;
-        }
-        $eventMatch->isDraw = ($team1_score == $team2_score);
-        $eventMatch->is_abandoned_match = $dbIsSubmittedResult === 0 ? $isAbandonedMatch : $dbIsAbandonedMatch;
-
-        return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id, $dbIsAbandonedMatch) {
+            $eventMatch->team1_oldScore = $eventMatch->team1_score;
+            $eventMatch->team2_oldScore = $eventMatch->team2_score;
+            $eventMatch->team1_score = $team1_score;
+            $eventMatch->team2_score = $team2_score;
+            $eventMatch->is_abandoned_match = $isAbandonedMatch;
+            [$eventMatch->winner, $eventMatch->losser, $eventMatch->isDraw] = $isAbandonedMatch
+                ? [null, null, true]
+                : $this->decision($eventMatch->team1, $eventMatch->team2, $team1_score, $team2_score);
             $eventMatch->save();
 
             if ($eventMatch->submitted) {
-                $t1OldScore = $eventMatch->team1_oldScore;
-                $t2OldScore = $eventMatch->team2_oldScore;
-                $t1score = $eventMatch->team1_score;
-                $t2score = $eventMatch->team2_score;
-                $updatedFor1 = $t1score - $t1OldScore;
-                $updatedFor2 = $t2score - $t2OldScore;
-
-                $addWinCount1 = 'win + ' . 0;
-                $addWinCount2 = 'win + ' . 0;
-                $addLoseCount1 = 'loss + ' . 0;
-                $addLoseCount2 = 'loss + ' . 0;
-                $addDrawCount1 = 'draw + ' . 0;
-                $addDrawCount2 = 'draw + ' . 0;
-
-                if ($team1_score > $team2_score) {
-                    if ($t1OldScore > $t2OldScore) {
-                        $addWinCount1 = 'win + ' . 0;
-                        $addWinCount2 = 'win + ' . 0;
-                        $addLoseCount1 = 'loss + ' . 0;
-                        $addLoseCount2 = 'loss + ' . 0;
-                        $addDrawCount1 = 'draw + ' . 0;
-                        $addDrawCount2 = 'draw + ' . 0;
-                    } elseif ($t1OldScore < $t2OldScore) {  
-                        $addWinCount1 = 'win + ' . 1;
-                        $addWinCount2 = 'win - ' . 1;
-                        $addLoseCount1 = 'loss - ' . 1;
-                        $addLoseCount2 = 'loss + ' . 1;
-                        $addDrawCount1 = 'draw + ' . 0;
-                        $addDrawCount2 = 'draw + ' . 0;
-                    } else {
-                        $addWinCount1 = 'win + ' . 1;
-                        $addWinCount2 = 'win + ' . 0;
-                        $addLoseCount1 = 'loss + ' . 0;
-                        $addLoseCount2 = 'loss + ' . 1;
-                        $addDrawCount1 = 'draw - ' . 1;
-                        $addDrawCount2 = 'draw - ' . 1;
-                    }
-
-                } elseif ($team1_score < $team2_score) {
-                     if ($t1OldScore > $t2OldScore) {
-                        $addWinCount1 = 'win - ' . 1;
-                        $addWinCount2 = 'win + ' . 1;
-                        $addLoseCount1 = 'loss + ' . 1;
-                        $addLoseCount2 = 'loss - ' . 1;
-                        $addDrawCount1 = 'draw + ' . 0;
-                        $addDrawCount2 = 'draw + ' . 0;
-                    } elseif ($t1OldScore < $t2OldScore) {
-                        $addWinCount1 = 'win + ' . 0;
-                        $addWinCount2 = 'win + ' . 0;
-                        $addLoseCount1 = 'loss + ' . 0;
-                        $addLoseCount2 = 'loss + ' . 0;
-                        $addDrawCount1 = 'draw + ' . 0;
-                        $addDrawCount2 = 'draw + ' . 0;
-                    } else {
-                        $addWinCount1 = 'win + ' . 0;
-                        $addWinCount2 = 'win + ' . 1;
-                        $addLoseCount1 = 'loss + ' . 1;
-                        $addLoseCount2 = 'loss + ' . 0;
-                        $addDrawCount1 = 'draw - ' . 1;
-                        $addDrawCount2 = 'draw - ' . 1;
-                    }
-                } else {
-                    if ($t1OldScore > $t2OldScore) {
-                        $addWinCount1 = 'win - ' . 1;
-                        $addWinCount2 = 'win + ' . 0;
-                        $addLoseCount1 = 'loss + ' . 0;
-                        $addLoseCount2 = 'loss - ' . 1;
-                        $addDrawCount1 = 'draw + ' . 1;
-                        $addDrawCount2 = 'draw + ' . 1;
-                    } elseif ($t1OldScore < $t2OldScore) {
-                        $addWinCount1 = 'win + ' . 0;
-                        $addWinCount2 = 'win - ' . 1;
-                        $addLoseCount1 = 'loss - ' . 1;
-                        $addLoseCount2 = 'loss + ' . 0;
-                        $addDrawCount1 = 'draw + ' . 1;
-                        $addDrawCount2 = 'draw + ' . 1;
-                    } else {
-                        $addWinCount1 = 'win + ' . 0;
-                        $addWinCount2 = 'win + ' . 0;
-                        $addLoseCount1 = 'loss + ' . 0;
-                        $addLoseCount2 = 'loss + ' . 0;
-                        $addDrawCount1 = 'draw + ' . 0;
-                        $addDrawCount2 = 'draw + ' . 0;
-                    }
-                }
-
-                TeamPosition::where('event_id', $event_id)
-                    ->where('team_id', $eventMatch->team1)
-                    ->update([
-                        'win' => DB::raw($addWinCount1),
-                        'loss' => DB::raw($addLoseCount1),
-                        'draw' => DB::raw($addDrawCount1),
-                        'for' => DB::raw('`for` + ' . $updatedFor1),
-                        'against' => DB::raw('`against` + ' . $updatedFor2),
-                        'difference' => DB::raw('(`for` + ' . $updatedFor1 . ') - (`against` + ' . $updatedFor2 . ')'),
-                        'points' => DB::raw('(win * 2) + (draw * 1)'),
-                    ]);
-
-                TeamPosition::where('event_id', $event_id)
-                    ->where('team_id', $eventMatch->team2)
-                    ->update([
-                        'win' => DB::raw($addWinCount2),
-                        'loss' => DB::raw($addLoseCount2),
-                        'draw' => DB::raw($addDrawCount2),
-                        'for' => DB::raw('`for` + ' . $updatedFor2),
-                        'against' => DB::raw('`against` + ' . $updatedFor1),
-                        'difference' => DB::raw('(`for` + ' . $updatedFor2 . ') - (`against` + ' . $updatedFor1 . ')'),
-                        'points' => DB::raw('(win * 2) + (draw * 1)'),
-                    ]);
+                $this->rebuildStandings($eventMatch->event_id);
             }
-             return true;
+
+            return true;
         });
     }
 
     public function storeResult(int $id, int $team1_score, int $team2_score): bool
     {
-        $eventMatch = $this->find($id);
-        $event_id = $eventMatch->event_id;
-
-        if($eventMatch->submitted){
-            return false;
-        }
-
-        $eventMatch->team1_oldScore = $eventMatch->team1_score;
-        $eventMatch->team2_oldScore = $eventMatch->team2_score;
-
-        $eventMatch->team1_score = $team1_score;
-        $eventMatch->team2_score = $team2_score;
-
-        if ($team1_score > $team2_score) {
-            $eventMatch->winner = $eventMatch->team1;
-            $eventMatch->losser = $eventMatch->team2;
-        } else if ($team2_score > $team1_score) {
-            $eventMatch->winner = $eventMatch->team2;
-            $eventMatch->losser = $eventMatch->team1;
-        } else {
-            $eventMatch->winner = null;
-            $eventMatch->losser = null;
-        }
-        $eventMatch->isDraw = ($team1_score == $team2_score);
-        $eventMatch->submitted = true;
-
-        return DB::transaction(function() use($eventMatch, $team1_score, $team2_score, $event_id) {
-            $eventMatch->save();
+        return DB::transaction(function () use ($id, $team1_score, $team2_score) {
+            [$eventMatch] = $this->lockEventMatchGroup($id);
 
             if ($eventMatch->submitted) {
-
-                if ($team1_score > $team2_score) {
-                    $win1 = 1;
-                    $loss1 = 0;
-                    $draw1 = 0;
-                    $win2 = 0;
-                    $loss2 = 1;
-                    $draw2 = 0;
-                    $pts1 = 2;
-                    $pts2 = 0;
-                } elseif ($team2_score > $team1_score) {
-                    $win1 = 0;
-                    $loss1 = 1;
-                    $draw1 = 0;
-                    $win2 = 1;
-                    $loss2 = 0;
-                    $draw2 = 0;
-                    $pts1 = 0;
-                    $pts2 = 2;
-                } else {
-                    $win1 = 0;
-                    $loss1 = 0;
-                    $draw1 = 1;
-                    $win2 = 0;
-                    $loss2 = 0;
-                    $draw2 = 1;
-                    $pts1 = 1;
-                    $pts2 = 1;
-                }
-
-                $for1 = $team1_score;
-                $against1 = $team2_score;
-                $diff1 = $team1_score - $team2_score;
-
-                $for2 = $team2_score;
-                $against2 = $team1_score;
-                $diff2 = $team2_score - $team1_score;
-
-                TeamPosition::where('event_id', $event_id)
-                    ->where('team_id', $eventMatch->team1)
-                    ->update([
-                        'win' => DB::raw('win + ' . $win1),
-                        'loss' => DB::raw('loss + ' . $loss1),
-                        'draw' => DB::raw('draw + ' . $draw1),
-                        'for' => DB::raw('`for` + ' . $for1),
-                        'against' => DB::raw('against + ' . $against1),
-                        'difference' => DB::raw('difference + ' . $diff1),
-                        'points' => DB::raw('points + ' . $pts1),
-                    ]);
-
-
-                TeamPosition::where('event_id', $event_id)
-                    ->where('team_id', $eventMatch->team2)
-                    ->update([
-                        'win' => DB::raw('win + ' . $win2),
-                        'loss' => DB::raw('loss + ' . $loss2),
-                        'draw' => DB::raw('draw + ' . $draw2),
-                        'for' => DB::raw('`for` + ' . $for2),
-                        'against' => DB::raw('against + ' . $against2),
-                        'difference' => DB::raw('difference + ' . $diff2),
-                        'points' => DB::raw('points + ' . $pts2),
-                    ]);
+                return false;
             }
-             return true;
+
+            $eventMatch->team1_oldScore = $eventMatch->team1_score;
+            $eventMatch->team2_oldScore = $eventMatch->team2_score;
+            $eventMatch->team1_score = $team1_score;
+            $eventMatch->team2_score = $team2_score;
+            [$eventMatch->winner, $eventMatch->losser, $eventMatch->isDraw] = $this->decision(
+                $eventMatch->team1,
+                $eventMatch->team2,
+                $team1_score,
+                $team2_score
+            );
+            $eventMatch->submitted = true;
+            $eventMatch->save();
+
+            $this->rebuildStandings($eventMatch->event_id);
+
+            return true;
+        });
+    }
+
+    public function revertResult(int $id): bool
+    {
+        return DB::transaction(function () use ($id) {
+            [$eventMatch] = $this->lockEventMatchGroup($id);
+
+            if (! $eventMatch->submitted) {
+                return true;
+            }
+
+            $eventMatch->submitted = false;
+            $eventMatch->winner = null;
+            $eventMatch->losser = null;
+            $eventMatch->isDraw = false;
+            $eventMatch->is_abandoned_match = false;
+            $eventMatch->save();
+
+            $this->rebuildStandings($eventMatch->event_id);
+
+            return true;
         });
     }
 
     public function deleteEventMatch(int $id): bool
     {
-        $eventMatch = $this->find($id);
+        return DB::transaction(function () use ($id) {
+            [$eventMatch] = $this->lockEventMatchGroup($id);
+            $eventId = $eventMatch->event_id;
+            $wasSubmitted = $eventMatch->submitted;
+            $deleted = $eventMatch->delete();
 
-        return DB::transaction(function() use($eventMatch) {
+            if ($wasSubmitted) {
+                $this->rebuildStandings($eventId);
+            }
 
-            return $eventMatch->delete();
+            return $deleted;
         });
     }
 
@@ -475,10 +299,8 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
     {
         $eventMatch = $this->find($id);
 
-        return DB::transaction(function() use($eventMatch, $video) {
-
+        return DB::transaction(function () use ($eventMatch, $video) {
             $fileType = $this->storageService->determineFileType($video);
-
             $matchVideo = $this->storageService->storeVideo($video, $eventMatch, $fileType);
             $eventMatch->video()->save($matchVideo);
 
@@ -486,21 +308,104 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         });
     }
 
-    private function decision(int $team1, int $team2, int $team1_score, int $team2_score): array
+    private function rebuildStandings(int $eventId): void
     {
-        $winner = null;
-        $losser = null; $isDraw = false;
-        if ($team1_score > $team2_score) {
-            $winner = $team1;
-            $losser = $team2;
-        } elseif ($team1_score < $team2_score) {
-            $winner = $team2;
-            $losser = $team1;
-        } else {
-            $isDraw = true;
+        $matches = EventMatch::query()
+            ->without(['team1', 'team2', 'field'])
+            ->where('event_id', $eventId)
+            ->where('submitted', true)
+            ->lockForUpdate()
+            ->get(['team1', 'team2', 'team1_score', 'team2_score', 'is_abandoned_match']);
+
+        $positions = TeamPosition::query()
+            ->without(['team', 'event'])
+            ->where('event_id', $eventId)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('team_id');
+
+        $totals = [];
+        foreach ($positions->keys() as $teamId) {
+            $totals[$teamId] = [
+                'win' => 0,
+                'loss' => 0,
+                'draw' => 0,
+                'for' => 0,
+                'against' => 0,
+                'difference' => 0,
+                'points' => 0,
+            ];
         }
 
-        return [$winner, $losser, $isDraw];
+        foreach ($matches as $match) {
+            if (! isset($totals[$match->team1], $totals[$match->team2])) {
+                continue;
+            }
 
+            $team1Score = (int) $match->team1_score;
+            $team2Score = (int) $match->team2_score;
+            $totals[$match->team1]['for'] += $team1Score;
+            $totals[$match->team1]['against'] += $team2Score;
+            $totals[$match->team2]['for'] += $team2Score;
+            $totals[$match->team2]['against'] += $team1Score;
+
+            if ($match->is_abandoned_match || $team1Score === $team2Score) {
+                $totals[$match->team1]['draw']++;
+                $totals[$match->team2]['draw']++;
+                $totals[$match->team1]['points']++;
+                $totals[$match->team2]['points']++;
+            } elseif ($team1Score > $team2Score) {
+                $totals[$match->team1]['win']++;
+                $totals[$match->team1]['points'] += 2;
+                $totals[$match->team2]['loss']++;
+            } else {
+                $totals[$match->team2]['win']++;
+                $totals[$match->team2]['points'] += 2;
+                $totals[$match->team1]['loss']++;
+            }
+        }
+
+        foreach ($positions as $teamId => $position) {
+            $totals[$teamId]['difference'] = $totals[$teamId]['for'] - $totals[$teamId]['against'];
+            $position->forceFill($totals[$teamId])->save();
+        }
+    }
+
+    private function lockEventMatchGroup(int $id): array
+    {
+        $eventId = EventMatch::query()
+            ->without(['team1', 'team2', 'field'])
+            ->whereKey($id)
+            ->value('event_id');
+
+        if (! $eventId) {
+            throw (new ModelNotFoundException())->setModel(EventMatch::class, [$id]);
+        }
+
+        $matches = EventMatch::query()
+            ->without(['team1', 'team2', 'field'])
+            ->where('event_id', $eventId)
+            ->lockForUpdate()
+            ->get();
+        $eventMatch = $matches->firstWhere('id', $id);
+
+        if (! $eventMatch) {
+            throw (new ModelNotFoundException())->setModel(EventMatch::class, [$id]);
+        }
+
+        return [$eventMatch, $matches];
+    }
+
+    private function decision(int $team1, int $team2, int $team1_score, int $team2_score): array
+    {
+        if ($team1_score > $team2_score) {
+            return [$team1, $team2, false];
+        }
+
+        if ($team2_score > $team1_score) {
+            return [$team2, $team1, false];
+        }
+
+        return [null, null, true];
     }
 }

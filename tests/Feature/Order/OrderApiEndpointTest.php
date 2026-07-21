@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Order;
 
+use App\Models\Item;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -10,6 +11,35 @@ use Tests\TestCase;
 class OrderApiEndpointTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_checkout_rejects_hidden_items_before_contacting_gateway(): void
+    {
+        $item = Item::factory()->create(['is_active' => false]);
+
+        $this->postJson('/api/v1/orders/checkout', [
+            'items' => [[
+                'id' => $item->id,
+                'quantity' => 1,
+            ]],
+            'payment_method' => 'stripe',
+        ])
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'One or more items are no longer available. Please refresh your cart.');
+    }
+
+    public function test_shipping_calculation_rejects_hidden_items(): void
+    {
+        $item = Item::factory()->create(['is_active' => false]);
+
+        $this->postJson('/api/v1/orders/calculation', [
+            'items' => [[
+                'id' => $item->id,
+                'quantity' => 1,
+            ]],
+        ])
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'One or more items are no longer available. Please refresh your cart.');
+    }
 
     public function test_retrieve_shipping_notes()
     {

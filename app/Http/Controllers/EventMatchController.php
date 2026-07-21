@@ -2,13 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Modules\Http\Message;
 use App\Modules\EventMatch\EventMatchServiceInterface;
+use App\Modules\Http\Message;
 use Illuminate\Http\Request;
-use App\Models\EventMatch;
-use Illuminate\Support\Facades\DB;
-use Exception;
-use Illuminate\Support\Facades\Log;
 
 class EventMatchController extends Controller
 {
@@ -21,26 +17,34 @@ class EventMatchController extends Controller
 
     public function list(Request $request, Message $message)
     {
-        $query = $request->query('q', null);
-        $sort = $request->query('sort', null);
-        $page = $request->query('page', null);
-        $year = $request->query('year', null);
-        $region = $request->query('region', null);
-        $agegroup = $request->query('agegroup', null);
-        $round = $request->query('round', null);
-        $series = $request->query('series', null);
-        $maxEventMatchesPerPage = $request->query('maxEventMatchesPerPage', null);
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'sort' => ['nullable', 'string', 'max:30'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'year' => ['nullable', 'integer', 'min:2000', 'max:2100'],
+            'region' => ['nullable', 'integer', 'min:1'],
+            'agegroup' => ['nullable', 'integer', 'min:1'],
+            'round' => ['nullable', 'string', 'max:50'],
+            'series' => ['nullable', 'string', 'max:255'],
+            'series_id' => ['nullable', 'integer', 'min:1'],
+            'event_date' => ['nullable', 'date_format:Y-m-d'],
+            'status' => ['nullable', 'in:complete,upcoming'],
+            'maxEventMatchesPerPage' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
 
         $filter = [
-            'q' => $query,
-            'sort' => $sort,
-            'page' => $page,
-            'year' => $year,
-            'region' => $region,
-            'agegroup' => $agegroup,
-            'round' => $round,
-            'series' => $series,
-            'max_eventMatch_per_page' => $maxEventMatchesPerPage,
+            'q' => $validated['q'] ?? null,
+            'sort' => $validated['sort'] ?? null,
+            'page' => $validated['page'] ?? null,
+            'year' => $validated['year'] ?? null,
+            'region' => $validated['region'] ?? null,
+            'agegroup' => $validated['agegroup'] ?? null,
+            'round' => $validated['round'] ?? null,
+            'series' => $validated['series'] ?? null,
+            'series_id' => $validated['series_id'] ?? null,
+            'event_date' => $validated['event_date'] ?? null,
+            'status' => $validated['status'] ?? null,
+            'max_eventMatch_per_page' => $validated['maxEventMatchesPerPage'] ?? null,
         ];
 
         $eventMatches = $this->eventMatchService->listEventMatches($filter);
@@ -55,7 +59,7 @@ class EventMatchController extends Controller
         $eventMatch = $this->eventMatchService->retrieveEventMatch($id);
 
         $message->setContent(200, 'EventMatch retrieved', '', [
-            'eventMatch' => $eventMatch
+            'eventMatch' => $eventMatch,
         ]);
 
         return $message->render();
@@ -63,11 +67,18 @@ class EventMatchController extends Controller
 
     public function updatescore(Request $request, Message $message, int $id)
     {
-        $team1_score = $request->input('team1_score') ?? '';
-        $team2_score = $request->input('team2_score') ?? '';
-        $is_abandoned_match = $request->boolean('is_abandoned_match') ?? false;
+        $validated = $request->validate([
+            'team1_score' => ['required', 'integer', 'min:0', 'max:999'],
+            'team2_score' => ['required', 'integer', 'min:0', 'max:999'],
+            'is_abandoned_match' => ['sometimes', 'boolean'],
+        ]);
 
-        $isSuccess = $this->eventMatchService->updateEventMatchScore($id, $team1_score, $team2_score, $is_abandoned_match);
+        $isSuccess = $this->eventMatchService->updateEventMatchScore(
+            $id,
+            (int) $validated['team1_score'],
+            (int) $validated['team2_score'],
+            $request->boolean('is_abandoned_match')
+        );
 
         if ($isSuccess) {
             $message->setContent(200, 'Event updated');
@@ -80,15 +91,21 @@ class EventMatchController extends Controller
 
     public function storeResult(Request $request, Message $message, int $id)
     {
-        $team1_score = $request->input('team1_score');
-        $team2_score = $request->input('team2_score');
+        $validated = $request->validate([
+            'team1_score' => ['required', 'integer', 'min:0', 'max:999'],
+            'team2_score' => ['required', 'integer', 'min:0', 'max:999'],
+        ]);
 
-        $isSuccess = $this->eventMatchService->storeResult($id, $team1_score, $team2_score);
+        $isSuccess = $this->eventMatchService->storeResult(
+            $id,
+            (int) $validated['team1_score'],
+            (int) $validated['team2_score']
+        );
 
         if ($isSuccess) {
             $message->setContent(200, 'Result updated');
         } else {
-            $message->setContent(400, 'The result has already been submitted.');
+            $message->setContent(409, 'The result has already been submitted.');
         }
 
         return $message->render();
@@ -109,48 +126,11 @@ class EventMatchController extends Controller
         return $message->render();
     }
 
-    public function revertResultSubmitted(int $id)
+    public function revertResultSubmitted(Message $message, int $id)
     {
-        $eventMatch = EventMatch::find($id);
+        $this->eventMatchService->revertResult($id);
+        $message->setContent(200, 'Result reverted successfully');
 
-        if(!$eventMatch){
-            return response()->json([
-                'success' => false,
-                'message' => 'Match not found.'
-            ]);
-        }
-
-        if (!$eventMatch->submitted) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Result is not submitted yet.'
-            ]);
-        }
-
-        try {
-            DB::transaction(function () use ($eventMatch) {
-                $eventMatch->update([
-                    'submitted' => 0,
-                ]);
-            });
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Result reverted successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error("Failed to revert match {$id}: " . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to revert result due to a server error.'
-            ], 500);
-        }
-
+        return $message->render();
     }
-
 }
-
-
-

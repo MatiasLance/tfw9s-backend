@@ -16,6 +16,7 @@ use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Order\OrderServiceInterface;
 use App\Modules\Payment\PaymentServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Models\Tax;
 use App\Models\ToggleTaxControl;
 
@@ -103,8 +104,13 @@ class OrderController extends Controller
         return $message->render();
     }
 
-    public function shippingCalc(Request $request, array $items, array $metadata = [])
+    public function shippingCalc(Request $request)
     {
+        $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.id' => ['required', 'integer'],
+        ]);
+
         $items = $request->input('items');
         $metadata = $request->input('metadata') ?? [];
         $discountcode = $request->input('discountcode', null);
@@ -115,8 +121,17 @@ class OrderController extends Controller
         $shippings = [];
         $shippingFee = 0;
 
+        $itemIds = collect($items)->pluck('id')->map(fn ($id) => (int) $id)->unique();
+        $visibleItems = Item::query()->visible()->whereIn('id', $itemIds)->get()->keyBy('id');
+
+        if ($visibleItems->count() !== $itemIds->count()) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'One or more items are no longer available. Please refresh your cart.',
+            ], 409));
+        }
+
         foreach ($items as $item) {
-            $currentItem = Item::find($item['id']);
+            $currentItem = $visibleItems->get((int) $item['id']);
             
             // Check if this is a size variant item
             $sizeVariantId = $item['size_variant_id'] ?? null;
