@@ -35,9 +35,9 @@ class ItemService implements ItemServiceInterface
         return $this->itemRepository->listItems($filters);
     }
 
-    public function retrieveItem(int $id): Item
+    public function retrieveItem(int $id, bool $includeInactive = false): Item
     {
-        return $this->itemRepository->retrieveItem($id);
+        return $this->itemRepository->retrieveItem($id, $includeInactive);
     }
 
     public function createItem(

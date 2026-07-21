@@ -27,7 +27,7 @@ interface ItemServiceInterface
      * 
      * @return Item
      */
-    public function retrieveItem(int $id): Item;
+    public function retrieveItem(int $id, bool $includeInactive = false): Item;
 
     /**
      * Create a new Item

@@ -89,6 +89,11 @@ interface EventMatchRepositoryInterface
      */
     public function storeResult(int $id, int $team1_score, int $team2_score): bool;
 
+    /**
+     * Revert a submitted result and rebuild the affected standings.
+     */
+    public function revertResult(int $id): bool;
+
 
     /**
      * Delete an existing eventMatch instance

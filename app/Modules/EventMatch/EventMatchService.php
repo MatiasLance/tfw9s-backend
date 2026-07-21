@@ -49,6 +49,11 @@ class EventMatchService implements EventMatchServiceInterface
         return $this->eventMatchRepository->storeResult($id, $team1_score, $team2_score);
     }
 
+    public function revertResult(int $id): bool
+    {
+        return $this->eventMatchRepository->revertResult($id);
+    }
+
     public function deleteEventMatch(User $initiator, EventMatch $eventMatch): bool
     {
         return $this->eventMatchRepository->deleteEventMatch($eventMatch->id);

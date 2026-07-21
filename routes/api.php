@@ -75,10 +75,16 @@ Route::middleware('auth:sanctum')->group(function () { // Admin only routes
             Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
         });
 
-        Route::prefix("events")->group(function() {
+        Route::prefix("events")->middleware('admin')->group(function() {
             Route::post('/', 'App\Http\Controllers\EventController@store');
             Route::post('/{id}', 'App\Http\Controllers\EventController@update');
             Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
+        });
+
+        Route::prefix("eventmatches")->middleware('admin')->group(function() {
+            Route::post('/update/{id}', 'App\Http\Controllers\EventMatchController@updatescore');
+            Route::post('/revert/{id}', 'App\Http\Controllers\EventMatchController@revertResultSubmitted');
+            Route::post('/{id}', 'App\Http\Controllers\EventMatchController@storeResult');
         });
 
         Route::prefix("agegroups")->group(function() {
@@ -121,7 +127,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'App\Http\Controllers\ItemController@list');
         Route::get('/{itemId}', 'App\Http\Controllers\ItemController@retrieve');
         Route::prefix('status')->group(function () {
-            Route::post('/', 'App\Http\Controllers\ItemController@toggleItemStatus');
+            Route::post('/', 'App\Http\Controllers\ItemController@toggleItemStatus')->middleware('auth:sanctum');
         });
         Route::post('/{id}', 'App\Http\Controllers\ItemController@update');
         Route::delete('/{id}', 'App\Http\Controllers\ItemController@delete');
@@ -246,18 +252,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/', 'App\Http\Controllers\EventController@list');
         Route::get('/all', 'App\Http\Controllers\EventController@all');
         Route::get('/{id}', 'App\Http\Controllers\EventController@retrieve');
-        Route::post('/', 'App\Http\Controllers\EventController@store');
-        Route::post('/{id}', 'App\Http\Controllers\EventController@update');
-        Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
     });
 
     Route::prefix("eventmatches")->group(function() {
         Route::get('/', 'App\Http\Controllers\EventMatchController@list');
         Route::get('/{id}', 'App\Http\Controllers\EventMatchController@retrieve');
-        Route::post('/update/{id}', 'App\Http\Controllers\EventMatchController@updatescore');
-        Route::post('/{id}', 'App\Http\Controllers\EventMatchController@storeResult');
-        Route::post('/updateresult/{id}', 'App\Http\Controllers\EventMatchController@updatedResult');
-        Route::post('/revert/{id}', 'App\Http\Controllers\EventMatchController@revertResultSubmitted');
     });
 
     Route::prefix("partnersponsors")->group(function() {

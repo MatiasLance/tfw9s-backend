@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
 
 class CustomRoleMiddleware
 {
@@ -14,42 +13,15 @@ class CustomRoleMiddleware
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function handle($request, Closure $next)
+    public function handle($request, Closure $next, ...$roles)
     {
-        // Check if the user is authenticated
-        if (!Auth::check()) {
-            return response()->json(['error' => 'Unauthenticated.'], 403);
-        }
+        $user = $request->user();
+        $allowedRoles = $roles ?: ['admin', 'superadmin', 'manager'];
 
-        // Get the authenticated user
-        $user = Auth::user();
-
-        $userRole = $this->checkUserRole($user);
-
-        if (!$userRole) {
-            return response()->json(['error' => 'Unauthorized.'], 403);
+        if (! $user || ! $user->hasAnyRole($allowedRoles)) {
+            return response()->json(['message' => 'Forbidden.'], 403);
         }
 
         return $next($request);
-
     }
-
-    private function checkUserRole($user)
-    {
-        switch (true) {
-        case $user->hasRole('superadmin'):
-            return 'superadmin';
-            break;
-
-        case $user->hasRole('admin'):
-            return 'admin';
-            break;
-
-        case $user->hasRole('manager'):
-            return 'manager';
-            break;
-
-        return false;
-    }
-}
 }

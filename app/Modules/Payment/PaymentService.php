@@ -2,8 +2,10 @@
 
 namespace App\Modules\Payment;
 
+use App\Models\Item;
 use App\Modules\Payment\Exceptions\UnsupportedGatewayException;
 use App\Modules\Payment\Gateways\PaymentGatewayInterface;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\App;
 use Psy\Exception\TypeErrorException;
 
@@ -11,12 +13,33 @@ class PaymentService implements PaymentServiceInterface
 {
     public function createOrder($discountcode, string $gateway, array $items , array $metadata = [], $currency = null)
     {
+        $this->assertItemsArePurchasable($items);
+
         $config = [
             'currency' => $currency
         ];
 
         $paymentGateway = $this->getGateway($gateway, $config);
         return $paymentGateway->createOrder($discountcode, $items, $metadata);
+    }
+
+    private function assertItemsArePurchasable(array $items): void
+    {
+        $itemIds = collect($items)
+            ->pluck('id')
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $allItemsAreVisible = $itemIds->isNotEmpty()
+            && Item::query()->visible()->whereIn('id', $itemIds)->count() === $itemIds->count();
+
+        if (! $allItemsAreVisible) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'One or more items are no longer available. Please refresh your cart.',
+            ], 409));
+        }
     }
 
     public function verify(string $gateway, string $transactionId)

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Modules\Currency\Traits\HandlesCurrency;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -51,6 +52,14 @@ class Item extends Model
         'show_rrp' => 'boolean',
         'has_shipping' => 'boolean'
     ];
+
+    /**
+     * Limit a query to products that may be shown or purchased publicly.
+     */
+    public function scopeVisible(Builder $query): Builder
+    {
+        return $query->where($query->getModel()->qualifyColumn('is_active'), true);
+    }
 
     // =========================================================================
     // PRICE ATTRIBUTES (Cents in DB → Dollars via Accessor)

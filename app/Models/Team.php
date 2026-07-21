@@ -116,7 +116,7 @@ class Team extends Model
 
     public function getIsTeamRegisteredAttribute(): bool
     {
-        return $this->whereHas('registration')->exists();
+        return !is_null($this->registration_id);
     }
 
 }
