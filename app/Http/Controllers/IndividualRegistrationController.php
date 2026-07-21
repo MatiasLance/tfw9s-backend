@@ -9,6 +9,7 @@ use App\Models\DiscountCode;
 use App\Models\ToggleTaxControl;
 use App\Modules\Payment\PaymentServiceInterface;
 use App\Modules\Http\Message;
+use App\Services\LoungeService;
 
 class IndividualRegistrationController extends Controller
 {
@@ -18,18 +19,38 @@ class IndividualRegistrationController extends Controller
      * @var PaymentServiceInterface $paymentService
      */
     protected PaymentServiceInterface $paymentService;
+    protected LoungeService $loungeService;
 
-    public function __construct(PaymentServiceInterface $paymentService)
+    public function __construct(
+        PaymentServiceInterface $paymentService,
+        LoungeService $loungeService
+    )
     {
         $this->paymentService = $paymentService;
+        $this->loungeService = $loungeService;
     }
 
     public function checkout(Request $request)
     {
-        $item = $request->input('item');
-        $metadata = $request->input('metadata', []);
-        $paymentMethod = $request->input('payment_method');
-        $discountcode = $request->input('discountcode');
+        $validated = $request->validate([
+            'item' => 'required|integer|exists:series,id',
+            'payment_method' => 'required|string',
+            'metadata' => 'nullable|array',
+            'discountcode' => 'nullable|string',
+            'lounge_token' => 'required|string',
+            'client_id' => 'required|string|max:255',
+        ]);
+
+        if (!$this->loungeService->hasValidActiveSession(
+            $validated['lounge_token'],
+            $validated['client_id'],
+            (int) $validated['item']
+        )) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your checkout session has expired. Please re-enter the lounge.'
+            ], 409);
+        }
 
         $photo = null;
         if ($request->hasFile('photo')) {
@@ -39,7 +60,16 @@ class IndividualRegistrationController extends Controller
             ];
         }
 
-        return $this->paymentService->createIndividualRegistration($discountcode, $paymentMethod, $item, $metadata);
+        $metadata = array_merge($validated['metadata'] ?? [], [
+            'client_token' => $validated['client_id'],
+        ]);
+
+        return $this->paymentService->createIndividualRegistration(
+            $validated['discountcode'] ?? null,
+            $validated['payment_method'],
+            $validated['item'],
+            $metadata
+        );
     }
 
     public function verify(Request $request, Message $message)

@@ -204,10 +204,15 @@ class SeriesRepository extends BaseRepository implements seriesRepositoryInterfa
     }
 
 
-    public function retrieveSeries(int $id): Series
+    public function retrieveSeries(int $id, bool $includeTeams = true): Series
     {
-        $series = Series::with(['ageGroup', 'team'])->where('id', $id)->first();
-        return $series;
+        $query = Series::query()->with('ageGroup');
+
+        if ($includeTeams) {
+            $query->with('team');
+        }
+
+        return $query->findOrFail($id);
     }    
 
     public function createSeries(string $name, string $type, string $description, string $address, DateTime $start, DateTime $end, float $price, ?array $media): Series

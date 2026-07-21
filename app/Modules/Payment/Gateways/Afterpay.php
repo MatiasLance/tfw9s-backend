@@ -7,6 +7,7 @@ use App\Models\Item;
 use App\Models\DiscountCode;
 use App\Models\Tax;
 use App\Models\ToggleTaxControl;
+use App\Models\WaitingLounge;
 use App\Modules\IndividualRegistration\IndividualRegistrationServiceInterface;
 use App\Modules\TeamRegistration\TeamRegistrationServiceInterface;
 use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
@@ -224,13 +225,24 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
                 $metadata['item_id']
             );
 
+            if (!empty($metadata['client_token'])) {
+                WaitingLounge::where('client_id', $metadata['client_token'])
+                    ->where('series_id', $metadata['item_id'])
+                    ->delete();
+            }
+
             return $paymentId;
         } else {
             throw new PaymentFailedException('Transaction failed');
         }
     }
 
-    public function createTeamRegistration($discountcode, string $item, array $metadata = [])
+    public function createTeamRegistration(
+        $discountcode,
+        string $item,
+        array $metadata = [],
+        string $token
+    )
     {
         
         $calculatedTotal = $this->calculateTotalTeamRegistration($item);
@@ -267,6 +279,12 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
                 $metadata['total_price'],
                 $metadata['item_id']
             );
+
+            if (!empty($metadata['client_token'])) {
+                WaitingLounge::where('client_id', $metadata['client_token'])
+                    ->where('series_id', $metadata['item_id'])
+                    ->delete();
+            }
 
             return $paymentId;
         } else {

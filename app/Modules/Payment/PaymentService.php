@@ -41,6 +41,8 @@ class PaymentService implements PaymentServiceInterface
             'currency' => 'aud'
         ];
 
+        $metadata['client_token'] = $token;
+
         $paymentGateway = $this->getGateway($gateway, $config);
         return $paymentGateway->createTeamRegistration($discountcode, $item, $metadata, $token);
     }
