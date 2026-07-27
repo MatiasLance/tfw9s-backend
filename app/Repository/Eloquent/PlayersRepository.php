@@ -488,6 +488,8 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
                     'player_name' => trim(
                         $player->player_firstname.' '.$player->player_lastname
                     ),
+                    'first_name' => $player->player_firstname,
+                    'last_name' => $player->player_lastname,
                     'masked_phone' => $phoneDigits
                         ? '***'.substr($phoneDigits, -3)
                         : 'Not provided',
@@ -501,6 +503,12 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             })
             ->filter(fn (array $match): bool => $match['score'] >= 72)
             ->sortByDesc('score')
+            ->unique(fn (array $match): string => implode('|', [
+                mb_strtolower($match['player_name']),
+                $match['masked_phone'],
+                mb_strtolower((string) $match['team_name']),
+                mb_strtolower((string) $match['age_group']),
+            ]))
             ->take($limit)
             ->values();
     }
@@ -582,43 +590,9 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
     public function suggestNames(string $query, int $limit = 10): Collection
     {
-        $query = preg_replace('/[^a-zA-Z\-\'\s]/', '', trim($query));
-        if (empty($query)) {
-            return collect();
-        }
-
-        $tokens = explode(' ', $query);
-        $firstToken = $tokens[0];
-        $secondToken = $tokens[1] ?? null;
-
-        $players = $this->model->query()
-            ->select('id', 'team_id', 'agegroup_id', 'series_id', 'contact_firstname', 'contact_lastname', 'phone_number', 'email', 'player_firstname', 'player_lastname', 'dob')
-            ->where(function ($q) use ($firstToken, $secondToken) {
-                if ($secondToken) {
-                    $q->where('player_firstname', 'LIKE', $firstToken.'%')
-                    ->where('player_lastname', 'LIKE', $secondToken.'%');
-                } else {
-                    $q->where('player_firstname', 'LIKE', $firstToken.'%')
-                    ->orWhere('player_lastname', 'LIKE', $firstToken.'%');
-                }
-            })
-            ->orderByRaw('CHAR_LENGTH(player_firstname) ASC')
-            ->limit($limit)
-            ->get();
-
-        return $players->map(fn ($p) => [
-            'id' => $p->id,
-            'team_id' => $p->team_id,
-            'ageGroup_id' => $p->agegroup_id,
-            'series_id' => $p->series_id,
-            'parent_first_name' => $p->contact_firstname,
-            'parent_last_name' => $p->contact_lastname,
-            'first_name' => $p->player_firstname,
-            'last_name' => $p->player_lastname,
-            'phone_number' => $p->phone_number,
-            'email' => $p->email,
-            'date_of_birth' => $p->dob,
-            'name' => $p->player_firstname.' '.$p->player_lastname,
-        ]);
+        // Keep the legacy route privacy-safe for older clients. New clients use
+        // /player-card/matches directly, but neither public endpoint may expose
+        // parent contact information or a player's date of birth.
+        return $this->findPotentialCardMatches($query, $limit);
     }
 }
