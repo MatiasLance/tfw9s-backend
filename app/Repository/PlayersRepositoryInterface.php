@@ -4,9 +4,8 @@ namespace App\Repository;
 
 use App\Models\Player;
 use App\Modules\Utility\Pagination\Paginate;
-use Illuminate\Support\Collection;
-use Illuminate\Http\UploadedFile;
 use DateTime;
+use Illuminate\Support\Collection;
 
 interface PlayersRepositoryInterface
 {
@@ -24,12 +23,10 @@ interface PlayersRepositoryInterface
      */
     public const PLACEHOLDER_IMAGE = 'brand_players_placeholder_thumbnail.jpg';
 
-
     /**
      * Retrieve a list of players.
      *
-     * @param array $playersFilters
-     *
+     * @param  array  $playersFilters
      * @return Paginate<players>
      */
     public function listPlayers(array $playersFilters = []): Paginate;
@@ -37,10 +34,10 @@ interface PlayersRepositoryInterface
     /**
      * Create a new Event
      *
-     * @param int $id
-     * @param string $contact_firstname
-     * @param string $contact_lastname
-     * @param string $phone_number
+     * @param  int  $id
+     * @param  string  $contact_firstname
+     * @param  string  $contact_lastname
+     * @param  string  $phone_number
      * @param string email
      * @param string player_firstname
      * @param string player_lastname
@@ -48,7 +45,6 @@ interface PlayersRepositoryInterface
      * @param int DateTime dob
      * @param string agegroup
      * @param string description
-     *
      * @return players
      */
     public function createPlayers(
@@ -69,10 +65,10 @@ interface PlayersRepositoryInterface
     /**
      * Update an existing series instance
      *
-     * @param int $id
-     * @param string $contact_firstname
-     * @param string $contact_lastname
-     * @param string $phone_number
+     * @param  int  $id
+     * @param  string  $contact_firstname
+     * @param  string  $contact_lastname
+     * @param  string  $phone_number
      * @param string email
      * @param string player_firstname
      * @param string player_lastname
@@ -80,7 +76,6 @@ interface PlayersRepositoryInterface
      * @param int DateTime dob
      * @param string agegroup
      * @param string description
-     *
      * @return bool
      */
     public function updatePlayers(
@@ -99,11 +94,10 @@ interface PlayersRepositoryInterface
         ?array $media
     ): bool;
 
-     /**
+    /**
      * Retrieve an players
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return players
      */
     public function retrievePlayers(int $id): Player;
@@ -111,28 +105,24 @@ interface PlayersRepositoryInterface
     /**
      * Delete an existing players instance
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return bool
      */
     public function deletePlayers(int $id): bool;
 
-        /**
+    /**
      * Retrieve a list of players.
      *
-     * @param array $playersFilters
-     *
+     * @param  array  $playersFilters
      * @return Paginate<players>
      */
     public function trashedPlayers(array $playersFilters = []): Paginate;
 
-
-        /**
+    /**
      * Refubnd an Player
      *
-     * @param int $id
-     * @param int $amount
-     *
+     * @param  int  $id
+     * @param  int  $amount
      * @return Player
      */
     public function refundPlayer(int $id, int $amount): bool;
@@ -140,11 +130,15 @@ interface PlayersRepositoryInterface
     /**
      * Cancel a Refund
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return Player
      */
     public function cancelrefPlayer(int $id): bool;
 
     public function suggestNames(string $query, int $limit): Collection;
+
+    /**
+     * Find privacy-safe potential Player Card matches for a purchaser-entered name.
+     */
+    public function findPotentialCardMatches(string $query, int $limit): Collection;
 }

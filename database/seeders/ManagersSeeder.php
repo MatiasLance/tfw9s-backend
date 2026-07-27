@@ -2,17 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Faker\Factory as Faker;
-use App\Models\User;
 
 class ManagersSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        $faker = Faker::create();
-
         $managerUsers = User::whereHas('roles', function ($query) {
             $query->where('roles.id', 3);
         })->get();
@@ -22,13 +19,15 @@ class ManagersSeeder extends Seeder
         });
 
         foreach ($managerUsers as $user) {
-                DB::table('managers')->insert([
+            DB::table('managers')->updateOrInsert(
+                ['user_id' => $user->id],
+                [
                     'user_id' => $user->id,
-                    'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
+                    'description' => fake()->sentence(12),
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
-
+                ]
+            );
         }
     }
 }

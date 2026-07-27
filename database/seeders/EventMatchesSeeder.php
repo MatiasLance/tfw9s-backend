@@ -2,63 +2,68 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Faker\Factory as Faker;
+use App\Models\Event;
 use App\Models\Field;
 use App\Models\Team;
-use App\Models\Event;
-use App\Models\EventMatch;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class EventMatchesSeeder extends Seeder
 {
-    public function run()
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
     {
-        $faker = Faker::create();
-        $Events = Event::all();
+        $fallbackFieldId = Field::query()->orderBy('id')->value('id');
 
-        foreach ($Events as $event) {
-            $teams = Team::where('event_id', $event->id)->pluck('id')->toArray();
-            $fields = Field::where('region_id', $event->region_id)->pluck('id')->toArray();
-            $teamsCount = count($teams);
-            
-            // Shuffle teamIds randomly
-            shuffle($teams);
-            
-            // Take the first 3 teamIds
-            $team1 = $teams[0];
-            $team2 = $teams[1];
-            $team3 = $teams[2];
-            
-            DB::table('event_matches')->insert([
-                'event_id' => $event->id,
-                'field_id' => $faker->randomElement($fields),
-                'match_time' => $faker->time,
-                'team1' => $team1,
-                'team2' => $team2,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            DB::table('event_matches')->insert([
-                'event_id' => $event->id,
-                'field_id' => $faker->randomElement($fields),
-                'match_time' => $faker->time,
-                'team1' => $team2,
-                'team2' => $team3,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            DB::table('event_matches')->insert([
-                'event_id' => $event->id,
-                'field_id' => $faker->randomElement($fields),
-                'match_time' => $faker->time,
-                'team1' => $team3,
-                'team2' => $team1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        if (! $fallbackFieldId) {
+            throw new RuntimeException(
+                'EventMatchesSeeder requires at least one field.'
+            );
         }
+
+        Event::query()->orderBy('id')->get()->each(
+            function (Event $event) use ($fallbackFieldId): void {
+                $fieldId = Field::query()
+                    ->where('region_id', $event->region_id)
+                    ->value('id') ?? $fallbackFieldId;
+                $selectedTeams = Team::query()
+                    ->where('agegroup_id', $event->agegroup_id)
+                    ->where('series_id', $event->series_id)
+                    ->orderBy('id')
+                    ->limit(3)
+                    ->pluck('id')
+                    ->values();
+
+                if ($selectedTeams->count() < 3) {
+                    throw new RuntimeException(
+                        "Event {$event->id} requires three teams matching its age group and series."
+                    );
+                }
+
+                $pairings = [
+                    [$selectedTeams[0], $selectedTeams[1]],
+                    [$selectedTeams[1], $selectedTeams[2]],
+                    [$selectedTeams[2], $selectedTeams[0]],
+                ];
+
+                foreach ($pairings as $pairing) {
+                    DB::table('event_matches')->updateOrInsert(
+                        [
+                            'event_id' => $event->id,
+                            'team1' => $pairing[0],
+                            'team2' => $pairing[1],
+                        ],
+                        [
+                            'field_id' => $fieldId,
+                            'updated_at' => now(),
+                            'created_at' => now(),
+                        ]
+                    );
+                }
+            }
+        );
     }
 }

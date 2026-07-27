@@ -2,34 +2,36 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use App\Models\ItemVariant;
+use Illuminate\Database\Seeder;
 
 class VariantSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
         $colors = [
-            'Red',
-            'Blue',
-            'Green',
-            'Yellow',
-            'Black',
-            'White',
-            'Purple',
-            'Orange'
+            'Red' => '#FF0000',
+            'Blue' => '#0000FF',
+            'Green' => '#008000',
+            'Yellow' => '#FFFF00',
+            'Black' => '#000000',
+            'White' => '#FFFFFF',
+            'Purple' => '#800080',
+            'Orange' => '#FFA500',
         ];
 
-        foreach ($colors as $color) {
-            ItemVariant::create([
-                'color' => $color,
-            ]);
+        foreach ($colors as $value => $hexcode) {
+            ItemVariant::query()->updateOrCreate(
+                ['type' => 'color', 'value' => $value],
+                [
+                    'hexcode' => $hexcode,
+                    'stock_quantity' => 100,
+                    'is_active' => true,
+                ]
+            );
         }
     }
 }

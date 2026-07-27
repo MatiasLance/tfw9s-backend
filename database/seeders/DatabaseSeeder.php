@@ -4,21 +4,13 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-use App\Models\User;
 use App\Models\Category;
-use App\Models\Item;
-use App\Models\Media;
-use App\Models\Tag;
-use App\Models\Region;
-use App\Models\Event;
-use App\Models\News;
-use App\Models\Team;
-use App\Models\Field;
-use App\Models\AgeGroup;
-use App\Models\PartnerSponsor;
 use App\Models\Guideline;
-use App\Models\Variant;
-use App\Repository\ItemRepositoryInterface;
+use App\Models\Item;
+use App\Models\News;
+use App\Models\PartnerSponsor;
+use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -29,9 +21,8 @@ class DatabaseSeeder extends Seeder
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
-
         User::factory(11)->create()->each(function ($user) {
             $role = Role::find(3);
 
@@ -78,17 +69,18 @@ class DatabaseSeeder extends Seeder
             ->create();
 
         $this->call([
+            RegionsSeeder::class,
+            FieldsSeeder::class,
+            AgeGroupsSeeder::class,
             SeriesSeeder::class,
+            TeamsSeeder::class,
+            PlayersSeeder::class,
             ManagersSeeder::class,
             EventsSeeder::class,
-            TeamsSeeder::class,
             EventMatchesSeeder::class,
             TeamPositionSeeder::class,
             TeamLimitSeeder::class,
-            AgeGroupsSeeder::class,
-            RegionsSeeder::class,
-            FieldsSeeder::class,
-            VariantSeeder::class
+            VariantSeeder::class,
         ]);
     }
 }

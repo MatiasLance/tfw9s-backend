@@ -2,8 +2,8 @@
 
 namespace App\Modules\EventMatch;
 
-use App\Models\User;
 use App\Models\EventMatch;
+use App\Models\User;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\EventMatchRepositoryInterface;
 use Illuminate\Http\UploadedFile;
@@ -13,11 +13,14 @@ class EventMatchService implements EventMatchServiceInterface
     /**
      * EventMatch Repository
      *
-     * @var EventMatchRepositoryInterface $eventMatchRepository
+     * @var EventMatchRepositoryInterface
      */
     protected EventMatchRepositoryInterface $eventMatchRepository;
 
-    public function __construct(EventMatchRepositoryInterface $eventMatchRepository) { $this->eventMatchRepository = $eventMatchRepository; }
+    public function __construct(EventMatchRepositoryInterface $eventMatchRepository)
+    {
+        $this->eventMatchRepository = $eventMatchRepository;
+    }
 
     public function listEventMatches(array $filters = []): Paginate
     {
@@ -44,9 +47,18 @@ class EventMatchService implements EventMatchServiceInterface
         return $this->eventMatchRepository->updateEventMatchScore($id, $team1_score, $team2_score, $isAbandonedMatch);
     }
 
-    public function storeResult(int $id, int $team1_score, int $team2_score): bool
-    {
-        return $this->eventMatchRepository->storeResult($id, $team1_score, $team2_score);
+    public function storeResult(
+        int $id,
+        int $team1_score,
+        int $team2_score,
+        bool $isAbandonedMatch
+    ): bool {
+        return $this->eventMatchRepository->storeResult(
+            $id,
+            $team1_score,
+            $team2_score,
+            $isAbandonedMatch
+        );
     }
 
     public function revertResult(int $id): bool
@@ -63,5 +75,4 @@ class EventMatchService implements EventMatchServiceInterface
     {
         return $this->eventMatchRepository->addVideo($id, $video);
     }
-
 }

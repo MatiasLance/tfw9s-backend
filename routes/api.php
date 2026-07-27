@@ -2,9 +2,6 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TaxController;
-use App\Http\Controllers\ToggleTaxControlController;
-use App\Http\Controllers\PaymentSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,102 +15,104 @@ use App\Http\Controllers\PaymentSettingController;
 */
 
 Route::middleware('auth:sanctum')->group(function () { // Admin only routes
-    Route::prefix('v1')->group(function () { // API v1 Endpoints
+Route::prefix('v1')->group(function () { // API v1 Endpoints
+Route::prefix('users')->group(function () {
+    Route::get('me', function (Request $request) {
+        return $request->user();
+    });
+});
 
-        Route::prefix('users')->group(function () {
-            Route::get('me', function (Request $request) {
-                return $request->user();
-            });
-        });
-
-        Route::prefix('items')->group(function () {
-            Route::post('/', 'App\Http\Controllers\ItemController@store');
-            Route::post('/duplicate/{itemId}', 'App\Http\Controllers\ItemController@duplicate');
-            Route::post('/addVariant/{itemId}', 'App\Http\Controllers\ItemController@storeItemVariant');
-            Route::patch('/{itemId}', 'App\Http\Controllers\ItemController@update');
-            Route::delete('/{itemId}', 'App\Http\Controllers\ItemController@delete');
-        });
-
-        Route::prefix('categories')->group(function () { 
-            Route::post('/', 'App\Http\Controllers\CategoryController@store');
-            Route::post('/move', 'App\Http\Controllers\CategoryController@move');
-            Route::patch('/{categoryId}', 'App\Http\Controllers\CategoryController@update');
-            Route::delete('/{categoryId}', 'App\Http\Controllers\CategoryController@delete');
-        });
-
-        Route::prefix('orders')->group(function () {
-            Route::prefix('shipping-notes')->group(function () {
-                Route::patch('update', 'App\Http\Controllers\OrderController@updateShippingOptions');
-            });
-        });
-
-        Route::prefix("tax")->group(function() {
-            Route::get('/', 'App\Http\Controllers\TaxController@list');
-            Route::post('/{id}', 'App\Http\Controllers\TaxController@update');
-        });
-
-        Route::prefix("toggletax")->group(function() {
-            Route::get('/', 'App\Http\Controllers\ToggleTaxControlController@list');
-            Route::post('/{id}', 'App\Http\Controllers\ToggleTaxControlController@update');
-        });
-
-        Route::prefix("regions")->group(function() {
-            Route::post('/', 'App\Http\Controllers\RegionController@store');
-            Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
-            Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
-        });
-
-        Route::prefix("fields")->group(function() {
-            Route::post('/', 'App\Http\Controllers\FieldController@store');
-            Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
-            Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
-        });
-
-        Route::prefix("teams")->group(function() {
-            Route::post('/', 'App\Http\Controllers\TeamController@store');
-            Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
-            Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
-        });
-
-        Route::prefix("events")->middleware('admin')->group(function() {
-            Route::post('/', 'App\Http\Controllers\EventController@store');
-            Route::post('/{id}', 'App\Http\Controllers\EventController@update');
-            Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
-        });
-
-        Route::prefix("eventmatches")->middleware('admin')->group(function() {
-            Route::post('/update/{id}', 'App\Http\Controllers\EventMatchController@updatescore');
-            Route::post('/revert/{id}', 'App\Http\Controllers\EventMatchController@revertResultSubmitted');
-            Route::post('/{id}', 'App\Http\Controllers\EventMatchController@storeResult');
-        });
-
-        Route::prefix("agegroups")->group(function() {
-            Route::post('/', 'App\Http\Controllers\AgeGroupController@store');
-            Route::post('/{id}', 'App\Http\Controllers\AgeGroupController@update');
-            Route::delete('/{id}', 'App\Http\Controllers\AgeGroupController@delete');
-        });
-
-        Route::prefix("partnersponsors")->group(function() {
-            Route::post('/', 'App\Http\Controllers\PartnerSponsorController@store');
-            Route::post('/{id}', 'App\Http\Controllers\PartnerSponsorController@update');
-            Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
-        });
-
-        Route::prefix("payment")->group(function() {
-            Route::prefix("setting")->group(function() {
-                Route::get("/", 'App\Http\Controllers\PaymentSettingController@list');
-                Route::patch("/{id}", 'App\Http\Controllers\PaymentSettingController@update');
-            });
-        });
-
-        Route::prefix('terms')->group(function () {
-            Route::get('/', 'App\Http\Controllers\TermsAndConditionController@index');
-            Route::post('/', 'App\Http\Controllers\TermsAndConditionController@store');
-            Route::get('/{id}', 'App\Http\Controllers\TermsAndConditionController@show');
-            Route::put('/{id}', 'App\Http\Controllers\TermsAndConditionController@update');
-            Route::delete('/{id}', 'App\Http\Controllers\TermsAndConditionController@destroy');
+    Route::prefix('items')->group(function () {
+        Route::post('/', 'App\Http\Controllers\ItemController@store');
+        Route::post('/duplicate/{itemId}', 'App\Http\Controllers\ItemController@duplicate');
+        Route::post('/addVariant/{itemId}', 'App\Http\Controllers\ItemController@storeItemVariant');
+        Route::patch('/{itemId}', 'App\Http\Controllers\ItemController@update');
+        Route::delete('/{itemId}', 'App\Http\Controllers\ItemController@delete');
+        Route::prefix('status')->group(function () {
+            Route::post('/', 'App\Http\Controllers\ItemController@toggleItemStatus');
         });
     });
+
+    Route::prefix('categories')->group(function () {
+        Route::post('/', 'App\Http\Controllers\CategoryController@store');
+        Route::post('/move', 'App\Http\Controllers\CategoryController@move');
+        Route::patch('/{categoryId}', 'App\Http\Controllers\CategoryController@update');
+        Route::delete('/{categoryId}', 'App\Http\Controllers\CategoryController@delete');
+    });
+
+    Route::prefix('orders')->group(function () {
+        Route::prefix('shipping-notes')->group(function () {
+            Route::patch('update', 'App\Http\Controllers\OrderController@updateShippingOptions');
+        });
+    });
+
+    Route::prefix('tax')->group(function () {
+        Route::get('/', 'App\Http\Controllers\TaxController@list');
+        Route::post('/{id}', 'App\Http\Controllers\TaxController@update');
+    });
+
+    Route::prefix('toggletax')->group(function () {
+        Route::get('/', 'App\Http\Controllers\ToggleTaxControlController@list');
+        Route::post('/{id}', 'App\Http\Controllers\ToggleTaxControlController@update');
+    });
+
+    Route::prefix('regions')->group(function () {
+        Route::post('/', 'App\Http\Controllers\RegionController@store');
+        Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
+    });
+
+    Route::prefix('fields')->group(function () {
+        Route::post('/', 'App\Http\Controllers\FieldController@store');
+        Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
+    });
+
+    Route::prefix('teams')->group(function () {
+        Route::post('/', 'App\Http\Controllers\TeamController@store');
+        Route::post('/{id}', 'App\Http\Controllers\TeamController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\TeamController@delete');
+    });
+
+    Route::prefix('events')->middleware('admin')->group(function () {
+        Route::post('/', 'App\Http\Controllers\EventController@store');
+        Route::post('/{id}', 'App\Http\Controllers\EventController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\EventController@delete');
+    });
+
+    Route::prefix('eventmatches')->middleware('admin')->group(function () {
+        Route::post('/update/{id}', 'App\Http\Controllers\EventMatchController@updatescore');
+        Route::post('/revert/{id}', 'App\Http\Controllers\EventMatchController@revertResultSubmitted');
+        Route::post('/{id}', 'App\Http\Controllers\EventMatchController@storeResult');
+    });
+
+    Route::prefix('agegroups')->group(function () {
+        Route::post('/', 'App\Http\Controllers\AgeGroupController@store');
+        Route::post('/{id}', 'App\Http\Controllers\AgeGroupController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\AgeGroupController@delete');
+    });
+
+    Route::prefix('partnersponsors')->group(function () {
+        Route::post('/', 'App\Http\Controllers\PartnerSponsorController@store');
+        Route::post('/{id}', 'App\Http\Controllers\PartnerSponsorController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
+    });
+
+    Route::prefix('payment')->group(function () {
+        Route::prefix('setting')->group(function () {
+            Route::get('/', 'App\Http\Controllers\PaymentSettingController@list');
+            Route::patch('/{id}', 'App\Http\Controllers\PaymentSettingController@update');
+        });
+    });
+
+    Route::prefix('terms')->group(function () {
+        Route::get('/', 'App\Http\Controllers\TermsAndConditionController@index');
+        Route::post('/', 'App\Http\Controllers\TermsAndConditionController@store');
+        Route::get('/{id}', 'App\Http\Controllers\TermsAndConditionController@show');
+        Route::put('/{id}', 'App\Http\Controllers\TermsAndConditionController@update');
+        Route::delete('/{id}', 'App\Http\Controllers\TermsAndConditionController@destroy');
+    });
+});
 });
 
 Route::prefix('v1')->group(function () {
@@ -126,11 +125,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('items')->group(function () {
         Route::get('/', 'App\Http\Controllers\ItemController@list');
         Route::get('/{itemId}', 'App\Http\Controllers\ItemController@retrieve');
-        Route::prefix('status')->group(function () {
-            Route::post('/', 'App\Http\Controllers\ItemController@toggleItemStatus')->middleware('auth:sanctum');
-        });
-        Route::post('/{id}', 'App\Http\Controllers\ItemController@update');
-        Route::delete('/{id}', 'App\Http\Controllers\ItemController@delete');
+        // Route::post('/{id}', 'App\Http\Controllers\ItemController@update');
+        // Route::delete('/{id}', 'App\Http\Controllers\ItemController@delete');
     });
 
     Route::prefix('categories')->group(function () {
@@ -170,7 +166,7 @@ Route::prefix('v1')->group(function () {
              ->middleware(['throttle:calculations']);
     });
 
-    Route::prefix('discountcode')->group(function() {
+    Route::prefix('discountcode')->group(function () {
         Route::get('/', 'App\Http\Controllers\DiscountCodeController@list');
         Route::get('/{id}', 'App\Http\Controllers\DiscountCodeController@retrieve');
         Route::post('/', 'App\Http\Controllers\DiscountCodeController@store');
@@ -179,15 +175,15 @@ Route::prefix('v1')->group(function () {
         Route::patch('/{id}', 'App\Http\Controllers\DiscountCodeController@update');
     });
 
-    Route::prefix("tax")->group(function() {
+    Route::prefix('tax')->group(function () {
         Route::get('/', 'App\Http\Controllers\TaxController@list');
     });
 
-    Route::prefix("toggletax")->group(function() {
+    Route::prefix('toggletax')->group(function () {
         Route::get('/', 'App\Http\Controllers\ToggleTaxControlController@list');
     });
 
-    Route::prefix("regions")->group(function() {
+    Route::prefix('regions')->group(function () {
         Route::get('/', 'App\Http\Controllers\RegionController@list');
         Route::get('/all', 'App\Http\Controllers\RegionController@all');
         Route::post('/', 'App\Http\Controllers\RegionController@store');
@@ -196,20 +192,18 @@ Route::prefix('v1')->group(function () {
         Route::post('/', 'App\Http\Controllers\RegionController@store');
         Route::post('/{id}', 'App\Http\Controllers\RegionController@update');
         Route::delete('/{id}', 'App\Http\Controllers\RegionController@delete');
-
     });
 
-    Route::prefix("fields")->group(function() {
+    Route::prefix('fields')->group(function () {
         Route::get('/', 'App\Http\Controllers\FieldController@list');
         Route::get('/all', 'App\Http\Controllers\FieldController@all');
         Route::get('/{id}', 'App\Http\Controllers\FieldController@retrieve');
         Route::post('/', 'App\Http\Controllers\FieldController@store');
         Route::post('/{id}', 'App\Http\Controllers\FieldController@update');
         Route::delete('/{id}', 'App\Http\Controllers\FieldController@delete');
-
     });
 
-    Route::prefix("agegroups")->group(function() {
+    Route::prefix('agegroups')->group(function () {
         Route::get('/retrieve-age-groups', 'App\Http\Controllers\AgeGroupController@index');
         Route::get('/', 'App\Http\Controllers\AgeGroupController@list');
         Route::get('/all', 'App\Http\Controllers\AgeGroupController@all');
@@ -219,24 +213,23 @@ Route::prefix('v1')->group(function () {
         Route::delete('/{id}', 'App\Http\Controllers\AgeGroupController@delete');
     });
 
-    Route::prefix("managers")->group(function() {
+    Route::prefix('managers')->group(function () {
         Route::get('/', 'App\Http\Controllers\ManagerController@list');
         Route::get('/{id}', 'App\Http\Controllers\ManagerController@retrieve');
         Route::post('/', 'App\Http\Controllers\ManagerController@store');
         Route::post('/{id}', 'App\Http\Controllers\ManagerController@update');
         Route::delete('/{id}', 'App\Http\Controllers\ManagerController@delete');
-
     });
 
-    Route::prefix("teams")->group(function() {
+    Route::prefix('teams')->group(function () {
         Route::get('/', 'App\Http\Controllers\TeamController@list');
         Route::get('/all', 'App\Http\Controllers\TeamController@all');
         Route::get('/trashed', 'App\Http\Controllers\TeamController@trashed');
         Route::get('/{id}', 'App\Http\Controllers\TeamController@retrieve');
         Route::get('link/{id}', 'App\Http\Controllers\TeamController@generateTeamAndIndividualRegistrationLink');
-        Route::prefix("player")->group(function() {
-            Route::prefix("registration")->group(function() {
-                Route::prefix("link")->group(function() {
+        Route::prefix('player')->group(function () {
+            Route::prefix('registration')->group(function () {
+                Route::prefix('link')->group(function () {
                     Route::get('/{id}', 'App\Http\Controllers\TeamController@generatePlayerRegistrationLink');
                 });
             });
@@ -248,18 +241,18 @@ Route::prefix('v1')->group(function () {
         Route::post('/cancelref/{id}', 'App\Http\Controllers\TeamController@cancelref');
     });
 
-    Route::prefix("events")->group(function() {
+    Route::prefix('events')->group(function () {
         Route::get('/', 'App\Http\Controllers\EventController@list');
         Route::get('/all', 'App\Http\Controllers\EventController@all');
         Route::get('/{id}', 'App\Http\Controllers\EventController@retrieve');
     });
 
-    Route::prefix("eventmatches")->group(function() {
+    Route::prefix('eventmatches')->group(function () {
         Route::get('/', 'App\Http\Controllers\EventMatchController@list');
         Route::get('/{id}', 'App\Http\Controllers\EventMatchController@retrieve');
     });
 
-    Route::prefix("partnersponsors")->group(function() {
+    Route::prefix('partnersponsors')->group(function () {
         Route::get('/', 'App\Http\Controllers\PartnerSponsorController@list');
         Route::get('/{id}', 'App\Http\Controllers\PartnerSponsorController@retrieve');
         Route::post('/', 'App\Http\Controllers\PartnerSponsorController@store');
@@ -267,7 +260,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/{id}', 'App\Http\Controllers\PartnerSponsorController@delete');
     });
 
-    Route::prefix("news")->group(function() {
+    Route::prefix('news')->group(function () {
         Route::get('/', 'App\Http\Controllers\NewsController@list');
         Route::get('/{id}', 'App\Http\Controllers\NewsController@retrieve');
         Route::post('/', 'App\Http\Controllers\NewsController@store');
@@ -275,7 +268,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/{id}', 'App\Http\Controllers\NewsController@delete');
     });
 
-    Route::prefix("teampositions")->group(function() {
+    Route::prefix('teampositions')->group(function () {
         Route::get('/', 'App\Http\Controllers\TeamPositionController@list');
         Route::get('/list', 'App\Http\Controllers\TeamPositionController@listOfTeamPositions');
         Route::get('/{id}', 'App\Http\Controllers\TeamPositionController@retrieve');
@@ -284,7 +277,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/{id}', 'App\Http\Controllers\TeamPositionController@delete');
     });
 
-    Route::prefix("guidelines")->group(function() {
+    Route::prefix('guidelines')->group(function () {
         Route::get('/', 'App\Http\Controllers\GuidelineController@list');
         Route::get('/{id}', 'App\Http\Controllers\GuidelineController@retrieve');
         Route::post('/', 'App\Http\Controllers\GuidelineController@store');
@@ -292,12 +285,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/active/{id}', 'App\Http\Controllers\GuidelineController@setActive');
         Route::post('/deactivate/{id}', 'App\Http\Controllers\GuidelineController@deactivate');
         Route::delete('/{id}', 'App\Http\Controllers\GuidelineController@delete');
-
     });
 
-    Route::prefix("series")->group(function() {
+    Route::prefix('series')->group(function () {
         Route::get('/', 'App\Http\Controllers\SeriesController@list');
-        Route::prefix('paginated')->group(function() {
+        Route::prefix('paginated')->group(function () {
             Route::get('/', 'App\Http\Controllers\SeriesController@paginatedList');
         });
         Route::get('/', 'App\Http\Controllers\SeriesController@list');
@@ -314,11 +306,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/teamlinks/{id}', 'App\Http\Controllers\SeriesController@seriesTeamLinks');
     });
 
-    Route::prefix("players")->group(function() {
+    Route::prefix('players')->group(function () {
         Route::get('/', 'App\Http\Controllers\PlayersController@list');
         Route::get('/trashed', 'App\Http\Controllers\PlayersController@trashed');
+        Route::get('/player-card/matches', 'App\Http\Controllers\PlayersController@findPotentialCardMatches')
+            ->middleware('throttle:30,1');
         Route::get('/{id}', 'App\Http\Controllers\PlayersController@retrieve');
-        Route::prefix('name')->group(function(){
+        Route::prefix('name')->group(function () {
             Route::get('/suggest', 'App\Http\Controllers\PlayersController@suggestNames');
         });
         Route::post('/', 'App\Http\Controllers\PlayersController@store');
@@ -329,21 +323,21 @@ Route::prefix('v1')->group(function () {
         Route::post('/savemedia/{id}', 'App\Http\Controllers\PlayersController@savemedia');
     });
 
-    Route::prefix("teamlimit")->group(function() {
+    Route::prefix('teamlimit')->group(function () {
         Route::get('/{series_id}', 'App\Http\Controllers\TeamLimitController@list');
         Route::post('/update', 'App\Http\Controllers\TeamLimitController@update');
     });
 
-    Route::prefix("teamfolder")->group(function() {
+    Route::prefix('teamfolder')->group(function () {
         Route::get('/{id}', 'App\Http\Controllers\TeamFolderController@retrieve');
         Route::post('/update/{id}', 'App\Http\Controllers\TeamFolderController@update');
     });
 
-    Route::prefix("total")->group(function() {
+    Route::prefix('total')->group(function () {
         Route::get('/', 'App\Http\Controllers\TotalController@retrieve');
     });
 
-    Route::prefix("variant")->group(function() {
+    Route::prefix('variant')->group(function () {
         Route::get('/', 'App\Http\Controllers\VariantController@retrieve');
         Route::post('/', 'App\Http\Controllers\VariantController@store');
         Route::post('/itemvariant', 'App\Http\Controllers\VariantController@storeVariant');
@@ -351,7 +345,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/{id}', 'App\Http\Controllers\VariantController@delete');
     });
 
-    Route::prefix("faq")->group(function() {
+    Route::prefix('faq')->group(function () {
         Route::get('/', 'App\Http\Controllers\FaqController@list');
         Route::get('/{id}', 'App\Http\Controllers\FaqController@retrieve');
         Route::post('/', 'App\Http\Controllers\FaqController@store');
@@ -359,12 +353,12 @@ Route::prefix('v1')->group(function () {
         Route::delete('/{id}', 'App\Http\Controllers\FaqController@delete');
     });
 
-    Route::prefix("homepageinfo")->group(function() {
+    Route::prefix('homepageinfo')->group(function () {
         Route::get('/{id}', 'App\Http\Controllers\HomePageInformationController@retrieve');
         Route::post('/update/{id}', 'App\Http\Controllers\HomePageInformationController@update');
     });
 
-    Route::prefix('shipping')->group(function (){
+    Route::prefix('shipping')->group(function () {
         Route::prefix('country')->group(function () {
             Route::post('/', 'App\Http\Controllers\ShippingController@store');
             Route::get('/', 'App\Http\Controllers\ShippingController@list');
@@ -413,26 +407,25 @@ Route::prefix('v1')->group(function () {
             Route::patch('/{id}', 'App\Http\Controllers\MasterShippingSettingController@update');
             Route::delete('/{id}', 'App\Http\Controllers\MasterShippingSettingController@delete');
         });
-
     });
 
-    Route::prefix('payment')->group(function() {
-        Route::prefix('setting')->group(function() {
+    Route::prefix('payment')->group(function () {
+        Route::prefix('setting')->group(function () {
             Route::get('/', 'App\Http\Controllers\PaymentSettingController@list');
         });
     });
 
-    Route::prefix('sms')->group(function() {
+    Route::prefix('sms')->group(function () {
         Route::post('/sendSMSNotification', 'App\Http\Controllers\SMSController@sendLinkViaSMS');
         Route::post('/testSendSMSNotification', 'App\Http\Controllers\SMSController@testTwilioConnection');
     });
 
-    Route::prefix('registration-form-status')->group(function() {
+    Route::prefix('registration-form-status')->group(function () {
         Route::post('/', 'App\Http\Controllers\RegistrationFormStatusController@store');
         Route::get('/{id}', 'App\Http\Controllers\RegistrationFormStatusController@retrieve');
     });
 
-    Route::prefix('lounge')->group(function() {
+    Route::prefix('lounge')->group(function () {
         Route::post('/check', 'App\Http\Controllers\LoungeController@checkQueue');
         Route::get('/stats/{itemId}', 'App\Http\Controllers\LoungeController@getLiveStats');
     });
@@ -444,7 +437,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/api/version', function () {
         return response()->json([
             'version' => config('app.version', '1.0.0'),
-            'timestamp' => now()->toIso8601String()
+            'timestamp' => now()->toIso8601String(),
         ]);
     });
 });

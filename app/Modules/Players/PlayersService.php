@@ -2,11 +2,11 @@
 
 namespace App\Modules\Players;
 
-use App\Models\User;
 use App\Models\Player;
-use DateTime;
+use App\Models\User;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\PlayersRepositoryInterface;
+use DateTime;
 use Illuminate\Support\Collection;
 
 class PlayersService implements PlayersServiceInterface
@@ -14,7 +14,7 @@ class PlayersService implements PlayersServiceInterface
     /**
      * Players Repository
      *
-     * @var PlayersRepositoryInterface $playersRepository
+     * @var PlayersRepositoryInterface
      */
     protected PlayersRepositoryInterface $playersRepository;
 
@@ -41,9 +41,7 @@ class PlayersService implements PlayersServiceInterface
         ?string $description,
         int $series_id,
         ?array $media
-    ): Player
-
-    {
+    ): Player {
         return $this->playersRepository->createPlayers(
             $contact_firstname,
             $contact_lastname,
@@ -74,8 +72,7 @@ class PlayersService implements PlayersServiceInterface
         ?string $description,
         int $series_id,
         ?array $media
-    ): bool
-    {
+    ): bool {
         return $this->playersRepository->updatePlayers(
             $id,
             $contact_firstname,
@@ -121,5 +118,10 @@ class PlayersService implements PlayersServiceInterface
     public function suggestNames(string $query, int $limit): Collection
     {
         return $this->playersRepository->suggestNames($query, $limit);
+    }
+
+    public function findPotentialCardMatches(string $query, int $limit): Collection
+    {
+        return $this->playersRepository->findPotentialCardMatches($query, $limit);
     }
 }

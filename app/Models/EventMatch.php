@@ -32,7 +32,12 @@ class EventMatch extends Model
 
     protected $casts = [
         'is_abandoned_match' => 'boolean',
-        'submitted' => 'boolean'
+        'submitted' => 'boolean',
+        'isDraw' => 'boolean',
+        'team1_score' => 'integer',
+        'team2_score' => 'integer',
+        'team1_oldScore' => 'integer',
+        'team2_oldScore' => 'integer',
     ];
 
     public function team1()
@@ -59,5 +64,4 @@ class EventMatch extends Model
     {
         return $this->belongsTo(Event::class);
     }
-
 }

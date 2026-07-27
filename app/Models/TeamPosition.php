@@ -17,17 +17,16 @@ class TeamPosition extends Model
 
     protected $with = [
         'team',
-        'event'
+        'event',
     ];
 
     public function team()
     {
-        return $this->belongsTo(Team::class);
+        return $this->belongsTo(Team::class)->withTrashed();
     }
 
     public function event()
     {
         return $this->belongsTo(Event::class, 'event_id');
     }
-
 }

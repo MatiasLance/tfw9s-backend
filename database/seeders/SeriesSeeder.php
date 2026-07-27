@@ -2,55 +2,160 @@
 
 namespace Database\Seeders;
 
+use App\Models\Series;
 use App\Modules\TeamLimit\TeamLimitServiceInterface;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Faker\Factory as Faker;
-use App\Models\Series;
-
-use DateTime;
 
 class SeriesSeeder extends Seeder
 {
-    protected $teamLimitService;
+    protected TeamLimitServiceInterface $teamLimitService;
 
-    // Use constructor injection to get the service
     public function __construct(TeamLimitServiceInterface $teamLimitService)
     {
         $this->teamLimitService = $teamLimitService;
     }
-    public function run()
+
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
     {
-        $faker = Faker::create();
-        $currentYear = date('Y');
-        $currentMonth = date('m');
-        $startDate = $currentYear . '-'.$currentMonth.'-01';
-        $endDate = $currentYear . '-'.$currentMonth.'-25';
-        $price = mt_rand(200, 500);
+        $startDate = now()->startOfWeek();
 
-        $types = ['weekly', 'tournament', 'coast'];
+        $seriesGroups = [
+            'weekly' => [
+                'names' => [
+                    'Weekly Series',
+                    'Monday Night Weekly Series',
+                    'Tuesday Twilight Weekly Series',
+                    'Wednesday Warriors Weekly Series',
+                    'Thursday Thunder Weekly Series',
+                    'Friday Lights Weekly Series',
+                    'Saturday Social Weekly Series',
+                    'Sunday Funday Weekly Series',
+                    'Northern Beaches Weekly Series',
+                    'Eastern Suburbs Weekly Series',
+                    'Western Sydney Weekly Series',
+                    'Inner West Weekly Series',
+                    'Hills District Weekly Series',
+                    'South Sydney Weekly Series',
+                    'Harbour City Weekly Series',
+                    'Metro Mixed Weekly Series',
+                    'Premier Open Weekly Series',
+                    'Community Champions Weekly Series',
+                    'Rising Stars Weekly Series',
+                    'All Seasons Weekly Series',
+                ],
+                'address' => 'Sydney, NSW',
+                'price_start' => 200,
+                'start_offset' => 0,
+                'interval' => 1,
+                'duration' => 12,
+            ],
+            'tournament' => [
+                'names' => [
+                    'Tournament',
+                    'Sydney Harbour Cup Tournament',
+                    'Summer Kickoff Tournament',
+                    'Autumn Champions Tournament',
+                    'Winter Classic Tournament',
+                    'Spring Trophy Tournament',
+                    'City Lights Tournament',
+                    'Golden Boot Tournament',
+                    'Champions Shield Tournament',
+                    'Metro Masters Tournament',
+                    'Community Cup Tournament',
+                    'Rising Stars Tournament',
+                    'Weekend Warriors Tournament',
+                    'Premier Challenge Tournament',
+                    'Coastal Clash Tournament',
+                    'Statewide Showdown Tournament',
+                    'Unity Cup Tournament',
+                    'Legends Trophy Tournament',
+                    'Next Generation Tournament',
+                    'Final Whistle Tournament',
+                ],
+                'address' => 'Sydney, NSW',
+                'price_start' => 310,
+                'start_offset' => 4,
+                'interval' => 2,
+                'duration' => 3,
+            ],
+            'coast' => [
+                'names' => [
+                    'Central Coast',
+                    'Central Coast Summer Cup',
+                    'Central Coast Autumn Classic',
+                    'Central Coast Winter League',
+                    'Central Coast Spring Championship',
+                    'Central Coast Mariners Challenge',
+                    'Central Coast Community Cup',
+                    'Central Coast Golden Boot Series',
+                    'Central Coast Harbour Trophy',
+                    'Central Coast Beachside Cup',
+                    'Central Coast Rising Stars',
+                    'Central Coast Weekend League',
+                    'Central Coast Premier Shield',
+                    'Central Coast Unity Cup',
+                    'Central Coast Coastal Clash',
+                    'Central Coast Champions Trophy',
+                    'Central Coast Youth Challenge',
+                    'Central Coast Open Championship',
+                    'Central Coast Legends Cup',
+                    'Central Coast Final Whistle Series',
+                ],
+                'address' => 'Central Coast, NSW',
+                'price_start' => 420,
+                'start_offset' => 8,
+                'interval' => 2,
+                'duration' => 3,
+            ],
+        ];
 
-        foreach ($types as $Type) {
-            $eventType = $faker->randomElement(['Cup', 'League', 'Tournament', 'Championship']);
-            $eventName = $faker->unique()->state();
-            $eventTitle = $eventName . ' ' . $eventType;
-            $startDate = $faker->dateTimeBetween($startDate, $endDate)->format('Y-m-d');
-            $endDate = (new DateTime($startDate))->modify('+3 days')->format('Y-m-d'); // Modify end date to be 3 days after start date
-            $price = mt_rand(200, 500);
-            $series = Series::create([
-                'name' => $eventTitle,
-                'type' => $Type,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                'address' => $faker->address(),
-                'start' => $startDate,
-                'end' => $endDate,
-                'price' => $price,
-            ]);
+        $seriesList = [];
 
-            if ($Type != 'weekly') {
+        foreach ($seriesGroups as $type => $group) {
+            foreach ($group['names'] as $index => $name) {
+                $seriesStart = $startDate->copy()->addWeeks(
+                    $group['start_offset'] + ($index * $group['interval'])
+                );
+                $seriesEnd = $seriesStart->copy();
+
+                if ($type === 'weekly') {
+                    $seriesEnd->addWeeks($group['duration']);
+                } else {
+                    $seriesEnd->addDays($group['duration']);
+                }
+
+                $seriesList[] = [
+                    'name' => $name,
+                    'type' => $type,
+                    'description' => "{$name} football competition.",
+                    'address' => $group['address'],
+                    'start' => $seriesStart->toDateString(),
+                    'end' => $seriesEnd->toDateString(),
+                    'price' => $group['price_start'] + ($index * 5),
+                ];
+            }
+        }
+
+        foreach ($seriesList as $seriesData) {
+            $series = Series::query()
+                ->where('name', $seriesData['name'])
+                ->first() ?? new Series();
+
+            foreach ($seriesData as $attribute => $value) {
+                $series->{$attribute} = $value;
+            }
+
+            $series->save();
+
+            if (
+                $series->type !== 'weekly'
+                && ! $series->teamlimit()->exists()
+            ) {
                 $this->teamLimitService->createTeamLimit($series->id);
             }
         }
     }
 }
-

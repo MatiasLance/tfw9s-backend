@@ -2,39 +2,40 @@
 
 namespace App\Repository\Eloquent;
 
+use App\Models\IndividualRegistration;
 use App\Models\Player;
+use App\Modules\Payment\PaymentServiceInterface;
 use App\Modules\Players\Filter;
 use App\Modules\Storage\StorageInterface;
 use App\Modules\Utility\Pagination\Paginate;
 use App\Repository\Eloquent\Base\BaseRepository;
 use App\Repository\PlayersRepositoryInterface;
+use DateTime;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use App\Models\IndividualRegistration;
-use App\Modules\Payment\PaymentServiceInterface;
-use Illuminate\Http\UploadedFile;
-use DateTime;
+use Illuminate\Support\Str;
 
 class PlayersRepository extends BaseRepository implements PlayersRepositoryInterface
 {
-     /**
+    /**
      * Storage Module
      *
-     * @var StorageInterface $storageService
+     * @var StorageInterface
      */
     protected StorageInterface $storageService;
 
     /**
      * Payment service
      *
-     * @var PaymentServiceInterface $paymentService
+     * @var PaymentServiceInterface
      */
     protected PaymentServiceInterface $paymentService;
 
     /**
      * Default filters for retrieving list of series
      *
-     * @var array $defaultPlayersListFilters
+     * @var array
      */
     protected array $defaultPlayersListFilters = [
         /**
@@ -111,8 +112,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
     {
         $players = $this->model->query();
 
-
-        $filters = array_merge($this->defaultPlayersListFilters, array_filter($playersFilters, fn($f) => !is_null($f)));
+        $filters = array_merge($this->defaultPlayersListFilters, array_filter($playersFilters, fn ($f) => ! is_null($f)));
 
         // if (!is_null($filters['withFixing'])) {
         //    $players = $players->has('event');
@@ -120,17 +120,17 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
 
         // Search Filter
 
-        if (!is_null($filters['q'])) {
-            $players = $players->where('contact_firstname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('contact_lastname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('phone_number', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('email', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('player_firstname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('player_lastname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('team_id', 'like', '%' . $filters['q'] . '%');
-        }    
+        if (! is_null($filters['q'])) {
+            $players = $players->where('contact_firstname', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('contact_lastname', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('phone_number', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('email', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('player_firstname', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('player_lastname', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('team_id', 'like', '%'.$filters['q'].'%');
+        }
 
-        if (!is_null($filters['type'])) {
+        if (! is_null($filters['type'])) {
             $players = $players->where('agegroup', $filters['type']);
         }
 
@@ -138,18 +138,18 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             $players = $players->with('registration');
         }
 
-        if (!is_null($filters['agegroup'])) {
+        if (! is_null($filters['agegroup'])) {
             $players = $players->where('agegroup_id', $filters['agegroup']);
         }
 
-        if (!is_null($filters['team'])) {
+        if (! is_null($filters['team'])) {
             $players->whereHas('team', function ($q) use ($filters) {
                 $q->where('id', $filters['team']);
             });
         }
 
-        if (!is_null($filters['isRegistered'])) {
-            $players->whereHas('registration', function ($q) use ($filters) {
+        if (! is_null($filters['isRegistered'])) {
+            $players->whereHas('registration', function ($q) {
                 $q->whereNotNull('transaction_id');
             });
         }
@@ -187,9 +187,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         ?string $description,
         int $series_id,
         ?array $media
-    ): Player
-
-    {
+    ): Player {
         $players = new Player();
         $players->contact_firstname = $contact_firstname ?? '';
         $players->contact_lastname = $contact_lastname ?? '';
@@ -203,16 +201,15 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $players->description = $description;
         $players->series_id = $series_id;
 
-        return DB::transaction(function() use($players, $media) {
+        return DB::transaction(function () use ($players, $media) {
             $players->save();
 
             foreach ($media as $file) {
-                if (!is_null($file)) {
-
+                if (! is_null($file)) {
                     $Image = $this->storageService->store($file);
                     $players->media()->save($Image);
                 }
-              }
+            }
 
             return $players;
         });
@@ -232,9 +229,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         ?string $description,
         int $series_id,
         ?array $media
-    ): bool
-
-    {
+    ): bool {
         $players = $this->find($id);
         $players->contact_firstname = $contact_firstname ?? '';
         $players->contact_lastname = $contact_lastname ?? '';
@@ -248,20 +243,20 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
         $players->description = $description;
         $players->series_id = $series_id;
 
-        return DB::transaction(function() use($players, $media) {
-            if (!is_null($media)) {
+        return DB::transaction(function () use ($players, $media) {
+            if (! is_null($media)) {
                 $newMedia = array_filter($media, function ($file) {
                     return $file instanceof UploadedFile;
                 });
 
                 $oldMedia = array_filter($media, function ($file) {
-                    return !$file instanceof UploadedFile;
+                    return ! $file instanceof UploadedFile;
                 });
 
                 foreach ($players->media as $existingMedia) {
                     if (
-                        $existingMedia->path !== 'media/default/' . self::PLACEHOLDER_IMAGE &&
-                        !in_array($existingMedia->hash, $oldMedia)
+                        $existingMedia->path !== 'media/default/'.self::PLACEHOLDER_IMAGE &&
+                        ! in_array($existingMedia->hash, $oldMedia)
                     ) {
                         $this->storageService->delete($existingMedia);
                         $existingMedia->delete();
@@ -292,7 +287,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
     {
         $players = $this->find($id);
 
-        return DB::transaction(function() use($players) {
+        return DB::transaction(function () use ($players) {
             return $players->delete();
         });
     }
@@ -301,24 +296,23 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
     {
         $players = $this->model->onlyTrashed()->newQuery();
 
+        $filters = array_merge($this->defaultPlayersListFilters, array_filter($playersFilters, fn ($f) => ! is_null($f)));
 
-        $filters = array_merge($this->defaultPlayersListFilters, array_filter($playersFilters, fn($f) => !is_null($f)));
-
-        $players->whereHas('registration', function ($q) use ($filters) {
+        $players->whereHas('registration', function ($q) {
             $q->whereNotNull('refund_id');
         });
 
-        if (!is_null($filters['q'])) {
-            $players = $players->where('contact_firstname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('contact_lastname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('phone_number', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('email', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('player_firstname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('player_lastname', 'like', '%' . $filters['q'] . '%')
-                     ->orWhere('team_name', 'like', '%' . $filters['q'] . '%');
-        }    
+        if (! is_null($filters['q'])) {
+            $players = $players->where('contact_firstname', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('contact_lastname', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('phone_number', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('email', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('player_firstname', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('player_lastname', 'like', '%'.$filters['q'].'%')
+                     ->orWhere('team_name', 'like', '%'.$filters['q'].'%');
+        }
 
-        if (!is_null($filters['type'])) {
+        if (! is_null($filters['type'])) {
             $players = $players->where('agegroup', $filters['type']);
         }
 
@@ -326,7 +320,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             $players = $players->with('registration');
         }
 
-        if (!is_null($filters['agegroup'])) {
+        if (! is_null($filters['agegroup'])) {
             $players = $players->where('agegroup', $filters['agegroup']);
         }
 
@@ -354,17 +348,16 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
     {
         $player = $this->find($id);
 
-        return DB::transaction(function() use($player, $amount) {
-
+        return DB::transaction(function () use ($player, $amount) {
             $playerregistration = IndividualRegistration::find($player->registration_id);
 
             $transaction_id = $player->registration->transaction_id;
             $method = $player->registration->payment_gateway;
 
-            $refund = $this->paymentService->registrationRefund($method, $transaction_id, $amount);  
+            $refund = $this->paymentService->registrationRefund($method, $transaction_id, $amount);
 
-            $playerregistration->refund_id = $refund; 
-            $playerregistration->refund = $amount; 
+            $playerregistration->refund_id = $refund;
+            $playerregistration->refund = $amount;
             $playerregistration->save();
 
             return $player->delete();
@@ -375,24 +368,216 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
     {
         $player = Player::withTrashed()->find($id);
 
-        return DB::transaction(function() use($player) {
-
+        return DB::transaction(function () use ($player) {
             $playerregistration = IndividualRegistration::find($player->registration_id);
 
             $method = $player->registration->payment_gateway;
             $refund_id = $player->registration->refund_id;
 
             if ($refund_id === null) {
-                throw new \Exception("Refund failed, refund ID is null.");
+                throw new \Exception('Refund failed, refund ID is null.');
             }
 
             $cancel = $this->paymentService->cancelRefund($method, $refund_id);
 
-            $playerregistration->refund_id = $cancel; 
+            $playerregistration->refund_id = $cancel;
             $playerregistration->save();
 
             return $player->restore();
         });
+    }
+
+    public function findPotentialCardMatches(string $query, int $limit = 8): Collection
+    {
+        $normalizedQuery = $this->normalizePlayerName($query);
+
+        if (mb_strlen($normalizedQuery) < 2) {
+            return collect();
+        }
+
+        $tokens = array_values(array_filter(explode(' ', $normalizedQuery)));
+        $firstToken = $tokens[0];
+        $lastToken = count($tokens) > 1 ? $tokens[count($tokens) - 1] : null;
+        $columns = [
+            'id',
+            'team_id',
+            'agegroup_id',
+            'player_firstname',
+            'player_lastname',
+            'phone_number',
+        ];
+
+        $prefixMatches = $this->model->query()
+            ->without('media')
+            ->with(['team:id,name', 'agegroup:id,name'])
+            ->select($columns)
+            ->where(function ($builder) use ($firstToken, $lastToken): void {
+                if ($lastToken) {
+                    $builder
+                        ->where(function ($nameQuery) use ($firstToken, $lastToken): void {
+                            $nameQuery
+                                ->where('player_firstname', 'like', $firstToken.'%')
+                                ->where('player_lastname', 'like', $lastToken.'%');
+                        })
+                        ->orWhere(function ($nameQuery) use ($firstToken, $lastToken): void {
+                            $nameQuery
+                                ->where('player_firstname', 'like', $lastToken.'%')
+                                ->where('player_lastname', 'like', $firstToken.'%');
+                        });
+
+                    return;
+                }
+
+                $builder
+                    ->where('player_firstname', 'like', $firstToken.'%')
+                    ->orWhere('player_lastname', 'like', $firstToken.'%');
+            })
+            ->limit(50)
+            ->get();
+
+        $candidateMatches = $prefixMatches;
+
+        if ($candidateMatches->count() < 50) {
+            $firstInitial = mb_substr($firstToken, 0, 1);
+            $lastInitial = $lastToken ? mb_substr($lastToken, 0, 1) : null;
+
+            $fuzzyPool = $this->model->query()
+                ->without('media')
+                ->with(['team:id,name', 'agegroup:id,name'])
+                ->select($columns)
+                ->where(function ($builder) use ($firstInitial, $lastInitial): void {
+                    if ($lastInitial) {
+                        $builder
+                            ->where(function ($nameQuery) use ($firstInitial, $lastInitial): void {
+                                $nameQuery
+                                    ->where('player_firstname', 'like', $firstInitial.'%')
+                                    ->where('player_lastname', 'like', $lastInitial.'%');
+                            })
+                            ->orWhere(function ($nameQuery) use ($firstInitial, $lastInitial): void {
+                                $nameQuery
+                                    ->where('player_firstname', 'like', $lastInitial.'%')
+                                    ->where('player_lastname', 'like', $firstInitial.'%');
+                            });
+
+                        return;
+                    }
+
+                    $builder
+                        ->where('player_firstname', 'like', $firstInitial.'%')
+                        ->orWhere('player_lastname', 'like', $firstInitial.'%');
+                })
+                ->limit(150)
+                ->get();
+
+            $candidateMatches = $candidateMatches
+                ->concat($fuzzyPool)
+                ->unique('id');
+        }
+
+        return $candidateMatches
+            ->map(function (Player $player) use ($normalizedQuery, $tokens): array {
+                $score = $this->playerNameMatchScore(
+                    $normalizedQuery,
+                    $tokens,
+                    $player->player_firstname,
+                    $player->player_lastname
+                );
+                $phoneDigits = preg_replace('/\D+/', '', (string) $player->phone_number);
+
+                return [
+                    'player_name' => trim(
+                        $player->player_firstname.' '.$player->player_lastname
+                    ),
+                    'masked_phone' => $phoneDigits
+                        ? '***'.substr($phoneDigits, -3)
+                        : 'Not provided',
+                    'team_name' => $player->team?->name,
+                    'age_group' => $player->agegroup?->name,
+                    'match_type' => $score >= 99
+                        ? 'exact'
+                        : ($score >= 84 ? 'close' : 'possible'),
+                    'score' => (int) round($score),
+                ];
+            })
+            ->filter(fn (array $match): bool => $match['score'] >= 72)
+            ->sortByDesc('score')
+            ->take($limit)
+            ->values();
+    }
+
+    private function normalizePlayerName(string $name): string
+    {
+        $name = preg_replace("/[^\p{L}\p{M}\p{Pd}'\s]/u", ' ', $name);
+
+        return Str::of($name ?? '')
+            ->lower()
+            ->ascii()
+            ->squish()
+            ->toString();
+    }
+
+    /**
+     * Rank exact and prefix matches ahead of bounded Levenshtein candidates.
+     *
+     * @param  array<int, string>  $queryTokens
+     */
+    private function playerNameMatchScore(
+        string $normalizedQuery,
+        array $queryTokens,
+        string $firstName,
+        string $lastName
+    ): float {
+        $playerFirstName = $this->normalizePlayerName($firstName);
+        $playerLastName = $this->normalizePlayerName($lastName);
+        $playerFullName = trim($playerFirstName.' '.$playerLastName);
+
+        if ($playerFullName === $normalizedQuery) {
+            return 100;
+        }
+
+        if (count($queryTokens) === 1) {
+            $token = $queryTokens[0];
+
+            if (Str::startsWith($playerFirstName, $token)
+                || Str::startsWith($playerLastName, $token)) {
+                return 92;
+            }
+
+            return max(
+                $this->nameSimilarity($token, $playerFirstName),
+                $this->nameSimilarity($token, $playerLastName)
+            ) * 100;
+        }
+
+        $queryFirstName = $queryTokens[0];
+        $queryLastName = $queryTokens[count($queryTokens) - 1];
+
+        if (Str::startsWith($playerFirstName, $queryFirstName)
+            && Str::startsWith($playerLastName, $queryLastName)) {
+            return 94;
+        }
+
+        $directScore = (
+            $this->nameSimilarity($queryFirstName, $playerFirstName)
+            + $this->nameSimilarity($queryLastName, $playerLastName)
+        ) / 2;
+        $reverseScore = (
+            $this->nameSimilarity($queryFirstName, $playerLastName)
+            + $this->nameSimilarity($queryLastName, $playerFirstName)
+        ) / 2;
+
+        return max($directScore, $reverseScore) * 100;
+    }
+
+    private function nameSimilarity(string $left, string $right): float
+    {
+        $maximumLength = max(strlen($left), strlen($right));
+
+        if ($maximumLength === 0) {
+            return 1;
+        }
+
+        return max(0, 1 - (levenshtein($left, $right) / $maximumLength));
     }
 
     public function suggestNames(string $query, int $limit = 10): Collection
@@ -421,8 +606,8 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             ->limit($limit)
             ->get();
 
-        return $players->map(fn($p) => [
-            'id'    => $p->id,
+        return $players->map(fn ($p) => [
+            'id' => $p->id,
             'team_id' => $p->team_id,
             'ageGroup_id' => $p->agegroup_id,
             'series_id' => $p->series_id,
@@ -433,8 +618,7 @@ class PlayersRepository extends BaseRepository implements PlayersRepositoryInter
             'phone_number' => $p->phone_number,
             'email' => $p->email,
             'date_of_birth' => $p->dob,
-            'name'  => $p->player_firstname . ' ' . $p->player_lastname,
+            'name' => $p->player_firstname.' '.$p->player_lastname,
         ]);
     }
-
 }

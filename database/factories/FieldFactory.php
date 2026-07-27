@@ -2,29 +2,25 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Region;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Field>
  */
 class FieldFactory extends Factory
 {
-
     /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
      */
-    public function definition()
+    public function definition(): array
     {
         return [
-            'name' => $this->faker->unique()->city() ,
-            'description' => $this->faker->realText($maxNbChars = 200, $indexSize = 2),
-            'region_id' => function () {
-                return Region::factory()->create()->id;
-            },
+            'name' => $this->faker->unique()->streetName().' Sports Field',
+            'description' => $this->faker->sentence(12),
+            'region_id' => Region::factory(),
         ];
     }
 }
-

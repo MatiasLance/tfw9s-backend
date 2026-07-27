@@ -5,26 +5,23 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Field>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AgeGroup>
  */
 class AgeGroupFactory extends Factory
 {
-
     /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
      */
-public function definition()
+    public function definition(): array
     {
-        $minAge = $this->faker->numberBetween(3, 25);
-        $maxAge = $this->faker->numberBetween($minAge + 4, 30);
+        $maxAge = $this->faker->unique()->numberBetween(6, 18);
 
         return [
-            'name' => $this->faker->unique()->numerify('ageGroup-####'),
-            'min_age' => $minAge,
+            'name' => (string) $maxAge,
+            'min_age' => $maxAge - 1,
             'max_age' => $maxAge,
         ];
     }
 }
-

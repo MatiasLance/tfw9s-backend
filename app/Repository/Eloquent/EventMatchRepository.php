@@ -229,9 +229,13 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
         });
     }
 
-    public function storeResult(int $id, int $team1_score, int $team2_score): bool
-    {
-        return DB::transaction(function () use ($id, $team1_score, $team2_score) {
+    public function storeResult(
+        int $id,
+        int $team1_score,
+        int $team2_score,
+        bool $isAbandonedMatch
+    ): bool {
+        return DB::transaction(function () use ($id, $team1_score, $team2_score, $isAbandonedMatch) {
             [$eventMatch] = $this->lockEventMatchGroup($id);
 
             if ($eventMatch->submitted) {
@@ -242,12 +246,15 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             $eventMatch->team2_oldScore = $eventMatch->team2_score;
             $eventMatch->team1_score = $team1_score;
             $eventMatch->team2_score = $team2_score;
-            [$eventMatch->winner, $eventMatch->losser, $eventMatch->isDraw] = $this->decision(
-                $eventMatch->team1,
-                $eventMatch->team2,
-                $team1_score,
-                $team2_score
-            );
+            $eventMatch->is_abandoned_match = $isAbandonedMatch;
+            [$eventMatch->winner, $eventMatch->losser, $eventMatch->isDraw] = $isAbandonedMatch
+                ? [null, null, true]
+                : $this->decision(
+                    $eventMatch->team1,
+                    $eventMatch->team2,
+                    $team1_score,
+                    $team2_score
+                );
             $eventMatch->submitted = true;
             $eventMatch->save();
 
