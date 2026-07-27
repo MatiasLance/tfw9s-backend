@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SaveEventMatchResultRequest;
 use App\Modules\EventMatch\EventMatchServiceInterface;
 use App\Modules\Http\Message;
 use Illuminate\Http\Request;
@@ -65,13 +66,9 @@ class EventMatchController extends Controller
         return $message->render();
     }
 
-    public function updatescore(Request $request, Message $message, int $id)
+    public function updatescore(SaveEventMatchResultRequest $request, Message $message, int $id)
     {
-        $validated = $request->validate([
-            'team1_score' => ['required', 'integer', 'min:0', 'max:999'],
-            'team2_score' => ['required', 'integer', 'min:0', 'max:999'],
-            'is_abandoned_match' => ['sometimes', 'boolean'],
-        ]);
+        $validated = $request->validated();
 
         $isSuccess = $this->eventMatchService->updateEventMatchScore(
             $id,
@@ -89,17 +86,15 @@ class EventMatchController extends Controller
         return $message->render();
     }
 
-    public function storeResult(Request $request, Message $message, int $id)
+    public function storeResult(SaveEventMatchResultRequest $request, Message $message, int $id)
     {
-        $validated = $request->validate([
-            'team1_score' => ['required', 'integer', 'min:0', 'max:999'],
-            'team2_score' => ['required', 'integer', 'min:0', 'max:999'],
-        ]);
+        $validated = $request->validated();
 
         $isSuccess = $this->eventMatchService->storeResult(
             $id,
             (int) $validated['team1_score'],
-            (int) $validated['team2_score']
+            (int) $validated['team2_score'],
+            $request->boolean('is_abandoned_match')
         );
 
         if ($isSuccess) {

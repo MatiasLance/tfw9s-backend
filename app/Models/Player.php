@@ -11,15 +11,17 @@ class Player extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'registration_id',
+        'team_id',
+        'agegroup_id',
+        'series_id',
         'contact_firstname',
         'contact_lastname',
         'phone_number',
         'email',
         'player_firstname',
         'player_lastname',
-        'team_name',
         'dob',
-        'agegroup',
         'description',
     ];
 
@@ -56,5 +58,4 @@ class Player extends Model
     {
         return $this->team ? $this->team->name : 'Unknown';
     }
-
 }

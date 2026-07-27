@@ -2,36 +2,47 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Faker\Factory as Faker;
 use App\Models\Region;
+use Illuminate\Database\Seeder;
 
 class RegionsSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
-        $faker = Faker::create();
-
-        $regions = [
-            'Northern Lakes International',
-            'Northern lakes mini ',
-            'Southern Corridor ',
-            'Western Sydney International ',
-            'Western Sydney Mini '
+        $regionNames = [
+            'Central Coast',
+            'Eastern Suburbs',
+            'Greater Western Sydney',
+            'Hills District',
+            'Hunter Valley',
+            'Illawarra',
+            'Inner West',
+            'Mid North Coast',
+            'Northern Beaches',
+            'Northern Rivers',
+            'Riverina',
+            'South Coast',
+            'Southern Highlands',
+            'Sydney CBD',
+            'Western Plains',
         ];
-        
 
-        foreach ($regions as $region) {
-            Region::create([
-                'name' => $region,
-                'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-            ]);
+        foreach ($regionNames as $name) {
+            $attributes = Region::factory()
+                ->make(['name' => $name])
+                ->getAttributes();
+
+            $region = Region::withTrashed()->firstOrNew(['name' => $name]);
+            $region->forceFill($attributes);
+
+            if ($region->trashed()) {
+                $region->restore();
+            }
+
+            $region->save();
         }
     }
 }

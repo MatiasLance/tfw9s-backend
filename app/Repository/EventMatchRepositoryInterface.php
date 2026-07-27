@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Models\EventMatch;
 use App\Modules\Utility\Pagination\Paginate;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 
 interface EventMatchRepositoryInterface
@@ -23,12 +22,10 @@ interface EventMatchRepositoryInterface
      */
     public const PLACEHOLDER_IMAGE = 'brand_eventMatch_placeholder_thumbnail.jpg';
 
-
     /**
      * Retrieve a list of eventMatches.
      *
-     * @param array $userFilters
-     *
+     * @param  array  $userFilters
      * @return Paginate<eventMatch>
      */
     public function listEventMatches(array $userFilters = []): Paginate;
@@ -36,8 +33,7 @@ interface EventMatchRepositoryInterface
     /**
      * Retrieve an eventMatch
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return eventMatch
      */
     public function retrieveEventMatch(int $id): EventMatch;
@@ -45,11 +41,10 @@ interface EventMatchRepositoryInterface
     /**
      * Create a new eventMatch instance
      *
-     * @param int $event_id
-     * @param int $field_id
-     * @param int $team1
-     * @param int $team2
-     *
+     * @param  int  $event_id
+     * @param  int  $field_id
+     * @param  int  $team1
+     * @param  int  $team2
      * @return eventMatch
      */
     public function createEventMatch(int $event_id, int $field_id, int $team1, int $team2): EventMatch;
@@ -57,23 +52,21 @@ interface EventMatchRepositoryInterface
     /**
      * Update an existing eventMatch instance
      *
-     * @param int $id
-     * @param int $event_id
-     * @param int $field_id
-     * @param int $team1
-     * @param int $team2
-     *
+     * @param  int  $id
+     * @param  int  $event_id
+     * @param  int  $field_id
+     * @param  int  $team1
+     * @param  int  $team2
      * @return bool
      */
     public function updateEventMatch(int $id, int $event_id, int $field_id, int $team1, int $team2): bool;
 
-        /**
+    /**
      * Update an existing eventMatch score
      *
-     * @param int $id
-     * @param int $team1_score
-     * @param int $team2_score
-     *
+     * @param  int  $id
+     * @param  int  $team1_score
+     * @param  int  $team2_score
      * @return bool
      */
     public function updateEventMatchScore(int $id, int $team1_score, int $team2_score, bool $isAbandonedMatch): bool;
@@ -81,36 +74,36 @@ interface EventMatchRepositoryInterface
     /**
      * Update an existing eventMatch instance
      *
-     * @param int $id
-     * @param int $team1_score
-     * @param int $team2_score
-     *
+     * @param  int  $id
+     * @param  int  $team1_score
+     * @param  int  $team2_score
      * @return bool
      */
-    public function storeResult(int $id, int $team1_score, int $team2_score): bool;
+    public function storeResult(
+        int $id,
+        int $team1_score,
+        int $team2_score,
+        bool $isAbandonedMatch
+    ): bool;
 
     /**
      * Revert a submitted result and rebuild the affected standings.
      */
     public function revertResult(int $id): bool;
 
-
     /**
      * Delete an existing eventMatch instance
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return bool
      */
     public function deleteEventMatch(int $id): bool;
 
-
     /**
      * Upload an EventMatch Video
      *
-     * @param int $id
-     * @param UploadedFile $video
-     *
+     * @param  int  $id
+     * @param  UploadedFile  $video
      * @return bool
      */
     public function addVideo(int $id, UploadedFile $video): bool;

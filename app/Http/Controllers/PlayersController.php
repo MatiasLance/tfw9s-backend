@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Player;
 use App\Modules\Http\Message;
 use App\Modules\Players\PlayersServiceInterface;
-use Illuminate\Http\Request;
-use App\Models\Player;
 use App\Modules\Storage\StorageInterface;
-use Illuminate\Support\Facades\DB;
 use DateTime;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PlayersController extends Controller
 {
@@ -17,7 +17,7 @@ class PlayersController extends Controller
     /**
      * Storage Module
      *
-     * @var StorageInterface $storageService
+     * @var StorageInterface
      */
     protected StorageInterface $storageService;
 
@@ -92,7 +92,7 @@ class PlayersController extends Controller
 
         if ($players instanceof Player) {
             $message->setContent(201, 'Player created', '', [
-                'players' => $players
+                'players' => $players,
             ]);
         } else {
             $message->setContent(400, 'Player not created');
@@ -167,7 +167,7 @@ class PlayersController extends Controller
         $players = $this->playersService->retrievePlayers($id);
 
         $message->setContent(200, 'Players retrieved', '', [
-            'players' => $players
+            'players' => $players,
         ]);
 
         return $message->render();
@@ -175,7 +175,6 @@ class PlayersController extends Controller
 
     public function delete(Request $request, Message $message, int $id)
     {
-
         $user = $request->user();
         $players = $this->playersService->retrievePlayers($id);
 
@@ -223,7 +222,7 @@ class PlayersController extends Controller
         $refund = $this->playersService->refundPlayer($id, $amount);
 
         $message->setContent(200, 'Player refunded', '', [
-            'refund' => $refund
+            'refund' => $refund,
         ]);
 
         return $message->render();
@@ -234,7 +233,7 @@ class PlayersController extends Controller
         $cancel = $this->playersService->cancelrefPlayer($id);
 
         $message->setContent(200, 'Refund canceled', '', [
-            'canceled' => $cancel
+            'canceled' => $cancel,
         ]);
 
         return $message->render();
@@ -245,19 +244,19 @@ class PlayersController extends Controller
         $media = $request->file('photo');
 
         $result = DB::transaction(function () use ($id, $media) {
-            if (!$media) {
+            if (! $media) {
                 return 'Missing `photo` file.';
             }
 
             $player = Player::find($id);
 
-            if (!$player) {
+            if (! $player) {
                 return 'Player not found.';
             }
 
             $mediaData = $this->storageService->store($media);
 
-            if (!$mediaData) {
+            if (! $mediaData) {
                 return 'Failed to store media.';
             }
 
@@ -269,8 +268,7 @@ class PlayersController extends Controller
 
             $saved = $player->media()->save($mediaData);
 
-
-            if (!$saved) {
+            if (! $saved) {
                 return 'Failed to save media to target.';
             }
 
@@ -299,6 +297,24 @@ class PlayersController extends Controller
         ]);
 
         return $message->render();
+    }
 
+    public function findPotentialCardMatches(Request $request, Message $message)
+    {
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:100'],
+            'limit' => ['sometimes', 'integer', 'min:1', 'max:10'],
+        ]);
+
+        $matches = $this->playersService->findPotentialCardMatches(
+            $validated['q'],
+            (int) ($validated['limit'] ?? 8)
+        );
+
+        $message->setContent(200, 'Potential Player Card matches', '', [
+            'matches' => $matches,
+        ]);
+
+        return $message->render();
     }
 }

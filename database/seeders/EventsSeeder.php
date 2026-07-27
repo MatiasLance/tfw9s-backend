@@ -2,48 +2,46 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Faker\Factory as Faker;
-use App\Models\Region;
-use App\Models\Manager;
 use App\Models\AgeGroup;
-use App\Models\Series;
 use App\Models\Event;
+use App\Models\Region;
+use App\Models\Series;
+use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class EventsSeeder extends Seeder
 {
-    public function run()
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
     {
-        $faker = Faker::create();
-        $regionIds = Region::pluck('id')->toArray();
-        $managerIds = Manager::pluck('id')->toArray();
-        $agegroups = AgeGroup::all();
-        $seriesData = Series::join(
-            \DB::raw('(SELECT MIN(id) AS id FROM series GROUP BY type) t'),
-            function ($join) {
-                $join->on('series.id', '=', 't.id');
-            }
-        )->get()->toArray();
-        $currentYear = date('Y');
-        $currentMonth = date('m');
-        $startDate = $currentYear . '-'.$currentMonth.'-01';
-        $endDate = $currentYear . '-'.$currentMonth.'-31';
+        $ageGroups = AgeGroup::query()->orderBy('id')->get();
+        $regionIds = Region::query()->orderBy('id')->pluck('id');
+        $series = Series::query()->orderBy('id')->get();
 
-        foreach ($agegroups as $agegroup) {
-            $series = $faker->randomElement($seriesData);
-            $eventTitle = $series['name'];
-            Event::create([
-                // 'name' => $eventTitle,
-                // 'description' => $faker->realText($maxNbChars = 200, $indexSize = 2),
-                // 'series_id' => $series['id'],
-                // 'manager_id' => $faker->randomElement($managerIds),
-                'time' => $faker->time(),
-                'event_date' => $faker->dateTimeBetween($series['start'], $series['end'])->format('Y-m-d'),
-                'teamcount' => 4,
-                'region_id' => $faker->randomElement($regionIds),
-                'agegroup_id' => $agegroup->id,
+        if ($ageGroups->isEmpty() || $regionIds->isEmpty() || $series->isEmpty()) {
+            throw new RuntimeException(
+                'EventsSeeder requires age groups, regions, and series to be seeded first.'
+            );
+        }
+
+        foreach ($ageGroups as $index => $ageGroup) {
+            $selectedSeries = $series[$index % $series->count()];
+            $event = Event::query()->firstOrNew([
+                'round' => 'round',
+                'agegroup_id' => $ageGroup->id,
             ]);
+
+            $event->forceFill([
+                'time' => fake()->time(),
+                'round' => 'round',
+                'event_date' => $selectedSeries->start,
+                'teamcount' => 4,
+                'region_id' => $regionIds[$index % $regionIds->count()],
+                'agegroup_id' => $ageGroup->id,
+                'series_id' => $selectedSeries->id,
+            ])->save();
         }
     }
 }

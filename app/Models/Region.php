@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Region extends Model
 {
     use HasFactory, SoftDeletes;
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -20,4 +21,13 @@ class Region extends Model
         'deleted_at',
     ];
 
+    public function fields()
+    {
+        return $this->hasMany(Field::class);
+    }
+
+    public function teams()
+    {
+        return $this->hasMany(Team::class);
+    }
 }

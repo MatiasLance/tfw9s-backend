@@ -163,6 +163,143 @@ class EventMatchApiEndpointTest extends TestCase
         ])->assertUnprocessable();
     }
 
+    public function test_score_update_normalizes_legacy_multipart_boolean_strings(): void
+    {
+        $this->actingAsAdmin();
+
+        $this->post("/api/v1/eventmatches/update/{$this->matchId}", [
+            'team1_score' => '2',
+            'team2_score' => '2',
+            'is_abandoned_match' => 'true',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('event_matches', [
+            'id' => $this->matchId,
+            'team1_score' => 2,
+            'team2_score' => 2,
+            'is_abandoned_match' => 1,
+            'isDraw' => 1,
+        ]);
+
+        $this->post("/api/v1/eventmatches/update/{$this->matchId}", [
+            'team1_score' => '3',
+            'team2_score' => '1',
+            'is_abandoned_match' => 'false',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('event_matches', [
+            'id' => $this->matchId,
+            'is_abandoned_match' => 0,
+            'isDraw' => 0,
+        ]);
+    }
+
+    public function test_invalid_abandoned_match_values_are_rejected(): void
+    {
+        $this->actingAsAdmin();
+
+        $this->postJson("/api/v1/eventmatches/update/{$this->matchId}", [
+            'team1_score' => 2,
+            'team2_score' => 2,
+            'is_abandoned_match' => 'not-a-boolean',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('is_abandoned_match');
+    }
+
+    public function test_an_abandoned_result_can_be_submitted_directly(): void
+    {
+        $this->actingAsAdmin();
+
+        $this->postJson("/api/v1/eventmatches/{$this->matchId}", [
+            'team1_score' => 0,
+            'team2_score' => 0,
+            'is_abandoned_match' => true,
+        ])->assertOk();
+
+        $this->assertDatabaseHas('event_matches', [
+            'id' => $this->matchId,
+            'submitted' => 1,
+            'is_abandoned_match' => 1,
+            'isDraw' => 1,
+            'winner' => null,
+            'losser' => null,
+        ]);
+        $this->assertPosition($this->team1Id, 0, 0, 0, 0, 0, 1);
+        $this->assertPosition($this->team2Id, 0, 0, 0, 0, 0, 1);
+    }
+
+    public function test_public_ladder_filters_use_the_event_competition_metadata(): void
+    {
+        $this->actingAsAdmin();
+
+        $event = DB::table('events')->find($this->eventId);
+        DB::table('age_groups')->where('id', $event->agegroup_id)->update(['name' => '6']);
+        DB::table('series')->where('id', $event->series_id)->update([
+            'name' => 'Weekly Series',
+            'type' => 'weekly',
+        ]);
+
+        $otherAgeGroupId = DB::table('age_groups')->insertGetId([
+            'name' => '7',
+            'min_age' => 6,
+            'max_age' => 7,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $otherSeriesId = DB::table('series')->insertGetId([
+            'name' => 'Different Series',
+            'type' => 'tournament',
+            'description' => '',
+            'price' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('teams')
+            ->whereIn('id', [$this->team1Id, $this->team2Id])
+            ->update([
+                'agegroup_id' => $otherAgeGroupId,
+                'series_id' => $otherSeriesId,
+            ]);
+
+        $this->postJson("/api/v1/eventmatches/{$this->matchId}", [
+            'team1_score' => 3,
+            'team2_score' => 1,
+        ])->assertOk();
+
+        $filters = [
+            'year' => 2026,
+            'agegroup' => $event->agegroup_id,
+            'series' => $event->series_id,
+            'round' => 'round',
+            'sort' => 'points',
+        ];
+
+        $this->getJson('/api/v1/teampositions/list?'.http_build_query($filters))
+            ->assertOk()
+            ->assertJsonCount(2, 'data.all_positions')
+            ->assertJsonPath('data.total_items', 2)
+            ->assertJsonPath('data.all_positions.0.team.name', 'Tuggerah Division 1')
+            ->assertJsonPath('data.all_positions.0.points', 2);
+
+        $this->getJson('/api/v1/teampositions?'.http_build_query($filters))
+            ->assertOk()
+            ->assertJsonPath('data.total_items', 2);
+
+        foreach ([
+            ['year' => 2025],
+            ['agegroup' => $otherAgeGroupId],
+            ['series' => $otherSeriesId],
+            ['round' => 'final'],
+        ] as $differentFilter) {
+            $this->getJson('/api/v1/teampositions/list?'.http_build_query(
+                array_merge($filters, $differentFilter)
+            ))
+                ->assertOk()
+                ->assertJsonCount(0, 'data.all_positions');
+        }
+    }
+
     public function test_event_schedule_mutations_are_protected_and_validate_collisions(): void
     {
         $payload = [

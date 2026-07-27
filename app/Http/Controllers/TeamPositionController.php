@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListTeamPositionsRequest;
 use App\Modules\Http\Message;
 use App\Modules\TeamPosition\TeamPositionServiceInterface;
-use Illuminate\Http\Request;
-use App\Models\TeamPosition;
 
 class TeamPositionController extends Controller
 {
@@ -16,66 +15,18 @@ class TeamPositionController extends Controller
         $this->teamPositionService = $teamPositionService;
     }
 
-    public function list(Request $request, Message $message)
+    public function list(ListTeamPositionsRequest $request, Message $message)
     {
-        $query = $request->query('q', null);
-        $sort = $request->query('sort', null);
-        $page = $request->query('page', null);
-        $maxTeamPositionsPerPage = $request->query('maxTeamPositionsPerPage', null);
-        $event = $request->query('event', null);
-        $year = $request->query('year', null);
-        $agegroup = $request->query('agegroup', null);
-        $series = $request->query('series', null);
-        $region = $request->query('region', null);
-        $round = $request->query('round', null);
-
-        $filter = [
-            'q' => $query,
-            'sort' => $sort,
-            'page' => $page,
-            'max_teamPosition_per_page' => $maxTeamPositionsPerPage,
-            'event' => $event,
-            'year' => $year,
-            'agegroup' => $agegroup,
-            'series' => $series,
-            'region' => $region,
-            'round' => $round
-        ];
-
-        $teamPositions = $this->teamPositionService->listTeamPositions($filter);
+        $teamPositions = $this->teamPositionService->listTeamPositions($request->filters());
 
         $message->setContent(200, 'TeamPositions retrieved', '', $teamPositions->toArray());
 
         return $message->render();
     }
 
-    public function listOfTeamPositions(Request $request, Message $message)
+    public function listOfTeamPositions(ListTeamPositionsRequest $request, Message $message)
     {
-        $query = $request->query('q', null);
-        $sort = $request->query('sort', null);
-        $page = $request->query('page', null);
-        $maxTeamPositionsPerPage = $request->query('maxTeamPositionsPerPage', null);
-        $event = $request->query('event', null);
-        $year = $request->query('year', null);
-        $agegroup = $request->query('agegroup', null);
-        $series = $request->query('series', null);
-        $region = $request->query('region', null);
-        $round = $request->query('round', null);
-
-        $filter = [
-            'q' => $query,
-            'sort' => $sort,
-            'page' => $page,
-            'max_teamPosition_per_page' => $maxTeamPositionsPerPage,
-            'event' => $event,
-            'year' => $year,
-            'agegroup' => $agegroup,
-            'series' => $series,
-            'region' => $region,
-            'round' => $round
-        ];
-
-        $teamPositions = $this->teamPositionService->listOfTeamPositions($filter);
+        $teamPositions = $this->teamPositionService->listOfTeamPositions($request->filters());
 
         $message->setContent(200, 'TeamPositions retrieved', '', $teamPositions);
 
@@ -87,10 +38,9 @@ class TeamPositionController extends Controller
         $teamPosition = $this->teamPositionService->retrieveTeamPosition($id);
 
         $message->setContent(200, 'TeamPosition retrieved', '', [
-            'teamPosition' => $teamPosition
+            'teamPosition' => $teamPosition,
         ]);
 
         return $message->render();
     }
-
 }

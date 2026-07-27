@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use PHPUnit\Framework\MockObject\ReturnValueNotConfiguredException;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Team extends Model
@@ -22,8 +21,9 @@ class Team extends Model
         'coach_email',
         'manager_name',
         'manager_mobile',
+        'manager_email',
         'player_limit',
-        'pool'
+        'pool',
     ];
 
     protected $hidden = [
@@ -37,16 +37,17 @@ class Team extends Model
         'field',
         'agegroup',
         'series',
-        'region'
+        'region',
     ];
 
     protected $appends = [
         'registered_players_count',
         'player_count',
-        'is_team_registered'
+        'is_team_registered',
     ];
 
-    public function players() {
+    public function players()
+    {
         return $this->hasMany(Player::class);
     }
 
@@ -91,11 +92,11 @@ class Team extends Model
             ->with(['agegroup', 'series', 'region', 'field', 'media'])
             ->orderBy('name');
 
-        if (!empty($filter['q'])) {
+        if (! empty($filter['q'])) {
             $query->where('name', 'like', '%'.$filter['q'].'%');
         }
 
-        if (!empty($filter['max_team_per_page'])) {
+        if (! empty($filter['max_team_per_page'])) {
             return $query->paginate($filter['max_team_per_page']);
         }
 
@@ -116,7 +117,6 @@ class Team extends Model
 
     public function getIsTeamRegisteredAttribute(): bool
     {
-        return !is_null($this->registration_id);
+        return ! is_null($this->registration_id);
     }
-
 }

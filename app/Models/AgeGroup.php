@@ -20,4 +20,14 @@ class AgeGroup extends Model
     {
         return $this->belongsToMany(TeamLimit::class, 'agegroup_teamlimit', 'agegroup_id', 'teamlimit_id');
     }
+
+    public function teams()
+    {
+        return $this->hasMany(Team::class, 'agegroup_id');
+    }
+
+    public function players()
+    {
+        return $this->hasMany(Player::class, 'agegroup_id');
+    }
 }

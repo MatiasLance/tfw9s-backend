@@ -2,8 +2,7 @@
 
 use App\Models\Category;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,214 +13,114 @@ return new class extends Migration
      */
     public function up()
     {
-        $categories = [
-            [
-                'name' => 'Slides & Sandals',
-                'children' => [],
-            ],
-            [
-                'name' => 'Accessories',
-                'children' => [],
-            ],
-            [
-                'name' => 'Hoodies & Jumpers',
-                'children' => []
-            ],
-            [
-                'name' => 'Shirts',
-                'children' => []
-            ],
-            [
-                'name' => 'Sneakers',
-                'children' => []
-            ],
-            [
-                'name' => 'Brands',
-                'children' => [
-                    [
-                        'name' => 'Nike',
-                        'children' => [
-                            [
-                                'name' => 'Air Force 1',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Air Max 90',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Air Huarache',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Air Max TN',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Air Max 95',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Air Max 97',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Air Vapormax',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Dunk',
-                                'children' => [],
-                            ],
-                        ],
-                    ],
-                    [
-                        'name' => 'Jordan',
-                        'children' => [
-                            [
-                                'name' => 'Jordan 1',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Jordan 3',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Jordan 4',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Jordan 5',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Jordan 6',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Jordan 11',
-                                'children' => [],
-                            ],
-                            [
-                                'name' => 'Jordan 12',
-                                'children' => [],
-                            ]
-                        ],
-                    ],
-                    [
-                        'name' => 'Adidas',
-                        'children' => [
-                            [
-                                'name' => 'Continental 80',
-                                'children' => []
-                            ],
-                            [
-                                'name' => 'Gazelle',
-                                'children' => []
-                            ],
-                            [
-                                'name' => 'NMD',
-                                'children' => []
-                            ],
-                            [
-                                'name' => 'Pharrell Human',
-                                'children' => []
-                            ],
-                            [
-                                'name' => 'Stan Smith',
-                                'children' => []
-                            ],
-                            [
-                                'name' => 'Superstar',
-                                'children' => []
-                            ],
-                            [
-                                'name' => 'Ultra-boost',
-                                'children' => []
-                            ],
-                            [
-                                'name' => 'Yeezy',
-                                'children' => []
-                            ],
+        DB::transaction(function () {
+            foreach ($this->categoryTree() as $category) {
+                $this->createCategoryTree($category);
+            }
+        });
+    }
 
-                        ],
-                    ],
-                    [
-                        'name' => 'New Balance',
-                        'children' => [],
-                    ],
-                    [
-                        'name' => 'Reebok',
-                        'children' => [],
-                    ],
-                    [
-                        'name' => 'Puma',
-                        'children' => [],
-                    ],
-                    [
-                        'name' => 'Asics',
-                        'children' => [],
-                    ],
-                    [
-                        'name' => 'Converse',
-                        'children' => [
-                            [
-                                'name' => 'CDG Play',
-                                'children' => [],
-                            ],
-                        ],
-                    ],
-                    [
-                        'name' => 'Basketball Shoes',
-                        'children' => [],
-                    ],
-                    [
-                        'name' => 'Giuseppe Zanotti',
-                        'children' => [],
-                    ],
-                    [
-                        'name' => 'Billionaire Boys',
-                        'children' => []
-                    ],
-                    [
-                        'name' => 'Ice Cream',
-                        'children' => []
-                    ],
-                    [
-                        'name' => 'Moschino',
-                        'children' => []
-                    ],
-                    [
-                        'name' => 'Salvatore',
-                        'children' => []
-                    ],
-                    [
-                        'name' => 'Alexander',
-                        'children' => []
-                    ],
-                    [
-                        'name' => 'Bally Mirror',
-                        'children' => []
-                    ]
-                ],
-            ],
-        ];
+    /**
+     * Create a category and recursively attach its descendants.
+     *
+     * @param array<string, mixed> $category
+     * @param int|null             $parentId
+     *
+     * @return void
+     */
+    protected function createCategoryTree(array $category, $parentId = null)
+    {
+        $model = new Category();
+        $model->name = $category['name'];
+        $model->parent_id = $parentId;
+        $model->save();
 
-        foreach ($categories as $category) {
-            $this->generateCategory($category);
+        foreach ($category['children'] ?? [] as $child) {
+            $this->createCategoryTree($child, $model->id);
         }
     }
 
-    protected function generateCategory($category, $parentId = null)
+    /**
+     * Return the default category hierarchy.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function categoryTree()
     {
-        $x = new Category();
-        $x->name = $category['name'];
-        $x->parent_id = $parentId;
-        $x->save();
+        return [
+            [
+                'name' => 'Singlets',
+                'children' => $this->sizeGroups(),
+            ],
+            [
+                'name' => 'Hoodies',
+                'children' => $this->sizeGroups(),
+            ],
+            [
+                'name' => 'Shorts',
+                'children' => $this->sizeGroups(),
+            ],
+            [
+                'name' => 'Beanies',
+                'children' => [],
+            ],
+            [
+                'name' => 'Umbrella',
+                'children' => [],
+            ],
+            [
+                'name' => 'Heritage',
+                'children' => [],
+            ],
+        ];
+    }
 
-        foreach ($category['children'] as $child) {
-            $this->generateCategory($child, $x->id);
-        }
+    /**
+     * Return the shared adult and youth sizing hierarchy.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function sizeGroups()
+    {
+        return [
+            [
+                'name' => 'Adult',
+                'children' => $this->leafCategories([
+                    'Small',
+                    'Medium',
+                    'Large',
+                    'Extra Large',
+                    '2 XL',
+                ]),
+            ],
+            [
+                'name' => 'Youth',
+                'children' => $this->leafCategories([
+                    '6',
+                    '8',
+                    '10',
+                    '12',
+                    '14',
+                ]),
+            ],
+        ];
+    }
+
+    /**
+     * Convert category names into consistently shaped leaf nodes.
+     *
+     * @param array<int, string> $names
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function leafCategories(array $names)
+    {
+        return array_map(function ($name) {
+            return [
+                'name' => $name,
+                'children' => [],
+            ];
+        }, $names);
     }
 
     /**
@@ -231,6 +130,37 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        $rootNames = array_column($this->categoryTree(), 'name');
+
+        DB::transaction(function () use ($rootNames) {
+            $roots = Category::withTrashed()
+                ->whereNull('parent_id')
+                ->whereIn('name', $rootNames)
+                ->get();
+
+            foreach ($roots as $root) {
+                $this->deleteCategoryTree($root);
+            }
+        });
+    }
+
+    /**
+     * Permanently remove a category and all of its descendants.
+     *
+     * @param \App\Models\Category $category
+     *
+     * @return void
+     */
+    protected function deleteCategoryTree(Category $category)
+    {
+        $children = Category::withTrashed()
+            ->where('parent_id', $category->id)
+            ->get();
+
+        foreach ($children as $child) {
+            $this->deleteCategoryTree($child);
+        }
+
+        $category->forceDelete();
     }
 };

@@ -2,8 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\AgeGroup;
+use App\Models\Region;
+use App\Models\Series;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Field;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Team>
@@ -15,37 +17,34 @@ class TeamFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition()
+    public function definition(): array
     {
-        $teamNames = [
-            'Bulldogs',
-            'Titans',
-            'Ravagers',
-            'Vikings',
-            'Saints',
-            'Panthers',
-            'Dragons',
+        $mascots = [
+            'Blazers',
+            'Comets',
+            'Falcons',
+            'Rangers',
             'Sharks',
-            'Tigers',
             'Storm',
-            'Eagles',
-            'Roosters',
-            'Raiders',
-            'Broncos',
-            'Cowboys',
-            'Warriors',
-            'Rabbitohs',
-            'Sea Eagles',
-            'Knights',
-            'Wests Tigers'
+            'Strikers',
+            'Titans',
+            'United',
+            'Wanderers',
         ];
-        
+
         return [
-            'name' => $this->$faker->randomElement($teamNames),
-            'description' => $this->faker->realText($maxNbChars = 200, $indexSize = 2),
-            'field_id' => function () {
-                return Field::factory()->create()->id;
-            },
+            'name' => $this->faker->unique()->city().' '.$this->faker->randomElement($mascots),
+            'agegroup_id' => AgeGroup::factory(),
+            'series_id' => Series::factory(),
+            'region_id' => Region::factory(),
+            'coach_name' => $this->faker->name(),
+            'coach_mobile' => $this->faker->phoneNumber(),
+            'coach_email' => $this->faker->unique()->safeEmail(),
+            'manager_name' => $this->faker->name(),
+            'manager_mobile' => $this->faker->phoneNumber(),
+            'manager_email' => $this->faker->unique()->safeEmail(),
+            'player_limit' => 50,
+            'pool' => $this->faker->randomElement(['A', 'B', 'C', 'D']),
         ];
     }
 }

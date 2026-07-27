@@ -14,11 +14,11 @@ class RegionFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition()
+    public function definition(): array
     {
         return [
-            'name' => $this->faker->unique()->state(),
-            'description' => $this->faker->realText($maxNbChars = 200, $indexSize = 2),
+            'name' => $this->faker->unique()->city().' Region',
+            'description' => $this->faker->sentence(12),
         ];
     }
 }
