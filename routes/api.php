@@ -313,7 +313,8 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:30,1');
         Route::get('/{id}', 'App\Http\Controllers\PlayersController@retrieve');
         Route::prefix('name')->group(function () {
-            Route::get('/suggest', 'App\Http\Controllers\PlayersController@suggestNames');
+            Route::get('/suggest', 'App\Http\Controllers\PlayersController@suggestNames')
+                ->middleware('throttle:30,1');
         });
         Route::post('/', 'App\Http\Controllers\PlayersController@store');
         Route::post('/{id}', 'App\Http\Controllers\PlayersController@update');
