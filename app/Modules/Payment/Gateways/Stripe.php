@@ -29,8 +29,11 @@ use App\Models\WaitingLounge;
 use App\Jobs\SendTeamRegistrationInvoice;
 use App\Jobs\SendOrderInvoice;
 use App\Models\TeamRegistration;
+use App\Models\RegistrationPaymentAttempt;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 {
@@ -317,6 +320,36 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
     public function createIndividualRegistration($discountcode, string $item, array $metadata = [])
     {
         $calculatedTotal = $this->calculateTotalIndividualRegistration($metadata['discountCodeId'], $item);
+        $registrationKey = $metadata['registration_key'];
+
+        $existingRegistration = IndividualRegistration::query()
+            ->where('registration_key', $registrationKey)
+            ->first();
+
+        if ($existingRegistration) {
+            if ((int) $existingRegistration->price === 0) {
+                return response()->json([
+                    'amount' => 0,
+                    'transactionId' => $existingRegistration->transaction_id,
+                ]);
+            }
+
+            $existingIntent = $this->retrievePaymentIntent($existingRegistration->transaction_id);
+
+            Log::warning('Duplicate Weekly Series checkout reused existing payment', [
+                'series_id' => (int) $item,
+                'registration_key' => $registrationKey,
+                'transaction_id' => $existingRegistration->transaction_id,
+                'verified' => $existingRegistration->is_verified,
+            ]);
+
+            return response()->json([
+                'stripeToken' => $existingIntent->client_secret,
+                'paymentIntentId' => $existingIntent->id,
+                'amount' => $existingIntent->amount,
+                'alreadyPaid' => $existingIntent->status === PaymentIntent::STATUS_SUCCEEDED,
+            ]);
+        }
 
         $seriesItem = [
             'item_id' => $calculatedTotal['currentItem']->id,
@@ -324,7 +357,44 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             ];
 
         if($calculatedTotal['totalPrice'] !== 0) {
+            $attempt = RegistrationPaymentAttempt::query()->firstOrCreate(
+                ['registration_key' => $registrationKey],
+                [
+                    'series_id' => (int) $item,
+                    'gateway' => self::GATEWAY->value,
+                    'status' => 'created',
+                ]
+            );
+
+            if ($attempt->gateway !== self::GATEWAY->value) {
+                throw new HttpResponseException(response()->json([
+                    'message' => 'This registration already has a payment in progress. Please check that payment instead.',
+                ], 409));
+            }
+
+            if ($attempt->transaction_id) {
+                $existingIntent = $this->retrievePaymentIntent($attempt->transaction_id);
+
+                Log::warning('Duplicate Weekly Series payment attempt reused', [
+                    'series_id' => (int) $item,
+                    'registration_key' => $registrationKey,
+                    'transaction_id' => $attempt->transaction_id,
+                    'status' => $existingIntent->status,
+                ]);
+
+                return response()->json([
+                    'stripeToken' => $existingIntent->client_secret,
+                    'paymentIntentId' => $existingIntent->id,
+                    'amount' => $existingIntent->amount,
+                    'alreadyPaid' => $existingIntent->status === PaymentIntent::STATUS_SUCCEEDED,
+                ]);
+            }
+
             $metadata['line_item'] = json_encode($seriesItem);
+            $metadata = array_filter(
+                $metadata,
+                fn ($value) => is_string($value) || is_numeric($value) || is_bool($value)
+            );
 
             $productValue = [
                 'amount' => $calculatedTotal['totalPrice'],
@@ -335,38 +405,72 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 'metadata' => $metadata,
             ];
 
-            $paymentIntent = $this->stripe->paymentIntents->create($productValue);
+            $paymentIntent = $this->stripe->paymentIntents->create(
+                $productValue,
+                ['idempotency_key' => "weekly-registration:{$registrationKey}"]
+            );
+            $attempt->update([
+                'transaction_id' => $paymentIntent->id,
+                'status' => $paymentIntent->status,
+            ]);
 
             $responseValues = [
                 'stripeToken' => $paymentIntent->client_secret,
                 'paymentIntentId' => $paymentIntent->id,
-                'amount' => $calculatedTotal['totalPrice']
+                'amount' => $calculatedTotal['totalPrice'],
+                'alreadyPaid' => $paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED,
             ];
 
             return response()->json($responseValues);
         }else{
             $paymentId = Uuid::uuid4()->toString();
-            $seriesRegistered = $this->individualRegistrationService->create(
+            $shouldNotify = false;
+            $seriesRegistered = DB::transaction(function () use (
                 $paymentId,
-                self::GATEWAY,
-                $metadata['contactFirstName'],
-                $metadata['contactLastName'],
-                $metadata['contactPhoneNumber'],
-                $metadata['contactEmail'],
-                $metadata['playerFirstName'],
-                $metadata['playerLastName'],
-                $metadata['dob'],
-                $metadata['teamName'],
-                $metadata['ageGroup'],
-                $calculatedTotal['totalPrice'],
-                $seriesItem['item_id'],
-            );
+                $metadata,
+                $calculatedTotal,
+                $seriesItem,
+                $registrationKey,
+                &$shouldNotify
+            ) {
+                $seriesRegistered = $this->individualRegistrationService->create(
+                    $paymentId,
+                    self::GATEWAY,
+                    $metadata['contactFirstName'],
+                    $metadata['contactLastName'],
+                    $metadata['contactPhoneNumber'],
+                    $metadata['contactEmail'],
+                    $metadata['playerFirstName'],
+                    $metadata['playerLastName'],
+                    $metadata['dob'],
+                    $metadata['teamName'],
+                    $metadata['ageGroup'],
+                    $calculatedTotal['totalPrice'],
+                    $seriesItem['item_id'],
+                    $registrationKey,
+                );
 
+                if (! $seriesRegistered->is_verified) {
+                    $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
+                    $this->incrementMaxRegistrationIfAllowed($seriesItem['item_id']);
+                    $shouldNotify = true;
+                }
 
-            if (!$seriesRegistered->is_verified) {
-                $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
-                $this->incrementMaxRegistrationIfAllowed($seriesItem['item_id']);
-                $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
+                return $seriesRegistered;
+            }, 3);
+
+            if ($shouldNotify) {
+                try {
+                    $this->mailService->sendIndividualRegistrationInvoice(
+                        $seriesRegistered->fresh(['item'])
+                    );
+                } catch (\Throwable $notificationError) {
+                    Log::error('Free Weekly Series invoice notification failed after finalization', [
+                        'transaction_id' => $seriesRegistered->transaction_id,
+                        'registration_id' => $seriesRegistered->id,
+                        'exception' => $notificationError,
+                    ]);
+                }
             }
 
             if (!empty($metadata['client_token'])) {
@@ -433,7 +537,22 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
 
     public function verifyIndividualRegistration(string $paymentIntentId): PaymentStatus
     {
+        $existingRegistration = $this->individualRegistrationService
+            ->findByTransactionId($paymentIntentId);
+
+        if ($existingRegistration?->is_verified) {
+            Log::info('Weekly Series verification replayed safely', [
+                'transaction_id' => $paymentIntentId,
+                'registration_id' => $existingRegistration->id,
+            ]);
+
+            return $this->matchStatus('succeeded');
+        }
+
         $paymentIntent = $this->retrievePaymentIntent($paymentIntentId);
+        RegistrationPaymentAttempt::query()
+            ->where('transaction_id', $paymentIntentId)
+            ->update(['status' => $paymentIntent->status]);
         
         if (!$paymentIntent) {
             throw new RuntimeException('Payment intent not found');
@@ -449,36 +568,73 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                     throw new RuntimeException('Invalid line item structure');
                 }
 
-                $seriesRegistered = $this->individualRegistrationService->create(
-                    $paymentIntent->id,
-                    self::GATEWAY,
-                    $registrationInformation->contactFirstName,
-                    $registrationInformation->contactLastName,
-                    $registrationInformation->contactPhoneNumber,
-                    $registrationInformation->contactEmail,
-                    $registrationInformation->playerFirstName,
-                    $registrationInformation->playerLastName,
-                    $registrationInformation->dob,
-                    $registrationInformation->teamName,
-                    $registrationInformation->ageGroup,
-                    $paymentIntent->amount,
-                    $lineItem['item_id'],
-                );
+                $shouldNotify = false;
+                $seriesRegistered = DB::transaction(function () use (
+                    $paymentIntent,
+                    $registrationInformation,
+                    $lineItem,
+                    &$shouldNotify
+                ) {
+                    $seriesRegistered = $this->individualRegistrationService->create(
+                        $paymentIntent->id,
+                        self::GATEWAY,
+                        $registrationInformation->contactFirstName,
+                        $registrationInformation->contactLastName,
+                        $registrationInformation->contactPhoneNumber,
+                        $registrationInformation->contactEmail,
+                        $registrationInformation->playerFirstName,
+                        $registrationInformation->playerLastName,
+                        $registrationInformation->dob,
+                        (string) $registrationInformation->teamName,
+                        (string) $registrationInformation->ageGroup,
+                        $paymentIntent->amount,
+                        $lineItem['item_id'],
+                        $registrationInformation->registration_key ?? null,
+                    );
 
-                if (!$seriesRegistered->is_verified) {
-                    $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
-                    $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
-                    $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
+                    if (! $seriesRegistered->is_verified) {
+                        $this->individualRegistrationService
+                            ->markAsVerified($seriesRegistered->transaction_id);
+                        $this->incrementMaxRegistrationIfAllowed($lineItem['item_id']);
+                        $shouldNotify = true;
+                    }
+
+                    return $seriesRegistered;
+                }, 3);
+
+                if ($shouldNotify) {
+                    try {
+                        $this->mailService->sendIndividualRegistrationInvoice(
+                            $seriesRegistered->fresh(['item'])
+                        );
+                    } catch (\Throwable $notificationError) {
+                        Log::error('Weekly Series invoice notification failed after payment finalization', [
+                            'transaction_id' => $paymentIntent->id,
+                            'registration_id' => $seriesRegistered->id,
+                            'exception' => $notificationError,
+                        ]);
+                    }
                 }
+
+                RegistrationPaymentAttempt::query()
+                    ->where('transaction_id', $paymentIntentId)
+                    ->update(['status' => 'complete']);
 
                 if (isset($registrationInformation->client_token)) {
                     WaitingLounge::where('client_id', $registrationInformation->client_token)
                         ->where('series_id', $lineItem['item_id'])
                         ->delete();
                 }
-            } catch (Exception $e) {
-                Log::error($e);
-                report($e);
+            } catch (\Throwable $exception) {
+                Log::error('Weekly Series payment finalization failed', [
+                    'transaction_id' => $paymentIntent->id,
+                    'exception' => $exception,
+                ]);
+                RegistrationPaymentAttempt::query()
+                    ->where('transaction_id', $paymentIntentId)
+                    ->update(['status' => 'finalization_pending']);
+
+                return PaymentStatus::PROCESSING;
             }
         }
 
@@ -796,7 +952,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
         } catch (ModelNotFoundException $e) {
             Log::error($e);
             report($e);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Log::error($e);
             report($e);
         }

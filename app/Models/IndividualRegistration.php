@@ -18,6 +18,16 @@ class IndividualRegistration extends Model
 
     protected const SNIPPET_LENGTH = 120;
 
+    protected $fillable = [
+        'transaction_id',
+        'registration_key',
+        'payment_gateway',
+        'email',
+        'price',
+        'item_id',
+        'is_verified',
+    ];
+
     public function players() {
         return $this->hasMany(Player::class, 'registration_id');
     }

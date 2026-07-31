@@ -54,6 +54,21 @@ class Event extends Model
         return $this->hasMany(TeamPosition::class);
     }
 
+    public function getTimeAttribute(?string $value): ?string
+    {
+        if (! preg_match('/^(\d{1,2}):([0-5]\d)(?::[0-5]\d)?$/', (string) $value, $matches)) {
+            return $value;
+        }
+
+        $hours = (int) $matches[1];
+
+        if ($hours > 23) {
+            return $value;
+        }
+
+        return sprintf('%02d:%s', $hours, $matches[2]);
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -64,5 +79,4 @@ class Event extends Model
             $event->teamposition()->delete();
         });
     }
-
 }

@@ -50,6 +50,7 @@ interface IndividualRegistrationServiceInterface
         string $ageGroup,
         int $amount,
         int $item_id,
+        ?string $registrationKey = null,
         );
 
     /**

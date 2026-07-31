@@ -166,7 +166,7 @@ class EventController extends Controller
             'datetime' => ['required', 'date_format:Y-m-d'],
             'matches' => ['nullable', 'array'],
             'matches.*.id' => ['nullable', 'integer'],
-            'matches.*.field_id' => ['required', 'integer', 'distinct', 'exists:fields,id'],
+            'matches.*.field_id' => ['required', 'integer', 'exists:fields,id'],
             'matches.*.team1' => ['required', 'integer', 'min:1', 'exists:teams,id'],
             'matches.*.team2' => ['required', 'integer', 'min:0'],
         ];
@@ -176,8 +176,6 @@ class EventController extends Controller
         }
 
         $validated = $request->validate($rules);
-        $scheduledTeams = [];
-
         foreach ($validated['matches'] ?? [] as $index => $match) {
             $team1 = (int) $match['team1'];
             $team2 = (int) $match['team2'];
@@ -192,15 +190,6 @@ class EventController extends Controller
                 throw ValidationException::withMessages([
                     "matches.{$index}.team2" => 'A team cannot play against itself.',
                 ]);
-            }
-
-            foreach (array_filter([$team1, $team2]) as $teamId) {
-                if (isset($scheduledTeams[$teamId])) {
-                    throw ValidationException::withMessages([
-                        "matches.{$index}.team1" => 'A team cannot be scheduled in two fields at the same time.',
-                    ]);
-                }
-                $scheduledTeams[$teamId] = true;
             }
         }
 
