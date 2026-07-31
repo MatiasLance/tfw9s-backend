@@ -65,6 +65,17 @@ class RouteServiceProvider extends ServiceProvider
                 });
         });
 
+        RateLimiter::for('payments', function (Request $request) {
+            $registrationKey = $request->input('metadata.registration_key')
+                ?: $request->input('transaction_id')
+                ?: $request->ip();
+
+            return [
+                Limit::perMinute(10)->by($request->ip()),
+                Limit::perMinute(5)->by(hash('sha256', (string) $registrationKey)),
+            ];
+        });
+
         RateLimiter::for('forgot-password', function (Request $request) {
             $email = strtolower($request->input('email'));
 

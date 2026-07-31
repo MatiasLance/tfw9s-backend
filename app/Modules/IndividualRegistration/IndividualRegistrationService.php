@@ -42,6 +42,7 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
         string $ageGroup,
         int $amount,
         int $item_id,
+        ?string $registrationKey = null,
     )
     {
         return $this->individualRegistrationRepository->create(
@@ -58,6 +59,7 @@ class IndividualRegistrationService implements IndividualRegistrationServiceInte
           $ageGroup,
           $amount,
           $item_id,
+          $registrationKey,
         );
     }
 

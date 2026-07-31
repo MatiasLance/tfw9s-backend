@@ -152,9 +152,11 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix('tournament')->group(function () {
-        Route::post('/indiv/checkout', 'App\Http\Controllers\IndividualRegistrationController@checkout');
+        Route::post('/indiv/checkout', 'App\Http\Controllers\IndividualRegistrationController@checkout')
+            ->middleware(['throttle:payments']);
         Route::post('/team/checkout', 'App\Http\Controllers\TeamRegistrationController@checkout');
-        Route::post('/indiv/verify', 'App\Http\Controllers\IndividualRegistrationController@verify');
+        Route::post('/indiv/verify', 'App\Http\Controllers\IndividualRegistrationController@verify')
+            ->middleware(['throttle:payments']);
         Route::post('/team/verify', 'App\Http\Controllers\TeamRegistrationController@verify');
         Route::post('/indiv/stripe/calculation', 'App\Http\Controllers\IndividualRegistrationController@initialStripeCalculation')
              ->middleware(['throttle:calculations']);

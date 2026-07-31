@@ -19,6 +19,11 @@ use App\Modules\Payment\Gateways\Square;
 use App\Modules\Payment\PaymentGateway;
 use App\Modules\Payment\PaymentStatus;
 use Ramsey\Uuid\Uuid;
+use App\Modules\IndividualRegistration\RegistrationIdentity;
+use App\Models\RegistrationPaymentAttempt;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Square\Models\CreatePaymentRequest;
 use Square\Models\Money;
 use Square\SquareClient;
@@ -159,7 +164,32 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
         $money->setAmount($total);
         $money->setCurrency(strtoupper($this->currency));
 
-        $createPaymentRequest = new CreatePaymentRequest($metadata['card_token'], Uuid::uuid4(), $money);
+        $registrationKey = $metadata['registration_key']
+            ?? RegistrationIdentity::make((int) $item, $metadata);
+        $attempt = RegistrationPaymentAttempt::query()->firstOrCreate(
+            ['registration_key' => $registrationKey],
+            [
+                'series_id' => (int) $item,
+                'gateway' => self::GATEWAY->value,
+                'status' => 'created',
+            ]
+        );
+
+        if ($attempt->gateway !== self::GATEWAY->value) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'This registration already has a payment in progress. Please check that payment instead.',
+            ], 409));
+        }
+
+        if ($attempt->transaction_id) {
+            return $attempt->transaction_id;
+        }
+
+        $createPaymentRequest = new CreatePaymentRequest(
+            $metadata['card_token'],
+            substr("weekly-{$registrationKey}", 0, 45),
+            $money
+        );
         $paymentsApi = $this->client->getPaymentsApi();
         $response = $paymentsApi->createPayment($createPaymentRequest);
 
@@ -206,24 +236,36 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
         $response = $paymentsApi->createPayment($createPaymentRequest);
 
         if ($response->isSuccess()) {
-            $this->incrementMaxRegistrationIfAllowed($calculatedTotal['currentItem']->id);
             $paymentId = $response->getResult()->getPayment()->getId();
+            $attempt->update([
+                'transaction_id' => $paymentId,
+                'status' => $response->getResult()->getPayment()->getStatus(),
+            ]);
 
-            $this->individualRegistrationService->create(
+            DB::transaction(function () use (
                 $paymentId,
-                self::GATEWAY,
-                $metadata['contactFirstName'],
-                $metadata['contactLastName'],
-                $metadata['contactPhoneNumber'],
-                $metadata['contactEmail'],
-                $metadata['playerFirstName'],
-                $metadata['playerLastName'],
-                $metadata['dob'],
-                $metadata['teamName'],
-                $metadata['ageGroup'],
-                $metadata['total_price'],
-                $metadata['item_id']
-            );
+                $metadata,
+                $registrationKey,
+                $calculatedTotal
+            ) {
+                $this->individualRegistrationService->create(
+                    $paymentId,
+                    self::GATEWAY,
+                    $metadata['contactFirstName'],
+                    $metadata['contactLastName'],
+                    $metadata['contactPhoneNumber'],
+                    $metadata['contactEmail'],
+                    $metadata['playerFirstName'],
+                    $metadata['playerLastName'],
+                    $metadata['dob'],
+                    $metadata['teamName'],
+                    $metadata['ageGroup'],
+                    $metadata['total_price'],
+                    $metadata['item_id'],
+                    $registrationKey,
+                );
+                $this->incrementMaxRegistrationIfAllowed($calculatedTotal['currentItem']->id);
+            }, 3);
 
             if (!empty($metadata['client_token'])) {
                 WaitingLounge::where('client_id', $metadata['client_token'])
@@ -358,10 +400,24 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
                                                     ->getPayment()
                                                     ->getId()
                                             );
-            if (!$seriesRegistered->is_verified) {
+            if ($seriesRegistered && !$seriesRegistered->is_verified) {
                 $this->individualRegistrationService->markAsVerified($seriesRegistered->transaction_id);
-                $this->mailService->sendIndividualRegistrationInvoice($seriesRegistered);
+                try {
+                    $this->mailService->sendIndividualRegistrationInvoice(
+                        $seriesRegistered->fresh(['item'])
+                    );
+                } catch (\Throwable $notificationError) {
+                    Log::error('Weekly Series Afterpay invoice notification failed after payment finalization', [
+                        'transaction_id' => $paymentIntentId,
+                        'registration_id' => $seriesRegistered->id,
+                        'exception' => $notificationError,
+                    ]);
+                }
             }
+
+            RegistrationPaymentAttempt::query()
+                ->where('transaction_id', $paymentIntentId)
+                ->update(['status' => 'complete']);
         }
 
         return $orderStatus;

@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Series;
+use App\Models\Team;
 use App\Models\Tax;
 use App\Models\DiscountCode;
 use App\Models\ToggleTaxControl;
+use App\Modules\IndividualRegistration\RegistrationIdentity;
 use App\Modules\Payment\PaymentServiceInterface;
 use App\Modules\Http\Message;
 use App\Services\LoungeService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class IndividualRegistrationController extends Controller
 {
@@ -34,12 +39,41 @@ class IndividualRegistrationController extends Controller
     {
         $validated = $request->validate([
             'item' => 'required|integer|exists:series,id',
-            'payment_method' => 'required|string',
+            'payment_method' => ['required', 'string', Rule::in(['stripe', 'afterpay'])],
             'metadata' => 'nullable|array',
+            'metadata.contactFirstName' => 'required|string|max:255',
+            'metadata.contactLastName' => 'required|string|max:255',
+            'metadata.contactPhoneNumber' => 'required|string|max:50',
+            'metadata.contactEmail' => 'required|email|max:255',
+            'metadata.playerFirstName' => 'required|string|max:255',
+            'metadata.playerLastName' => 'required|string|max:255',
+            'metadata.dob' => 'required|date_format:Y-m-d',
+            'metadata.teamName' => 'required|integer|exists:teams,id',
+            'metadata.ageGroup' => 'required|integer|exists:age_groups,id',
+            'metadata.discountCodeId' => 'nullable|integer|min:0',
             'discountcode' => 'nullable|string',
             'lounge_token' => 'required|string',
             'client_id' => 'required|string|max:255',
         ]);
+
+        $discountCodeId = (int) ($validated['metadata']['discountCodeId'] ?? 0);
+        if ($discountCodeId > 0 && ! DiscountCode::whereKey($discountCodeId)->exists()) {
+            throw ValidationException::withMessages([
+                'metadata.discountCodeId' => 'The selected discount code is invalid.',
+            ]);
+        }
+
+        $teamIsValid = Team::query()
+            ->whereKey($validated['metadata']['teamName'])
+            ->where('series_id', $validated['item'])
+            ->where('agegroup_id', $validated['metadata']['ageGroup'])
+            ->exists();
+
+        if (! $teamIsValid) {
+            throw ValidationException::withMessages([
+                'metadata.teamName' => 'The selected team and age group do not belong to this Weekly Series.',
+            ]);
+        }
 
         if (!$this->loungeService->hasValidActiveSession(
             $validated['lounge_token'],
@@ -63,6 +97,17 @@ class IndividualRegistrationController extends Controller
         $metadata = array_merge($validated['metadata'] ?? [], [
             'client_token' => $validated['client_id'],
         ]);
+        $metadata['registration_key'] = RegistrationIdentity::make(
+            (int) $validated['item'],
+            $metadata
+        );
+
+        Log::info('Weekly Series checkout accepted', [
+            'series_id' => (int) $validated['item'],
+            'gateway' => $validated['payment_method'],
+            'registration_key' => $metadata['registration_key'],
+            'client_id_hash' => hash('sha256', $validated['client_id']),
+        ]);
 
         return $this->paymentService->createIndividualRegistration(
             $validated['discountcode'] ?? null,
@@ -74,10 +119,26 @@ class IndividualRegistrationController extends Controller
 
     public function verify(Request $request, Message $message)
     {
-        $paymentIntentId = $request->input('transaction_id');
-        $paymentMethod = $request->input('payment_method');
+        $validated = $request->validate([
+            'transaction_id' => 'required|string|max:255',
+            'payment_method' => ['required', 'string', Rule::in(['stripe', 'afterpay'])],
+        ]);
+
+        $paymentIntentId = $validated['transaction_id'];
+        $paymentMethod = $validated['payment_method'];
+
+        Log::info('Weekly Series verification started', [
+            'transaction_id' => $paymentIntentId,
+            'gateway' => $paymentMethod,
+        ]);
 
         $status = $this->paymentService->verifyIndividualRegistration($paymentMethod, $paymentIntentId);
+
+        Log::info('Weekly Series verification completed', [
+            'transaction_id' => $paymentIntentId,
+            'gateway' => $paymentMethod,
+            'status' => $status->value,
+        ]);
 
         $message->setContent(200, 'Payment Intent status found', '', [
             'status' => $status

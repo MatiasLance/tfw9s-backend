@@ -324,6 +324,92 @@ class EventMatchApiEndpointTest extends TestCase
             ->assertJsonValidationErrors('matches.0.team2');
     }
 
+    public function test_grouped_fixture_time_can_be_updated_with_shared_fields_and_teams(): void
+    {
+        $this->actingAsAdmin();
+
+        $event = DB::table('events')->find($this->eventId);
+        $fieldId = DB::table('event_matches')->where('id', $this->matchId)->value('field_id');
+        $team3Id = $this->createTeam(
+            'Tuggerah Division 3',
+            $event->agegroup_id,
+            $event->series_id,
+            $event->region_id,
+            now()
+        );
+        $match2Id = DB::table('event_matches')->insertGetId([
+            'event_id' => $this->eventId,
+            'field_id' => $fieldId,
+            'team1' => $this->team2Id,
+            'team2' => $team3Id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $match3Id = DB::table('event_matches')->insertGetId([
+            'event_id' => $this->eventId,
+            'field_id' => $fieldId,
+            'team1' => $team3Id,
+            'team2' => $this->team1Id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $payload = [
+            'time' => '08:00',
+            'round' => $event->round,
+            'region_id' => $event->region_id,
+            'agegroup_id' => $event->agegroup_id,
+            'datetime' => $event->event_date,
+            'matches' => [
+                [
+                    'id' => $this->matchId,
+                    'field_id' => $fieldId,
+                    'team1' => $this->team1Id,
+                    'team2' => $this->team2Id,
+                ],
+                [
+                    'id' => $match2Id,
+                    'field_id' => $fieldId,
+                    'team1' => $this->team2Id,
+                    'team2' => $team3Id,
+                ],
+                [
+                    'id' => $match3Id,
+                    'field_id' => $fieldId,
+                    'team1' => $team3Id,
+                    'team2' => $this->team1Id,
+                ],
+            ],
+        ];
+
+        $this->postJson("/api/v1/events/{$this->eventId}", $payload)
+            ->assertOk();
+
+        $this->assertDatabaseHas('events', [
+            'id' => $this->eventId,
+            'time' => '08:00',
+        ]);
+        $this->getJson("/api/v1/events/{$this->eventId}")
+            ->assertOk()
+            ->assertJsonPath('data.event.time', '08:00');
+
+        $payload['time'] = '8:00';
+        $this->postJson("/api/v1/events/{$this->eventId}", $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('time');
+    }
+
+    public function test_event_api_normalizes_stored_time_seconds_to_hours_and_minutes(): void
+    {
+        DB::table('events')->where('id', $this->eventId)->update([
+            'time' => '19:15:30',
+        ]);
+
+        $this->getJson("/api/v1/events/{$this->eventId}")
+            ->assertOk()
+            ->assertJsonPath('data.event.time', '19:15');
+    }
+
     private function actingAsAdmin(): void
     {
         $admin = User::factory()->create();

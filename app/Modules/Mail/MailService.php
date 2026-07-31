@@ -100,6 +100,7 @@ class MailService implements MailServiceInterface
     protected function send(array $to, string $subject, string $content): bool
     {
         $guzzle = new Client();
+        $statusCode = false;
 
         try {
 
@@ -115,10 +116,13 @@ class MailService implements MailServiceInterface
                 ],
             ]);
 
-        $statusCode = $response->getStatusCode() === 200;
-
-        } catch (\GuzzleHttp\Exception\ServiceException $e) {
-            dd(\GuzzleHttp\Psr7\Message::toString($e->getResponse()));
+            $statusCode = $response->getStatusCode() === 200;
+        } catch (\Throwable $exception) {
+            Log::error('SMTP relay request failed', [
+                'recipients' => $to,
+                'subject' => $subject,
+                'exception' => $exception,
+            ]);
         }
 
         return $statusCode;
