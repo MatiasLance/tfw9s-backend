@@ -410,6 +410,161 @@ class EventMatchApiEndpointTest extends TestCase
             ->assertJsonPath('data.event.time', '19:15');
     }
 
+    public function test_bye_fixtures_do_not_create_unknown_team_positions(): void
+    {
+        $this->actingAsAdmin();
+
+        $eventId = $this->createEventWithByeFixture();
+
+        $this->assertDatabaseHas('event_matches', [
+            'event_id' => $eventId,
+            'team1' => $this->team1Id,
+            'team2' => 0,
+        ]);
+
+        $this->assertDatabaseMissing('team_positions', [
+            'event_id' => $eventId,
+            'team_id' => 0,
+        ]);
+
+        $this->getJson('/api/v1/teampositions/list?'.http_build_query(['event' => $eventId]))
+            ->assertOk()
+            ->assertJsonCount(1, 'data.all_positions')
+            ->assertJsonPath('data.all_positions.0.team_id', $this->team1Id)
+            ->assertJsonPath('data.all_positions.0.team.name', 'Tuggerah Division 1');
+    }
+
+    public function test_editing_a_fixture_to_a_bye_prunes_the_stale_position(): void
+    {
+        $this->actingAsAdmin();
+
+        $this->postJson("/api/v1/events/{$this->eventId}", $this->fixtureEventPayload([
+            ['id' => $this->matchId, 'field_id' => $this->fieldId(), 'team1' => $this->team1Id, 'team2' => 0],
+        ]))->assertOk();
+
+        $this->assertDatabaseMissing('team_positions', [
+            'event_id' => $this->eventId,
+            'team_id' => $this->team2Id,
+        ]);
+        $this->assertDatabaseMissing('team_positions', [
+            'event_id' => $this->eventId,
+            'team_id' => 0,
+        ]);
+        $this->assertDatabaseHas('team_positions', [
+            'event_id' => $this->eventId,
+            'team_id' => $this->team1Id,
+        ]);
+
+        $this->getJson('/api/v1/teampositions/list?'.http_build_query(['event' => $this->eventId]))
+            ->assertOk()
+            ->assertJsonCount(1, 'data.all_positions');
+    }
+
+    public function test_editing_a_bye_back_to_a_team_restores_its_position(): void
+    {
+        $this->actingAsAdmin();
+
+        $eventId = $this->createEventWithByeFixture();
+        $matchId = DB::table('event_matches')->where('event_id', $eventId)->value('id');
+
+        $this->postJson("/api/v1/events/{$eventId}", $this->fixtureEventPayload([
+            ['id' => $matchId, 'field_id' => $this->fieldId(), 'team1' => $this->team1Id, 'team2' => $this->team2Id],
+        ]))->assertOk();
+
+        $this->assertDatabaseHas('team_positions', [
+            'event_id' => $eventId,
+            'team_id' => $this->team2Id,
+        ]);
+        $this->assertDatabaseMissing('team_positions', [
+            'event_id' => $eventId,
+            'team_id' => 0,
+        ]);
+    }
+
+    public function test_teams_that_still_play_other_matches_keep_their_position(): void
+    {
+        $this->actingAsAdmin();
+
+        $team3Id = $this->createTeam('Ourimbah Ravens', DB::table('age_groups')->value('id'), DB::table('series')->value('id'), DB::table('regions')->value('id'), now());
+
+        $matches = [
+            ['field_id' => $this->fieldId(), 'team1' => $this->team1Id, 'team2' => $this->team2Id],
+            ['field_id' => $this->fieldId(), 'team1' => $this->team2Id, 'team2' => $team3Id],
+        ];
+
+        $created = $this->postJson('/api/v1/events', $this->fixtureEventPayload($matches))->assertCreated();
+        $eventId = $created->json('data.event.id');
+        $matchIds = DB::table('event_matches')->where('event_id', $eventId)->orderBy('id')->pluck('id');
+
+        $this->assertCount(2, $matchIds);
+
+        // Turn the first match into a bye. Team 2 must keep its ladder entry
+        // because it still appears in the second match.
+        $this->postJson("/api/v1/events/{$eventId}", $this->fixtureEventPayload([
+            ['id' => $matchIds[0], 'field_id' => $this->fieldId(), 'team1' => $this->team1Id, 'team2' => 0],
+            ['id' => $matchIds[1], 'field_id' => $this->fieldId(), 'team1' => $this->team2Id, 'team2' => $team3Id],
+        ]))->assertOk();
+
+        foreach ([$this->team1Id, $this->team2Id, $team3Id] as $teamId) {
+            $this->assertDatabaseHas('team_positions', [
+                'event_id' => $eventId,
+                'team_id' => $teamId,
+            ]);
+        }
+
+        $this->assertDatabaseMissing('team_positions', [
+            'event_id' => $eventId,
+            'team_id' => 0,
+        ]);
+    }
+
+    public function test_the_ladder_excludes_legacy_bye_positions(): void
+    {
+        $now = now();
+        DB::table('team_positions')->insert([
+            'event_id' => $this->eventId,
+            'position' => 3,
+            'team_id' => 0,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        $response = $this->getJson('/api/v1/teampositions/list?'.http_build_query(['event' => $this->eventId]))
+            ->assertOk()
+            ->assertJsonCount(2, 'data.all_positions');
+
+        $teamIds = collect($response->json('data.all_positions'))->pluck('team_id');
+
+        $this->assertEqualsCanonicalizing([$this->team1Id, $this->team2Id], $teamIds->all());
+    }
+
+    private function fixtureEventPayload(array $matches): array
+    {
+        return [
+            'time' => '19:15',
+            'round' => 'round',
+            'region_id' => DB::table('regions')->value('id'),
+            'agegroup_id' => DB::table('age_groups')->value('id'),
+            'series_id' => DB::table('series')->value('id'),
+            'datetime' => '2026-10-22',
+            'matches' => $matches,
+        ];
+    }
+
+    private function createEventWithByeFixture(): int
+    {
+        $response = $this->postJson('/api/v1/events', $this->fixtureEventPayload([
+            ['field_id' => $this->fieldId(), 'team1' => $this->team1Id, 'team2' => 0],
+        ]))->assertCreated();
+
+        return $response->json('data.event.id');
+    }
+
+    private function fieldId(): int
+    {
+        return (int) DB::table('fields')->value('id');
+    }
+
     private function actingAsAdmin(): void
     {
         $admin = User::factory()->create();

@@ -172,8 +172,14 @@ class EventMatchRepository extends BaseRepository implements EventMatchRepositor
             $eventMatch->team2 = $team2;
             $eventMatch->save();
 
-            $this->teamPositionService->createTeamPosition($event_id, $team1);
-            $this->teamPositionService->createTeamPosition($event_id, $team2);
+            // A bye is stored as team2 = 0 and must not become a ladder participant.
+            if ($team1 > 0) {
+                $this->teamPositionService->createTeamPosition($event_id, $team1);
+            }
+
+            if ($team2 > 0) {
+                $this->teamPositionService->createTeamPosition($event_id, $team2);
+            }
 
             return $eventMatch;
         });
