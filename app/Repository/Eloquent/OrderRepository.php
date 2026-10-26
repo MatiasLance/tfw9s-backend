@@ -43,7 +43,7 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
         $order->is_verified = false;
         $order->address = $address;
         $order->post_code = $postCode;
-        $order->remarks = $remarks;
+        $order->remarks = $remarks ?? '';
         $order->total = $total;
         $order->sub_total = $totals['sub_total'] ?? null;
         $order->shipping_total = $totals['shipping_total'] ?? null;
