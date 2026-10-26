@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Models\Tax;
 use App\Models\ToggleTaxControl;
+use App\Modules\Order\OrderTotals;
 
 class OrderController extends Controller
 {
@@ -183,56 +184,28 @@ class OrderController extends Controller
         $tax = Tax::latest()->first();
         $toggleTaxControl = ToggleTaxControl::latest()->first();
 
-        $addTax = $tax?->getAddTaxValue();
-        $gstInclusive = $toggleTaxControl?->isToggleControle2();
+        $addTax = (float) ($tax?->getAddTaxValue() ?? 0);
+        $gstInclusive = (bool) ($toggleTaxControl?->isToggleControle2() ?? false);
 
-        $productTotal = $totalProduct['totalProduct'] * 100;
+        $productTotal = (int) round($totalProduct['totalProduct'] * 100);
 
-        $items = collect($shippings);
+        $shippingFee = OrderTotals::shippingTotal(
+            $shippings,
+            $metadata['shipOption'] ?? $metadata['shippingType'] ?? null
+        );
 
-        $hasUnshippable = $items->contains('has_shipping', false);
+        $totals = OrderTotals::calculate($productTotal, $shippingFee, $addTax, $gstInclusive);
 
-        if (!$hasUnshippable && ($metadata['shipOption'] === 'delivery')) {
-            // $firstShippable = $items->firstWhere('has_shipping', true);
-            // $shippingFee = $firstShippable['shipping_charge'] ?? 0;
-            $shippingFee = $items->sum('shipping_charge') * 100;
-        } else {
-            $shippingFee = 0;
-        }
+        $totalBeforeTax = $totals['sub_total'] + $shippingFee - $totals['tax_total'];
 
-        if ($gstInclusive) {
-            // INCLUSIVE MODE: Tax included in both products and shipping
-            $totalBeforeTax = ($productTotal + $shippingFee) / (1 + ($addTax / 100));
-            $taxAmount = ($productTotal + $shippingFee) - $totalBeforeTax;
-            
-            $productBase = $productTotal / (1 + ($addTax / 100));
-            $shippingBase = $shippingFee / (1 + ($addTax / 100));
-            
-            $grandTotal = $productTotal + $shippingFee;
-            
-            return response()->json([
-                'subtotal' => $productBase / 100,
-                'shipping' => $shippingFee / 100,
-                'tax' => $taxAmount / 100,
-                'total' => ($productBase + $shippingBase) / 100,
-                'grand_total' => $grandTotal / 100,
-                'is_inclusive' => true
-            ]);
-            
-        } else {
-            // EXCLUSIVE MODE: Tax added to both products AND shipping
-            $taxAmount = ($productTotal + $shippingFee) * ($addTax / 100);
-            $grandTotal = $productTotal + $shippingFee + $taxAmount;
-            
-            return response()->json([
-                'subtotal' => $productTotal / 100,
-                'shipping' => $shippingFee / 100,
-                'tax' => $taxAmount / 100,
-                'total' => ($productTotal + $shippingFee) / 100,
-                'grand_total' => $grandTotal / 100,
-                'is_inclusive' => false
-            ]);
-        }
+        return response()->json([
+            'subtotal' => $totals['sub_total'] / 100,
+            'shipping' => $totals['shipping_total'] / 100,
+            'tax' => $totals['tax_total'] / 100,
+            'total' => $totalBeforeTax / 100,
+            'grand_total' => $totals['grand_total'] / 100,
+            'is_inclusive' => $gstInclusive,
+        ]);
     }
 
     protected function calculateTotal($discountcode, array $items): array

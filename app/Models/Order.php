@@ -16,7 +16,11 @@ class Order extends Model
 
     protected $casts = [
         'payment_gateway' => PaymentGateway::class,
-        'is_verified' => 'boolean'
+        'is_verified' => 'boolean',
+        'total' => 'integer',
+        'sub_total' => 'integer',
+        'shipping_total' => 'integer',
+        'tax_total' => 'integer',
     ];
 
     public function getOrderNumberAttribute()
@@ -34,13 +38,33 @@ class Order extends Model
         return $this->getShippingNote($this->shipping_type);
     }
 
-    public function getSubTotalAttribute()
+    public function getProductSubTotalAttribute()
     {
         $subtotal = 0;
         foreach ($this->items as $item) {
             $subtotal += $item->value * $item->quantity;
         }
         return $subtotal;
+    }
+
+    /**
+     * Product total in cents, independent of the persisted sub_total column.
+     */
+    public function getProductTotalInCentsAttribute(): int
+    {
+        return (int) $this->items->sum(
+            fn (OrderLineItem $item): int => (int) $item->price * (int) $item->quantity
+        );
+    }
+
+    /**
+     * Whether this order has a persisted totals breakdown.
+     */
+    public function hasPersistedTotals(): bool
+    {
+        return ! is_null($this->sub_total)
+            && ! is_null($this->shipping_total)
+            && ! is_null($this->tax_total);
     }
 
     public function getTotalGSTAttribute()

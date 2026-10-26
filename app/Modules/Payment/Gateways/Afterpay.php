@@ -14,6 +14,7 @@ use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Mail\MailServiceInterface;
 use App\Modules\Order\OrderServiceInterface;
+use App\Modules\Order\OrderTotals;
 use App\Modules\Payment\Exceptions\PaymentFailedException;
 use App\Modules\Payment\Gateways\Square;
 use App\Modules\Payment\PaymentGateway;
@@ -105,6 +106,8 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
     public function createOrder($discountcode, array $items, array $metadata = [])
     {
         $lineItems = [];
+        $shippings = [];
+        $res = DiscountCode::where('code', $discountcode)->first();
 
         foreach ($items as $item) {
             $currentItem = Item::find($item['id']);
@@ -124,52 +127,48 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
             }
             $lineItem = [
                 'item_id' => $currentItem->id,
-                'price' => $currentItem->centPrice(),
+                'price' => (int) round($price),
                 'quantity' => $item['quantity'],
             ];
             array_push($lineItems, $lineItem);
+
+            array_push($shippings, [
+                'has_shipping' => $currentItem->has_shipping,
+                'shipping_charge' => $currentItem->shipping_charge,
+            ]);
         }
 
         $metadata['line_item'] = json_encode($lineItems);
 
         $totalshipping = $this->calculateTotal($discountcode, $lineItems);
 
-        $tax = Tax::find(1);
-        $master = ToggleTaxControl::find(1);
-        $taxAmount = 0;
-        $totalPrice = 0;
+        $tax = Tax::latest()->first();
+        $master = ToggleTaxControl::latest()->first();
 
-        $addTax = $tax->addTaxValue;
-        $includeTax = $tax->includeTaxValue;
-        $isInclusive = $master->toggleControl2;
+        $addTax = (float) ($tax?->getAddTaxValue() ?? 0);
+        $isInclusive = (bool) ($master?->isToggleControle2() ?? false);
+        $shipOption = $metadata['shipOption'] ?? $metadata['shippingType'] ?? null;
 
-        if (!$isInclusive) {
-            $taxRate = $addTax / 100;
-            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
-            $totalPrice = intval($totalshipping['totalProduct'] + $taxAmount);
-            $isInclusive = false;
-        } elseif ($isInclusive) {
-            $taxRate = $includeTax / 100;
-            $taxAmount = $totalshipping['totalProduct'] * $taxRate;
-            $totalPrice = intval($totalshipping['totalProduct'] );
-            $isInclusive = true;
-        } else {
-            $totalPrice = intval($totalshipping['totalProduct']);
-            $isInclusive = true;
-        }
+        $shippingFee = OrderTotals::shippingTotal($shippings, $shipOption);
+        $totals = OrderTotals::calculate(
+            (int) round($totalshipping['totalProduct']),
+            $shippingFee,
+            $addTax,
+            $isInclusive
+        );
 
-        $total = $totalPrice;
+        $total = $totals['grand_total'];
 
         $money = new Money();
         $money->setAmount($total);
         $money->setCurrency(strtoupper($this->currency));
 
         $registrationKey = $metadata['registration_key']
-            ?? RegistrationIdentity::make((int) $item, $metadata);
+            ?? RegistrationIdentity::make((int) ($items[0]['id'] ?? 0), $metadata);
         $attempt = RegistrationPaymentAttempt::query()->firstOrCreate(
             ['registration_key' => $registrationKey],
             [
-                'series_id' => (int) $item,
+                'series_id' => (int) ($items[0]['id'] ?? 0),
                 'gateway' => self::GATEWAY->value,
                 'status' => 'created',
             ]
@@ -203,12 +202,13 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
                 $metadata['lastName'],
                 $metadata['phoneNumber'],
                 $metadata['email'],
-                $metadata['shippingType'],
+                $shipOption,
                 $metadata['address'],
                 $metadata['postCode'],
                 $metadata['remarks'] ?? '',
                 $total,
-                $lineItems
+                $lineItems,
+                $totals
             );
 
             return $paymentId;
@@ -534,8 +534,9 @@ class Afterpay extends BasePaymentGateway implements PaymentGatewayInterface
     protected function calculateTotal($discountcode, array $items): array
     {
         $total = 0;
+
         foreach ($items as $item) {
-            $total += $this->calculateItemTotal($item['item_id'], $item['quantity']);
+            $total += (int) $item['price'] * (int) $item['quantity'];
         }
 
         return ['totalProduct' => $total];

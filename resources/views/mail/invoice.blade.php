@@ -154,15 +154,44 @@
 
                             <!-- Totals Section -->
                             @php
-                                $add_tax_value = $tax->addTaxValue;
-                                $gst_inclusive = $tax_toggle_control->toggleControl2;
-                                $productTotal = $order->total;
-                        
-                                $totalBeforeTax = $productTotal / (1 + ($add_tax_value / 100));
-                                $tax_amount = $gst_inclusive ? $productTotal - $totalBeforeTax : $productTotal * ($add_tax_value / 100);
-                                $sub_total = $gst_inclusive ? $productTotal / (1 + ($add_tax_value / 100)) : $productTotal;
-                                $shipping_base = $gst_inclusive ? 1000 / (1 + ($add_tax_value / 100)) : 1000;
-                                $grand_total = $gst_inclusive ? $productTotal : $productTotal + $tax_amount;
+                                $add_tax_value = (float) ($tax->addTaxValue ?? 0);
+                                $gst_inclusive = (bool) ($tax_toggle_control->toggleControl2 ?? false);
+                                $productTotal = $order->getProductTotalInCentsAttribute();
+
+                                if ($order->hasPersistedTotals()) {
+                                    // Orders placed after the totals breakdown was
+                                    // introduced store exactly what was charged.
+                                    $sub_total = (int) $order->sub_total;
+                                    $shipping_total = (int) $order->shipping_total;
+                                    $tax_amount = (int) $order->tax_total;
+                                    $grand_total = (int) $order->total;
+                                } else {
+                                    // Legacy orders: rebuild the breakdown from the
+                                    // line items and the tax configuration.
+                                    $shipping_total = \App\Modules\Order\OrderTotals::legacyShippingTotal(
+                                        $order->items,
+                                        $order->ship_option
+                                    );
+
+                                    $calculated = \App\Modules\Order\OrderTotals::calculate(
+                                        $productTotal,
+                                        $shipping_total,
+                                        $add_tax_value,
+                                        $gst_inclusive
+                                    );
+
+                                    $sub_total = $calculated['sub_total'];
+                                    $tax_amount = $calculated['tax_total'];
+                                    $shipping_total = $calculated['shipping_total'];
+                                    $grand_total = max($calculated['grand_total'], (int) $order->total);
+
+                                    // If the recorded total is larger than the
+                                    // rebuilt one, treat the difference as shipping
+                                    // so the printed lines still add up.
+                                    if ($grand_total > $calculated['grand_total']) {
+                                        $shipping_total = max(0, $grand_total - $sub_total - $tax_amount);
+                                    }
+                                }
                             @endphp
                             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding: 20px 0;">
                                 <tr>
@@ -180,7 +209,7 @@
                                 <tr>
                                     <td style="font-size: 14px; color: #555555; padding: 12px 20px; border-bottom: 1px solid #eeeeee;">Shipping:</td>
                                     <td style="font-size: 14px; color: #555555; text-align: right; padding: 12px 8px; border-bottom: 1px solid #eeeeee;">
-                                        {{ $order->ship_option == 'pickup' ? 'FREE' : '$' . number_format(1000/100, 2) }}
+                                        {{ $shipping_total > 0 ? '$' . number_format($shipping_total / 100, 2) : 'FREE' }}
                                     </td>
                                 </tr>
                                 <tr>

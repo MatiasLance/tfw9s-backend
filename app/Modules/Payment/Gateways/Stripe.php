@@ -12,6 +12,7 @@ use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Mail\MailServiceInterface;
 use App\Modules\Order\Exceptions\AddressCannotBeEmptyException;
 use App\Modules\Order\OrderServiceInterface;
+use App\Modules\Order\OrderTotals;
 use App\Modules\Order\ShippingType;
 use App\Modules\IndividualRegistration\IndividualRegistrationServiceInterface;
 use App\Modules\TeamRegistration\TeamRegistrationServiceInterface;
@@ -178,49 +179,28 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             'line_items' => $lineItems,
             'discount_code' => $discountCode,
             'grand_total' => null,
+            'totals' => null,
             'metadata' => $metadata,
             'created_at' => now()->timestamp,
         ];
-        
-
-        Cache::put(
-            "cart_pending:{$cartToken}",
-            $cartPayload,
-            now()->addMinutes(15)
-        );
 
         $totalProduct = $this->calculateTotal($discountCode, $lineItems);
 
         $tax = Tax::latest()->first();
         $toggleTaxControl = ToggleTaxControl::latest()->first();
 
-        $addTax = $tax?->getAddTaxValue();
-        $gstInclusive = $toggleTaxControl?->isToggleControle2();
+        $addTax = (float) ($tax?->getAddTaxValue() ?? 0);
+        $gstInclusive = (bool) ($toggleTaxControl?->isToggleControle2() ?? false);
 
-        $productTotal = $totalProduct['totalProduct'] * 100;
+        $productTotal = (int) round($totalProduct['totalProduct'] * 100);
+        $shipOption = $metadata['shipOption'] ?? $metadata['shippingType'] ?? null;
+        $shippingFee = OrderTotals::shippingTotal($shippings, $shipOption);
+        $totals = OrderTotals::calculate($productTotal, $shippingFee, $addTax, $gstInclusive);
 
-        $items = collect($shippings);
-        
-        $hasUnshippable = $items->contains('has_shipping', false);
-
-        if (!$hasUnshippable && ($metadata['shipOption'] === 'delivery')) {
-            $firstShippable = $items->firstWhere('has_shipping', true);
-            $shippingFee = $firstShippable['shipping_charge'] * 100 ?? 0;
-            // $shippingFee = $items->sum('shipping_charge') * 100;
-        } else {
-            $shippingFee = 0;
-        }
-
-        if ($gstInclusive) {
-            $totalBeforeTax = ($productTotal + floatval($shippingFee)) / (1 + ($addTax / 100));
-            $taxAmount = ($productTotal + floatval($shippingFee)) - $totalBeforeTax;
-            $grandTotal = $productTotal + floatval($shippingFee);
-        } else {
-            $taxAmount = (int) round(($productTotal + floatval($shippingFee)) * ($addTax / 100));
-            $grandTotal = $productTotal + floatval($shippingFee) + $taxAmount;
-        }
+        $grandTotal = $totals['grand_total'];
 
         $cartPayload['grand_total'] = $grandTotal;
+        $cartPayload['totals'] = $totals;
         Cache::put("cart_pending:{$cartToken}", $cartPayload, now()->addMinutes(15));
 
         $stripeMetadata = array_merge(
@@ -229,7 +209,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
             }),
             [
                 'cart_token' => $cartToken,
-                'ship_option' => $metadata['shipOption'] ?? 'pickup',
+                'ship_option' => $shipOption ?? 'pickup',
             ]
         );
 
@@ -288,6 +268,7 @@ class Stripe extends BasePaymentGateway implements PaymentGatewayInterface
                 $shippingInformation->remarks ?? null,
                 $paymentIntent->amount,
                 $lineItems,
+                $cachedCart['totals'] ?? [],
             );
 
             if (!$order->is_verified) {
