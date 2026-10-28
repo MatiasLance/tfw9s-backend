@@ -4,10 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Guideline;
-use App\Models\Item;
 use App\Models\News;
 use App\Models\PartnerSponsor;
-use App\Models\Tag;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -44,6 +42,7 @@ class DatabaseSeeder extends Seeder
 
             // Storefront content.
             VariantSeeder::class,
+            ItemSeeder::class,
         ]);
 
         // Seed root Categories
@@ -59,16 +58,6 @@ class DatabaseSeeder extends Seeder
         // Seed 2nd level
         Category::factory()
             ->count(20)
-            ->create();
-
-        Item::factory()
-            ->count(8)
-            ->has(
-                Tag::factory()->count(2)
-            )
-            ->has(
-                Category::factory()
-            )
             ->create();
 
         News::factory()
