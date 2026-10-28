@@ -42,8 +42,14 @@ Route::prefix('users')->group(function () {
 
     Route::prefix('orders')->group(function () {
         Route::prefix('shipping-notes')->group(function () {
-            Route::patch('update', 'App\Http\Controllers\OrderController@updateShippingOptions');
+            Route::patch('update', 'App\Http\Controllers\OrderController@updateShippingOptions')
+                ->middleware('admin');
         });
+
+        Route::get('shipping-settings', 'App\Http\Controllers\OrderController@retrieveShippingSettings')
+            ->middleware('admin');
+        Route::patch('shipping-settings', 'App\Http\Controllers\OrderController@updateShippingSettings')
+            ->middleware('admin');
     });
 
     Route::prefix('tax')->group(function () {

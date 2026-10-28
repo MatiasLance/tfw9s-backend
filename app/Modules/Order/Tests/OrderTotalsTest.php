@@ -46,9 +46,18 @@ class OrderTotalsTest extends TestCase
     {
         $shipping = OrderTotals::shippingTotal([
             ['has_shipping' => true, 'shipping_charge' => 10],
-        ], 'pickup');
+        ], 'pickup', 1000, 0);
 
         $this->assertSame(0, $shipping);
+    }
+
+    public function test_pickup_charge_is_configurable(): void
+    {
+        $shipping = OrderTotals::shippingTotal([
+            ['has_shipping' => true, 'shipping_charge' => 10],
+        ], 'pickup', 1000, 250);
+
+        $this->assertSame(250, $shipping);
     }
 
     public function test_shipping_is_not_charged_when_the_cart_contains_an_unshippable_item(): void
@@ -56,18 +65,27 @@ class OrderTotalsTest extends TestCase
         $shipping = OrderTotals::shippingTotal([
             ['has_shipping' => true, 'shipping_charge' => 10],
             ['has_shipping' => false, 'shipping_charge' => 0],
-        ], 'delivery');
+        ], 'delivery', 1000, 0);
 
         $this->assertSame(0, $shipping);
     }
 
-    public function test_shipping_charge_is_summed_across_shippable_items(): void
+    public function test_delivery_charge_is_configurable(): void
     {
         $shipping = OrderTotals::shippingTotal([
             ['has_shipping' => true, 'shipping_charge' => 10],
             ['has_shipping' => true, 'shipping_charge' => 15.5],
-        ], 'delivery');
+        ], 'delivery', 1250, 0);
 
-        $this->assertSame(2550, $shipping);
+        $this->assertSame(1250, $shipping);
+    }
+
+    public function test_shipping_is_not_charged_without_a_supported_option(): void
+    {
+        $shipping = OrderTotals::shippingTotal([
+            ['has_shipping' => true, 'shipping_charge' => 10],
+        ], null, 1000, 0);
+
+        $this->assertSame(0, $shipping);
     }
 }

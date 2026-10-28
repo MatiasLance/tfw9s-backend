@@ -6,6 +6,7 @@ use App\Mail\Orders\Invoice;
 use App\Models\Item;
 use App\Models\Order;
 use App\Models\OrderLineItem;
+use App\Models\ShippingOptions;
 use App\Models\Tax;
 use App\Models\ToggleTaxControl;
 use App\Modules\Payment\PaymentGateway;
@@ -27,6 +28,16 @@ class OrderTotalsAndInvoiceTest extends TestCase
             'toggleControl1' => $inclusive,
             'toggleControl2' => $inclusive,
         ]);
+    }
+
+    private function configureShipping(int $deliveryCharge, int $pickupCharge): void
+    {
+        $options = ShippingOptions::query()->first()
+            ?? new ShippingOptions(['delivery_note' => '', 'pickup_note' => '']);
+
+        $options->delivery_charge = $deliveryCharge;
+        $options->pickup_charge = $pickupCharge;
+        $options->save();
     }
 
     private function makeItem(float $price, float $shippingCharge = 10, bool $hasShipping = true): Item
@@ -109,7 +120,47 @@ class OrderTotalsAndInvoiceTest extends TestCase
         $this->assertEquals(40, $response->json('grand_total'));
     }
 
-    public function test_calculation_endpoint_sums_shipping_for_multiple_shippable_items(): void
+    public function test_calculation_endpoint_uses_the_configured_delivery_charge(): void
+    {
+        $this->configureTax(0, false);
+        $this->configureShipping(1250, 0);
+        $item = $this->makeItem(40, 10);
+
+        $response = $this->postJson('/api/v1/orders/calculation', [
+            'items' => [
+                ['id' => $item->id, 'quantity' => 1],
+            ],
+            'metadata' => ['shipOption' => 'delivery'],
+        ]);
+
+        $response->assertOk();
+
+        $this->assertEquals(40, $response->json('subtotal'));
+        $this->assertEquals(12.5, $response->json('shipping'));
+        $this->assertEquals(52.5, $response->json('grand_total'));
+    }
+
+    public function test_calculation_endpoint_uses_the_configured_pickup_charge(): void
+    {
+        $this->configureTax(0, false);
+        $this->configureShipping(1000, 250);
+        $item = $this->makeItem(40, 10);
+
+        $response = $this->postJson('/api/v1/orders/calculation', [
+            'items' => [
+                ['id' => $item->id, 'quantity' => 1],
+            ],
+            'metadata' => ['shipOption' => 'pickup'],
+        ]);
+
+        $response->assertOk();
+
+        $this->assertEquals(40, $response->json('subtotal'));
+        $this->assertEquals(2.5, $response->json('shipping'));
+        $this->assertEquals(42.5, $response->json('grand_total'));
+    }
+
+    public function test_calculation_endpoint_charges_one_delivery_fee_for_multiple_items(): void
     {
         $this->configureTax(0, false);
         $firstItem = $this->makeItem(40, 10);
@@ -126,8 +177,8 @@ class OrderTotalsAndInvoiceTest extends TestCase
         $response->assertOk();
 
         $this->assertEquals(60, $response->json('subtotal'));
-        $this->assertEquals(15, $response->json('shipping'));
-        $this->assertEquals(75, $response->json('grand_total'));
+        $this->assertEquals(10, $response->json('shipping'));
+        $this->assertEquals(70, $response->json('grand_total'));
     }
 
     public function test_calculation_endpoint_inclusive_tax_breakdown_adds_up(): void

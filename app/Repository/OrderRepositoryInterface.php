@@ -60,10 +60,17 @@ interface OrderRepositoryInterface
      * 
      * @param string|null $deliveryNote
      * @param string|null $pickupNote
+     * @param int|null $deliveryCharge Delivery charge in cents
+     * @param int|null $pickupCharge Pickup charge in cents
      * 
      * @return bool
      */
-    public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool;
+    public function updateShippingOptions(
+        ?string $deliveryNote,
+        ?string $pickupNote,
+        ?int $deliveryCharge = null,
+        ?int $pickupCharge = null
+    ): bool;
 
     /**
      * Mark order as verified

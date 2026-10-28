@@ -83,26 +83,78 @@ class OrderController extends Controller
         $options = $this->orderService->retrieveShippingOptions();
 
         $message->setContent(200, 'Shipping options retrieved', '', [
-            'options' => $options
+            'options' => $options,
+            'charges' => [
+                'delivery' => (int) $options->delivery_charge,
+                'pickup' => (int) $options->pickup_charge,
+            ],
         ]);
 
         return $message->render();
     }
 
+    /**
+     * Admin-only alias for retrieving the shipping settings.
+     */
+    public function retrieveShippingSettings(Request $request, Message $message)
+    {
+        return $this->retrieveShippingOptions($request, $message);
+    }
+
     public function updateShippingOptions(Request $request, Message $message)
     {
-        $deliveryNote = $request->input('delivery_note', null);
-        $pickupNote = $request->input('pickup_note', null);
+        $validated = $request->validate([
+            'delivery_note' => ['sometimes', 'nullable', 'string'],
+            'pickup_note' => ['sometimes', 'nullable', 'string'],
+            'delivery_charge' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'pickup_charge' => ['sometimes', 'nullable', 'integer', 'min:0'],
+        ]);
 
-        $isSuccess = $this->orderService->updateShippingOptions($deliveryNote, $pickupNote);
+        $deliveryNote = array_key_exists('delivery_note', $validated)
+            ? $validated['delivery_note']
+            : null;
+        $pickupNote = array_key_exists('pickup_note', $validated)
+            ? $validated['pickup_note']
+            : null;
+        $deliveryCharge = array_key_exists('delivery_charge', $validated)
+            && ! is_null($validated['delivery_charge'])
+            ? (int) $validated['delivery_charge']
+            : null;
+        $pickupCharge = array_key_exists('pickup_charge', $validated)
+            && ! is_null($validated['pickup_charge'])
+            ? (int) $validated['pickup_charge']
+            : null;
+
+        $isSuccess = $this->orderService->updateShippingOptions(
+            $deliveryNote,
+            $pickupNote,
+            $deliveryCharge,
+            $pickupCharge
+        );
 
         if ($isSuccess) {
-            $message->setContent(200, 'Shipping notes updated');
+            $options = $this->orderService->retrieveShippingOptions();
+
+            $message->setContent(200, 'Shipping options updated', '', [
+                'options' => $options,
+                'charges' => [
+                    'delivery' => (int) $options->delivery_charge,
+                    'pickup' => (int) $options->pickup_charge,
+                ],
+            ]);
         } else {
-            $message->setContent(500, 'Shipping notes update failed. Please try again');
+            $message->setContent(500, 'Shipping options update failed. Please try again');
         }
 
         return $message->render();
+    }
+
+    /**
+     * Admin-only alias for updating the shipping settings.
+     */
+    public function updateShippingSettings(Request $request, Message $message)
+    {
+        return $this->updateShippingOptions($request, $message);
     }
 
     public function shippingCalc(Request $request)
@@ -177,8 +229,6 @@ class OrderController extends Controller
             array_push($shippings, $shipping);
         }
 
-        $hasDisabledShipping = collect($shippings)->contains('has_shipping', false);
-
         $totalProduct = $this->calculateTotal($discountcode, $lineItems);
 
         $tax = Tax::latest()->first();
@@ -189,9 +239,14 @@ class OrderController extends Controller
 
         $productTotal = (int) round($totalProduct['totalProduct'] * 100);
 
+        $shippingOption = $metadata['shipOption'] ?? $metadata['shippingType'] ?? null;
+        $charges = OrderTotals::configuredCharges();
+
         $shippingFee = OrderTotals::shippingTotal(
             $shippings,
-            $metadata['shipOption'] ?? $metadata['shippingType'] ?? null
+            $shippingOption,
+            $charges['delivery'],
+            $charges['pickup']
         );
 
         $totals = OrderTotals::calculate($productTotal, $shippingFee, $addTax, $gstInclusive);

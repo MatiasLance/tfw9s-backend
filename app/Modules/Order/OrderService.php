@@ -46,9 +46,19 @@ class OrderService implements OrderServiceInterface
         );
     }
 
-    public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool
+    public function updateShippingOptions(
+        ?string $deliveryNote,
+        ?string $pickupNote,
+        ?int $deliveryCharge = null,
+        ?int $pickupCharge = null
+    ): bool
     {
-        return $this->orderRepository->updateShippingOptions($deliveryNote, $pickupNote);
+        return $this->orderRepository->updateShippingOptions(
+            $deliveryNote,
+            $pickupNote,
+            $deliveryCharge,
+            $pickupCharge
+        );
     }
 
     public function markAsVerified(string $transactionId): bool
