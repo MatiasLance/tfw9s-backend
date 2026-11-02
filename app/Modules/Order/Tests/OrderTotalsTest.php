@@ -60,14 +60,16 @@ class OrderTotalsTest extends TestCase
         $this->assertSame(250, $shipping);
     }
 
-    public function test_shipping_is_not_charged_when_the_cart_contains_an_unshippable_item(): void
+    public function test_delivery_charge_is_charged_for_items_with_the_legacy_shipping_flag_off(): void
     {
+        // has_shipping defaults to false for every item created through the
+        // admin, so it must not suppress the configured flat delivery fee.
         $shipping = OrderTotals::shippingTotal([
-            ['has_shipping' => true, 'shipping_charge' => 10],
-            ['has_shipping' => false, 'shipping_charge' => 0],
+            ['has_shipping' => false, 'shipping_charge' => null],
+            ['has_shipping' => false, 'shipping_charge' => null],
         ], 'delivery', 1000, 0);
 
-        $this->assertSame(0, $shipping);
+        $this->assertSame(1000, $shipping);
     }
 
     public function test_delivery_charge_is_configurable(): void

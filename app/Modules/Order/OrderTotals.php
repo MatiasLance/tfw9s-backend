@@ -89,13 +89,17 @@ class OrderTotals
     /**
      * Shipping charge for a cart, in cents.
      *
-     * Delivery orders pay the configured delivery fee as long as every item
-     * can be shipped. Pickup orders pay the configured pickup fee (which is
-     * normally zero). Items that cannot be shipped make a delivery order
-     * ineligible for shipping, matching the previous cart behaviour.
+     * Delivery orders pay the configured delivery fee and pickup orders pay
+     * the configured pickup fee (which is normally zero).
      *
-     * @param  iterable<int, array<string, mixed>>  $items  Each item needs
-     *         "has_shipping".
+     * The legacy per-item "has_shipping" flag deliberately does not gate the
+     * flat delivery fee. That column defaults to false and is not exposed at
+     * checkout, so using it as an eligibility check made every catalogue item
+     * created with the default silently ship free. "Can be shipped" is
+     * represented by the customer choosing delivery for a merchandise order.
+     *
+     * @param  iterable<int, array<string, mixed>>  $items  Retained for
+     *         backwards compatibility with existing callers.
      */
     public static function shippingTotal(
         iterable $items,
@@ -105,14 +109,6 @@ class OrderTotals
     ): int {
         if ($shipOption !== 'delivery' && $shipOption !== 'pickup') {
             return 0;
-        }
-
-        if ($shipOption === 'delivery') {
-            $items = collect($items);
-
-            if ($items->contains(fn (array $item): bool => ! ($item['has_shipping'] ?? false))) {
-                return 0;
-            }
         }
 
         $charges = self::resolveCharges($deliveryCharge, $pickupCharge);

@@ -101,6 +101,29 @@ class OrderTotalsAndInvoiceTest extends TestCase
         $this->assertEquals(50, $response->json('grand_total'));
     }
 
+    public function test_calculation_endpoint_charges_delivery_for_items_created_with_the_default_shipping_flag(): void
+    {
+        $this->configureTax(0, false);
+        $this->configureShipping(1000, 0);
+        // Mirrors a catalogue item created through the admin without touching
+        // the legacy "Has Shipping" toggle.
+        $item = $this->makeItem(40, 0, false);
+
+        $response = $this->postJson('/api/v1/orders/calculation', [
+            'items' => [
+                ['id' => $item->id, 'quantity' => 1],
+            ],
+            'metadata' => ['shipOption' => 'delivery'],
+        ]);
+
+        $response->assertOk();
+
+        $this->assertEquals(40, $response->json('subtotal'));
+        $this->assertEquals(10, $response->json('shipping'));
+        $this->assertEquals(0, $response->json('tax'));
+        $this->assertEquals(50, $response->json('grand_total'));
+    }
+
     public function test_calculation_endpoint_does_not_charge_shipping_for_pickup(): void
     {
         $this->configureTax(0, false);
