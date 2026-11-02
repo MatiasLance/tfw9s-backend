@@ -224,6 +224,12 @@ class TeamPositionRepository extends BaseRepository implements TeamPositionRepos
                 ->where('name', 'LIKE', '%'.$filters['q'].'%'));
         }
 
+        // A bye is stored as team_id = 0 and every other participant must
+        // resolve to a real team. This keeps "Unknown Team" placeholders
+        // (legacy bye rows, hard-deleted teams) out of the ladder.
+        $query->where('team_id', '>', 0)
+            ->whereHas('team');
+
         $hasEventFilters = ! empty($filters['year'])
             || ! empty($filters['round'])
             || ! empty($filters['agegroup'])

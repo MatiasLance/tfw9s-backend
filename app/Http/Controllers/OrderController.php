@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use App\Models\Tax;
 use App\Models\ToggleTaxControl;
+use App\Modules\Order\OrderTotals;
 
 class OrderController extends Controller
 {
@@ -82,26 +83,78 @@ class OrderController extends Controller
         $options = $this->orderService->retrieveShippingOptions();
 
         $message->setContent(200, 'Shipping options retrieved', '', [
-            'options' => $options
+            'options' => $options,
+            'charges' => [
+                'delivery' => (int) $options->delivery_charge,
+                'pickup' => (int) $options->pickup_charge,
+            ],
         ]);
 
         return $message->render();
     }
 
+    /**
+     * Admin-only alias for retrieving the shipping settings.
+     */
+    public function retrieveShippingSettings(Request $request, Message $message)
+    {
+        return $this->retrieveShippingOptions($request, $message);
+    }
+
     public function updateShippingOptions(Request $request, Message $message)
     {
-        $deliveryNote = $request->input('delivery_note', null);
-        $pickupNote = $request->input('pickup_note', null);
+        $validated = $request->validate([
+            'delivery_note' => ['sometimes', 'nullable', 'string'],
+            'pickup_note' => ['sometimes', 'nullable', 'string'],
+            'delivery_charge' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'pickup_charge' => ['sometimes', 'nullable', 'integer', 'min:0'],
+        ]);
 
-        $isSuccess = $this->orderService->updateShippingOptions($deliveryNote, $pickupNote);
+        $deliveryNote = array_key_exists('delivery_note', $validated)
+            ? $validated['delivery_note']
+            : null;
+        $pickupNote = array_key_exists('pickup_note', $validated)
+            ? $validated['pickup_note']
+            : null;
+        $deliveryCharge = array_key_exists('delivery_charge', $validated)
+            && ! is_null($validated['delivery_charge'])
+            ? (int) $validated['delivery_charge']
+            : null;
+        $pickupCharge = array_key_exists('pickup_charge', $validated)
+            && ! is_null($validated['pickup_charge'])
+            ? (int) $validated['pickup_charge']
+            : null;
+
+        $isSuccess = $this->orderService->updateShippingOptions(
+            $deliveryNote,
+            $pickupNote,
+            $deliveryCharge,
+            $pickupCharge
+        );
 
         if ($isSuccess) {
-            $message->setContent(200, 'Shipping notes updated');
+            $options = $this->orderService->retrieveShippingOptions();
+
+            $message->setContent(200, 'Shipping options updated', '', [
+                'options' => $options,
+                'charges' => [
+                    'delivery' => (int) $options->delivery_charge,
+                    'pickup' => (int) $options->pickup_charge,
+                ],
+            ]);
         } else {
-            $message->setContent(500, 'Shipping notes update failed. Please try again');
+            $message->setContent(500, 'Shipping options update failed. Please try again');
         }
 
         return $message->render();
+    }
+
+    /**
+     * Admin-only alias for updating the shipping settings.
+     */
+    public function updateShippingSettings(Request $request, Message $message)
+    {
+        return $this->updateShippingOptions($request, $message);
     }
 
     public function shippingCalc(Request $request)
@@ -176,63 +229,38 @@ class OrderController extends Controller
             array_push($shippings, $shipping);
         }
 
-        $hasDisabledShipping = collect($shippings)->contains('has_shipping', false);
-
         $totalProduct = $this->calculateTotal($discountcode, $lineItems);
 
         $tax = Tax::latest()->first();
         $toggleTaxControl = ToggleTaxControl::latest()->first();
 
-        $addTax = $tax?->getAddTaxValue();
-        $gstInclusive = $toggleTaxControl?->isToggleControle2();
+        $addTax = (float) ($tax?->getAddTaxValue() ?? 0);
+        $gstInclusive = (bool) ($toggleTaxControl?->isToggleControle2() ?? false);
 
-        $productTotal = $totalProduct['totalProduct'] * 100;
+        $productTotal = (int) round($totalProduct['totalProduct'] * 100);
 
-        $items = collect($shippings);
+        $shippingOption = $metadata['shipOption'] ?? $metadata['shippingType'] ?? null;
+        $charges = OrderTotals::configuredCharges();
 
-        $hasUnshippable = $items->contains('has_shipping', false);
+        $shippingFee = OrderTotals::shippingTotal(
+            $shippings,
+            $shippingOption,
+            $charges['delivery'],
+            $charges['pickup']
+        );
 
-        if (!$hasUnshippable && ($metadata['shipOption'] === 'delivery')) {
-            // $firstShippable = $items->firstWhere('has_shipping', true);
-            // $shippingFee = $firstShippable['shipping_charge'] ?? 0;
-            $shippingFee = $items->sum('shipping_charge') * 100;
-        } else {
-            $shippingFee = 0;
-        }
+        $totals = OrderTotals::calculate($productTotal, $shippingFee, $addTax, $gstInclusive);
 
-        if ($gstInclusive) {
-            // INCLUSIVE MODE: Tax included in both products and shipping
-            $totalBeforeTax = ($productTotal + $shippingFee) / (1 + ($addTax / 100));
-            $taxAmount = ($productTotal + $shippingFee) - $totalBeforeTax;
-            
-            $productBase = $productTotal / (1 + ($addTax / 100));
-            $shippingBase = $shippingFee / (1 + ($addTax / 100));
-            
-            $grandTotal = $productTotal + $shippingFee;
-            
-            return response()->json([
-                'subtotal' => $productBase / 100,
-                'shipping' => $shippingFee / 100,
-                'tax' => $taxAmount / 100,
-                'total' => ($productBase + $shippingBase) / 100,
-                'grand_total' => $grandTotal / 100,
-                'is_inclusive' => true
-            ]);
-            
-        } else {
-            // EXCLUSIVE MODE: Tax added to both products AND shipping
-            $taxAmount = ($productTotal + $shippingFee) * ($addTax / 100);
-            $grandTotal = $productTotal + $shippingFee + $taxAmount;
-            
-            return response()->json([
-                'subtotal' => $productTotal / 100,
-                'shipping' => $shippingFee / 100,
-                'tax' => $taxAmount / 100,
-                'total' => ($productTotal + $shippingFee) / 100,
-                'grand_total' => $grandTotal / 100,
-                'is_inclusive' => false
-            ]);
-        }
+        $totalBeforeTax = $totals['sub_total'] + $shippingFee - $totals['tax_total'];
+
+        return response()->json([
+            'subtotal' => $totals['sub_total'] / 100,
+            'shipping' => $totals['shipping_total'] / 100,
+            'tax' => $totals['tax_total'] / 100,
+            'total' => $totalBeforeTax / 100,
+            'grand_total' => $totals['grand_total'] / 100,
+            'is_inclusive' => $gstInclusive,
+        ]);
     }
 
     protected function calculateTotal($discountcode, array $items): array

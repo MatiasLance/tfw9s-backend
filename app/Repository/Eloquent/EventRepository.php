@@ -229,37 +229,8 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 }
             }
 
-            $matchesData = EventMatch::where('event_id', $event->id)->get(['team1', 'team2']);
-            $teamPositions = [];
+            $this->syncTeamPositions($event->id);
 
-            foreach ($matchesData as $match) {
-                foreach (['team1', 'team2'] as $teamKey) {
-                    $teamId = $match->$teamKey;
-
-                    if (!isset($teamPositions[$teamId])) {
-                        $teamPositions[$teamId] = TeamPosition::where('event_id', $event->id)
-                                                            ->where('team_id', $teamId)
-                                                            ->value('position');
-
-                        if ($teamPositions[$teamId] === null) {
-                            $teamPositions[$teamId] = count($teamPositions);
-                        }
-                    }
-
-                    $existingPosition = TeamPosition::where('event_id', $event->id)
-                                ->where('team_id', $teamId)
-                                ->exists();
-
-                    if (!$existingPosition) {
-                        $teamPosition = new TeamPosition();
-                        $teamPosition->event_id = $event->id;
-                        $teamPosition->team_id = $teamId;
-                        $teamPosition->position = $teamPositions[$teamId];
-                        $teamPosition->save();
-                    }
-                }
-            }
-            
             return $event;
         });
     }
@@ -307,34 +278,47 @@ class EventRepository extends BaseRepository implements EventRepositoryInterface
                 EventMatch::whereIn('id', $matchesToDeleteIds)->delete();
             }
 
-            $matchesData = EventMatch::where('event_id', $event->id)->get(['team1', 'team2']);
-            $teamPositions = [];
-
-            foreach ($matchesData as $match) {
-                foreach (['team1', 'team2'] as $teamKey) {
-                    $teamId = $match->$teamKey;
-
-                    $existingTeamPosition = TeamPosition::where('event_id', $event->id)
-                                                        ->where('team_id', $teamId)
-                                                        ->first();
-
-                    if (!$existingTeamPosition) {
-                        $teamPosition = new TeamPosition();
-                        $teamPosition->event_id = $event->id;
-                        $teamPosition->team_id = $teamId;
-                        
-                        if (!isset($teamPositions[$teamId])) {
-                            $teamPositions[$teamId] = count($teamPositions);
-                        }
-                        $teamPosition->position = $teamPositions[$teamId];
-                        
-                        $teamPosition->save();
-                    }
-                }
-            }
+            $this->syncTeamPositions($event->id);
 
         return $event->save();
         });
+    }
+
+    /**
+     * Reconcile the ladder (team_positions) with the event's current fixture
+     * set.
+     *
+     * Position rows are created only for real teams. A bye is stored on
+     * event_matches as team2 = 0, which is a sentinel value and must never
+     * become a ladder participant.
+     *
+     * Positions belonging to teams that are no longer part of any fixture
+     * (or legacy invalid rows such as team_id = 0) are removed so repeated
+     * fixture edits cannot leave stale or "Unknown Team" ladder entries.
+     */
+    private function syncTeamPositions(int $eventId): void
+    {
+        $teamIds = EventMatch::where('event_id', $eventId)
+            ->get(['team1', 'team2'])
+            ->flatMap(fn (EventMatch $match): array => [(int) $match->team1, (int) $match->team2])
+            ->filter(fn (int $teamId): bool => $teamId > 0)
+            ->unique()
+            ->values();
+
+        $positionsQuery = TeamPosition::where('event_id', $eventId);
+
+        if ($teamIds->isEmpty()) {
+            $positionsQuery->delete();
+        } else {
+            $positionsQuery->whereNotIn('team_id', $teamIds->all())->delete();
+        }
+
+        foreach ($teamIds as $index => $teamId) {
+            TeamPosition::firstOrCreate(
+                ['event_id' => $eventId, 'team_id' => $teamId],
+                ['position' => $index + 1]
+            );
+        }
     }
 
     public function deleteEvent(int $id): bool

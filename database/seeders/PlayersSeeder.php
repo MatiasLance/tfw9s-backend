@@ -9,37 +9,52 @@ use RuntimeException;
 
 class PlayersSeeder extends Seeder
 {
-    private const PLAYERS_PER_TEAM = 50;
+    /**
+     * Number of players created for each demo team.
+     */
+    private const PLAYERS_PER_TEAM = 16;
 
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        if (! Team::query()->exists()) {
-            throw new RuntimeException('PlayersSeeder requires teams to be seeded first.');
+        $teamNames = collect(TeamsSeeder::definitions())
+            ->flatMap(fn (array $definition): array => $definition['teams'])
+            ->values();
+
+        $teams = Team::query()
+            ->with('agegroup')
+            ->whereIn('name', $teamNames)
+            ->orderBy('id')
+            ->get();
+
+        if ($teams->count() !== $teamNames->count()) {
+            $missing = $teamNames->diff($teams->pluck('name'))->implode(', ');
+
+            throw new RuntimeException(
+                "PlayersSeeder requires the demo teams to be seeded first. Missing: {$missing}."
+            );
         }
 
-        Team::query()
-            ->with('agegroup')
-            ->orderBy('id')
-            ->each(function (Team $team): void {
-                for ($number = 1; $number <= self::PLAYERS_PER_TEAM; $number++) {
-                    $email = "team{$team->id}.player{$number}@example.test";
-                    $attributes = Player::factory()
-                        ->forTeam($team)
-                        ->make(['email' => $email])
-                        ->getAttributes();
+        foreach ($teams as $team) {
+            for ($number = 1; $number <= self::PLAYERS_PER_TEAM; $number++) {
+                $email = "demo.team{$team->id}.player{$number}@example.test";
 
-                    $player = Player::withTrashed()->firstOrNew(['email' => $email]);
-                    $player->forceFill($attributes);
+                $attributes = Player::factory()
+                    ->forTeam($team)
+                    ->make(['email' => $email])
+                    ->getAttributes();
 
-                    if ($player->trashed()) {
-                        $player->restore();
-                    }
+                $player = Player::withTrashed()->firstOrNew(['email' => $email]);
+                $player->forceFill($attributes);
 
-                    $player->save();
+                if ($player->trashed()) {
+                    $player->restore();
                 }
-            });
+
+                $player->save();
+            }
+        }
     }
 }

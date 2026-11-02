@@ -31,8 +31,9 @@ interface OrderServiceInterface
      * @param string|null $address Null if the shipping type is pickup
      * @param string|null $postCode Null if the shipping type is pickup
      * @param null|string $remarks
-     * @param integer $total
+     * @param integer $total Grand total in cents
      * @param array $items Items that was ordered
+     * @param array $totals Optional monetary breakdown: sub_total, shipping_total and tax_total (cents)
      * 
      * @return true|Order Returns true if the Order is already existing, otherwise returns the Order
      */
@@ -48,7 +49,8 @@ interface OrderServiceInterface
         ?string $postCode,
         ?string $remarks,
         int $total,
-        array $items
+        array $items,
+        array $totals = []
     );
 
     /**
@@ -58,10 +60,17 @@ interface OrderServiceInterface
      * 
      * @param string|null $deliveryNote
      * @param string|null $pickupNote
+     * @param int|null $deliveryCharge Delivery charge in cents
+     * @param int|null $pickupCharge Pickup charge in cents
      * 
      * @return bool;
      */
-    public function updateShippingOptions(?string $deliveryNote, ?string $pickupNote): bool;
+    public function updateShippingOptions(
+        ?string $deliveryNote,
+        ?string $pickupNote,
+        ?int $deliveryCharge = null,
+        ?int $pickupCharge = null
+    ): bool;
 
     /**
      * Mark order as verified

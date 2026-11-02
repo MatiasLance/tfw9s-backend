@@ -8,6 +8,7 @@ use App\Modules\Item\Exceptions\ItemStockCannotBeLowerThanZeroException;
 use App\Modules\Item\ItemServiceInterface;
 use App\Modules\Mail\MailServiceInterface;
 use App\Modules\Order\OrderServiceInterface;
+use App\Modules\Order\OrderTotals;
 use App\Modules\Payment\Exceptions\UnknownPaymentStatusException;
 use App\Modules\Payment\PaymentGateway;
 use App\Modules\Payment\PaymentStatus;
@@ -89,6 +90,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
     {
         $total = 0;
         $lineItems = [];
+        $shippings = [];
         $res = DiscountCode::where('code', $discountcode)->first();
 
         foreach ($items as $item) {
@@ -110,10 +112,15 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
 
             $lineItem = [
                 'item_id' => $currentItem->id,
-                'price' => $price,
+                'price' => (int) round($price),
                 'quantity' => $item['quantity'],
             ];
             array_push($lineItems, $lineItem);
+
+            array_push($shippings, [
+                'has_shipping' => $currentItem->has_shipping,
+                'shipping_charge' => $currentItem->shipping_charge,
+            ]);
         }
 
         $purchaseUnits = $this->generatePurchaseUnits($discountcode, $lineItems, $metadata);
@@ -122,6 +129,14 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
             $total += $value['value'];
         }
 
+        $tax = \App\Models\Tax::latest()->first();
+        $toggleTaxControl = \App\Models\ToggleTaxControl::latest()->first();
+        $addTax = (float) ($tax?->getAddTaxValue() ?? 0);
+        $gstInclusive = (bool) ($toggleTaxControl?->isToggleControle2() ?? false);
+        $shipOption = $metadata['shipOption'] ?? $metadata['shippingType'] ?? null;
+        $shippingFee = OrderTotals::shippingTotal($shippings, $shipOption);
+        $totals = OrderTotals::calculate((int) round($total), $shippingFee, $addTax, $gstInclusive);
+
         $order = $this->orderService->create(
             $metadata['transaction_id'],
             self::GATEWAY,
@@ -129,12 +144,13 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
             $metadata['lastName'],
             $metadata['phoneNumber'],
             $metadata['email'],
-            $metadata['shippingType'],
+            $metadata['shippingType'] ?? $shipOption,
             $metadata['address'],
             $metadata['postCode'],
             $metadata['remarks'] ?? '',
-            $total,
-            $lineItems
+            $totals['grand_total'],
+            $lineItems,
+            $totals
         );
 
         return $order->transaction_id;
@@ -188,8 +204,7 @@ class Paypal extends BasePaymentGateway implements PaymentGatewayInterface
                 'value' => $this->calculateItemTotal(
                     $discountcode,
                     $item['item_id'], 
-                    $item['quantity'],
-                    $metadata['shippingChoiceCalc']
+                    $item['quantity']
                 ),
             ];
 

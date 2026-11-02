@@ -127,6 +127,14 @@ class SeriesSeeder extends Seeder
                     $seriesEnd->addDays($group['duration']);
                 }
 
+                // Keep the demo series active around the current week so the
+                // seeded past/current/upcoming events fall inside the series
+                // window rather than before it starts.
+                if (in_array($name, ['Weekly Series', 'Central Coast', 'Tournament'], true)) {
+                    $seriesStart = $startDate->copy()->subWeeks(4);
+                    $seriesEnd = $startDate->copy()->addWeeks(6);
+                }
+
                 $seriesList[] = [
                     'name' => $name,
                     'type' => $type,

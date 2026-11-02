@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Modules\Order\Tests;
+
+use App\Modules\Order\OrderTotals;
+use Tests\TestCase;
+
+class OrderTotalsTest extends TestCase
+{
+    public function test_grand_total_includes_shipping_when_tax_is_zero(): void
+    {
+        $totals = OrderTotals::calculate(4000, 1000, 0.0, false);
+
+        $this->assertSame(4000, $totals['sub_total']);
+        $this->assertSame(1000, $totals['shipping_total']);
+        $this->assertSame(0, $totals['tax_total']);
+        $this->assertSame(5000, $totals['grand_total']);
+    }
+
+    public function test_inclusive_tax_breakdown_adds_up_to_grand_total(): void
+    {
+        $totals = OrderTotals::calculate(4000, 1000, 10.0, true);
+
+        $this->assertSame(5000, $totals['grand_total']);
+        $this->assertSame(
+            $totals['grand_total'],
+            $totals['sub_total'] + $totals['shipping_total'] + $totals['tax_total']
+        );
+    }
+
+    public function test_exclusive_tax_breakdown_adds_up_to_grand_total(): void
+    {
+        $totals = OrderTotals::calculate(4000, 1000, 10.0, false);
+
+        $this->assertSame(4000, $totals['sub_total']);
+        $this->assertSame(1000, $totals['shipping_total']);
+        $this->assertSame(500, $totals['tax_total']);
+        $this->assertSame(5500, $totals['grand_total']);
+        $this->assertSame(
+            $totals['grand_total'],
+            $totals['sub_total'] + $totals['shipping_total'] + $totals['tax_total']
+        );
+    }
+
+    public function test_shipping_is_not_charged_for_pickup(): void
+    {
+        $shipping = OrderTotals::shippingTotal([
+            ['has_shipping' => true, 'shipping_charge' => 10],
+        ], 'pickup', 1000, 0);
+
+        $this->assertSame(0, $shipping);
+    }
+
+    public function test_pickup_charge_is_configurable(): void
+    {
+        $shipping = OrderTotals::shippingTotal([
+            ['has_shipping' => true, 'shipping_charge' => 10],
+        ], 'pickup', 1000, 250);
+
+        $this->assertSame(250, $shipping);
+    }
+
+    public function test_delivery_charge_is_charged_for_items_with_the_legacy_shipping_flag_off(): void
+    {
+        // has_shipping defaults to false for every item created through the
+        // admin, so it must not suppress the configured flat delivery fee.
+        $shipping = OrderTotals::shippingTotal([
+            ['has_shipping' => false, 'shipping_charge' => null],
+            ['has_shipping' => false, 'shipping_charge' => null],
+        ], 'delivery', 1000, 0);
+
+        $this->assertSame(1000, $shipping);
+    }
+
+    public function test_delivery_charge_is_configurable(): void
+    {
+        $shipping = OrderTotals::shippingTotal([
+            ['has_shipping' => true, 'shipping_charge' => 10],
+            ['has_shipping' => true, 'shipping_charge' => 15.5],
+        ], 'delivery', 1250, 0);
+
+        $this->assertSame(1250, $shipping);
+    }
+
+    public function test_shipping_is_not_charged_without_a_supported_option(): void
+    {
+        $shipping = OrderTotals::shippingTotal([
+            ['has_shipping' => true, 'shipping_charge' => 10],
+        ], null, 1000, 0);
+
+        $this->assertSame(0, $shipping);
+    }
+}

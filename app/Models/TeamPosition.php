@@ -9,6 +9,19 @@ class TeamPosition extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'event_id',
+        'position',
+        'team_id',
+        'win',
+        'loss',
+        'draw',
+        'for',
+        'against',
+        'difference',
+        'points',
+    ];
+
     protected $hidden = [
         'deleted_at',
         'created_at',

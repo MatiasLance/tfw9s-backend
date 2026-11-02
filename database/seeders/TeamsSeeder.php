@@ -12,61 +12,98 @@ use RuntimeException;
 class TeamsSeeder extends Seeder
 {
     /**
+     * Demo teams grouped by age category.
+     *
+     * The age group names use the application's existing numeric convention:
+     * "9" is U9s, "12" is U12s, and "Open" is the senior/open category.
+     *
+     * @return array<string, array{series: string, region: string, teams: array<int, string>}>
+     */
+    public static function definitions(): array
+    {
+        return [
+            '9' => [
+                'series' => 'Weekly Series',
+                'region' => 'Central Coast',
+                'teams' => [
+                    'Avoca Sharks U9',
+                    'Bateau Bay Bears U9',
+                    'Erina Eagles U9',
+                    'Gosford Giants U9',
+                    'Kincumber Colts U9',
+                    'Terrigal Titans U9',
+                    'The Entrance Eels U9',
+                    'Wyong Warriors U9',
+                ],
+            ],
+            '12' => [
+                'series' => 'Central Coast',
+                'region' => 'Central Coast',
+                'teams' => [
+                    'Avoca Sharks U12',
+                    'Bateau Bay Bears U12',
+                    'Erina Eagles U12',
+                    'Gosford Giants U12',
+                    'Kincumber Colts U12',
+                    'Terrigal Titans U12',
+                    'The Entrance Eels U12',
+                    'Wyong Warriors U12',
+                ],
+            ],
+            'Open' => [
+                'series' => 'Tournament',
+                'region' => 'Hunter Valley',
+                'teams' => [
+                    'Central Coast Cobras',
+                    'Newcastle Knights Academy',
+                    'Maitland Mustangs',
+                    'Cessnock Cougars',
+                    'Lake Macquarie Lakers',
+                    'Singleton Stallions',
+                    'Port Stephens Pythons',
+                    'Wallsend Wolves',
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        $locations = [
-            'Avoca',
-            'Bateau Bay',
-            'Erina',
-            'Gosford',
-            'Kincumber',
-            'Lisarow',
-            'Terrigal',
-            'The Entrance',
-            'Toukley',
-            'Wyong',
-        ];
-        $mascots = ['Blazers', 'Falcons', 'Rangers', 'Strikers', 'United'];
-        $teamNames = [];
+        foreach (self::definitions() as $ageGroupName => $definition) {
+            $ageGroup = AgeGroup::withTrashed()->where('name', $ageGroupName)->first();
+            $series = Series::withTrashed()->where('name', $definition['series'])->first();
+            $region = Region::withTrashed()->where('name', $definition['region'])->first();
 
-        foreach ($locations as $location) {
-            foreach ($mascots as $mascot) {
-                $teamNames[] = "{$location} {$mascot}";
-            }
-        }
-
-        $regions = Region::query()->pluck('id');
-        $ageGroups = AgeGroup::query()->pluck('id');
-        $series = Series::query()->pluck('id');
-
-        if ($regions->isEmpty() || $ageGroups->isEmpty() || $series->isEmpty()) {
-            throw new RuntimeException(
-                'TeamsSeeder requires regions, age groups, and series to be seeded first.'
-            );
-        }
-
-        foreach ($teamNames as $index => $name) {
-            $eventIndex = intdiv($index, 3) % $ageGroups->count();
-
-            $attributes = Team::factory()
-                ->make([
-                    'name' => $name,
-                    'region_id' => $regions[$eventIndex % $regions->count()],
-                    'agegroup_id' => $ageGroups[$eventIndex],
-                    'series_id' => $series[$eventIndex % $series->count()],
-                ])
-                ->getAttributes();
-
-            $team = Team::withTrashed()->firstOrNew(['name' => $name]);
-            $team->forceFill($attributes);
-
-            if ($team->trashed()) {
-                $team->restore();
+            if (! $ageGroup || ! $series || ! $region) {
+                throw new RuntimeException(
+                    "TeamsSeeder requires the {$ageGroupName} age group, {$definition['series']} series, and {$definition['region']} region."
+                );
             }
 
-            $team->save();
+            foreach ($definition['teams'] as $index => $teamName) {
+                $attributes = Team::factory()
+                    ->make([
+                        'name' => $teamName,
+                        'agegroup_id' => $ageGroup->id,
+                        'series_id' => $series->id,
+                        'region_id' => $region->id,
+                        'player_limit' => 24,
+                        'pool' => $index % 2 === 0 ? 'A' : 'B',
+                    ])
+                    ->getAttributes();
+
+                $team = Team::withTrashed()->firstOrNew(['name' => $teamName]);
+                $team->forceFill($attributes);
+
+                if ($team->trashed()) {
+                    $team->restore();
+                }
+
+                $team->save();
+            }
         }
     }
 }
